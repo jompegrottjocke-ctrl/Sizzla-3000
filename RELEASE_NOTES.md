@@ -1,4 +1,6 @@
-Sizzla 3000 0.4.0 för Windows 11 (x64): Inköp.
+Sizzla 3000 0.4.1 för Windows 11 (x64): Inköp.
+
+Ombyggnad med Windows Server 2022-runner efter att GitHubs windows-latest-jobb inte kunde tilldelas en runner. Appens funktioner är oförändrade från 0.4.0.
 
 - Leverantörsregister med kontaktuppgifter, villkor och arkivering.
 - Inköpsorder, utskrift, delleveranser och rättelser av inleveranser.
