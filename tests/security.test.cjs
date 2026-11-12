@@ -11,7 +11,7 @@ test('complete WAL backups, authenticated encryption, safe staged restore and fo
  const state=()=>fetch(app.url+'/api/state').then(r=>r.json());let token=(await state()).token;
  const post=(route,body={},origin=app.url)=>fetch(app.url+'/api/'+route,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});
  try{
-  assert.equal((await state()).security.enabled,false);
+  assert.equal((await state()).security.enabled,undefined);
   await post('company',{name:'Alla register AB'});await post('customers',{name:'Före backup'});
   await post('preferences',{language:'en',theme:'dark',textSize:175,bold:true});await post('preferences',{language:'sv',theme:'dark'});
   assert.equal((await state()).preferences.textSize,175);
@@ -38,41 +38,20 @@ test('complete WAL backups, authenticated encryption, safe staged restore and fo
   const previous=new DatabaseSync(path.join(dataDir,fs.readdirSync(dataDir).find(f=>f.startsWith('before-import-'))));assert.equal(previous.prepare("SELECT count(*) AS n FROM records WHERE kind='customer'").get().n,2);previous.close();
  }finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
 });
-test('application lock gates all data, persists across restart, throttles attempts and checks old password',async(t)=>{
- const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-lock-'));let app=createApp({dataDir});await app.listen();let token=(await fetch(app.url+'/api/state').then(r=>r.json())).token;
- const post=(route,body={})=>fetch(app.url+'/api/'+route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});
- const pass='1234';
- try{
-  await post('company',{name:'Hemlig AB'});assert.equal((await post('security/configure',{enabled:true,minutes:5,password:pass})).status,200);
-  assert.equal((await post('security/configure',{enabled:true,minutes:5,currentPassword:pass,password:'abc'})).status,400);assert.equal((await fetch(app.url+'/api/security/status').then(r=>r.json())).enabled,true);
-  const now=Date.now();t.mock.method(Date,'now',()=>now+6*60000);assert.equal((await fetch(app.url+'/api/security/status').then(r=>r.json())).locked,true);t.mock.restoreAll();
-  await post('security/lock');const response=await fetch(app.url+'/api/state');assert.equal(response.status,423);assert.equal((await response.text()).includes('Hemlig AB'),false);
-  for(const route of ['security/export','company','security/import','security/open-folder','security/activity','preferences'])assert.equal((await post(route,{encrypted:false,name:'Bypass'})).status,423);
-  assert.equal((await post('security/unlock',{password:'Wrong password 123'})).status,400);assert.equal((await post('security/unlock',{password:pass})).status,400);
-  await new Promise(resolve=>setTimeout(resolve,1550));assert.equal((await post('security/unlock',{password:pass})).status,200);
-  assert.equal((await post('security/configure',{enabled:false,minutes:0,currentPassword:'Wrong password 123'})).status,400);
-  app.close();app=createApp({dataDir});await app.listen();const status=await fetch(app.url+'/api/security/status').then(r=>r.json());token=status.token;assert.equal(status.locked,true);
-  assert.equal((await post('security/unlock',{password:pass})).status,200);
-  assert.equal((await post('security/configure',{enabled:false,minutes:0,currentPassword:pass})).status,200);
-  app.close();app=createApp({dataDir});await app.listen();assert.equal((await fetch(app.url+'/api/state').then(r=>r.json())).security.enabled,false);
- }finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
-});
-test('unlock history retains only ten successful password unlocks, survives restart and is hidden while locked',async()=>{
- const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-unlock-history-'));let app=createApp({dataDir});await app.listen();
+test('legacy enabled locks cannot block startup, API access or database import after removal',async()=>{
+ const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-no-lock-'));let app=createApp({dataDir});
+ const legacy=JSON.stringify({hash:'a'.repeat(64),salt:'b'.repeat(32),minutes:5,unlocks:['2026-11-12T12:00:00.000Z']});
+ app.db.prepare('INSERT INTO app_security VALUES(1,?)').run(legacy);app.close();app=createApp({dataDir});await app.listen();
  const state=()=>fetch(app.url+'/api/state').then(r=>r.json());let token=(await state()).token;
- const post=(route,body={})=>fetch(app.url+'/api/security/'+route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});
+ const post=(route,body={})=>fetch(app.url+'/api/'+route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});
  try{
-  await post('unlock');assert.deepEqual((await state()).security.unlocks,[]);
-  await post('configure',{enabled:true,minutes:0,password:'1234'});assert.deepEqual((await state()).security.unlocks,[]);
-  for(let i=0;i<12;i++){app.lock();assert.equal((await post('unlock',{password:'1234'})).status,200);}
-  const history=(await state()).security.unlocks;assert.equal(history.length,10);assert.ok(history.every((date,i)=>/^\d{4}-\d{2}-\d{2}T/.test(date)&&(!i||date<=history[i-1])));
-  await post('unlock',{password:'1234'});assert.deepEqual((await state()).security.unlocks,history);
-  await post('configure',{enabled:true,minutes:0,password:'4321',currentPassword:'1234'});assert.deepEqual((await state()).security.unlocks,history);
-  app.close();app=createApp({dataDir});await app.listen();const publicStatus=await fetch(app.url+'/api/security/status').then(r=>r.json());token=publicStatus.token;assert.equal(publicStatus.locked,true);assert.equal(publicStatus.unlocks,undefined);
-  const lockedState=await state();assert.equal(lockedState.security.unlocks,undefined);
-  assert.equal((await post('unlock',{password:'incorrect'})).status,400);await new Promise(resolve=>setTimeout(resolve,1550));
-  assert.equal((await post('unlock',{password:'4321'})).status,200);
-  const restored=(await state()).security.unlocks;assert.equal(restored.length,10);assert.deepEqual(restored.slice(1),history.slice(0,9));
-  await post('configure',{enabled:false,minutes:0,currentPassword:'4321'});assert.deepEqual((await state()).security.unlocks,restored);
+  assert.equal((await state()).security.locked,undefined);assert.equal((await state()).security.unlocks,undefined);
+  assert.equal((await post('company',{name:'Öppet efter uppdatering AB'})).status,200);
+  for(const route of ['lock','unlock','configure','activity'])assert.equal((await post('security/'+route,{enabled:true,minutes:5,password:'1234'})).status,400);
+  const exported=Buffer.from(await (await post('security/export',{encrypted:false})).arrayBuffer());
+  assert.equal((await post('security/import',{file:exported.toString('base64'),confirm:true})).status,200);
+  app.close();app=createApp({dataDir});await app.listen();token=(await state()).token;
+  assert.equal((await state()).company.name,'Öppet efter uppdatering AB');assert.equal((await post('customers',{name:'Tillgänglig kund'})).status,200);
+  assert.equal(app.db.prepare('SELECT data FROM app_security WHERE id=1').get().data,legacy);
  }finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
 });

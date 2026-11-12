@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog, powerMonitor } = require('electron');
+const { app, BrowserWindow, shell, dialog } = require('electron');
 const path = require('node:path');
 const { createApp } = require('./server.cjs');
 app.setName('Sizzla 3000');
@@ -11,7 +11,6 @@ async function open() {
   if (!service) {
     const dataDir=process.env.SIZZLA_DATA_DIR || path.join(app.getPath('userData'), 'data');
     service = createApp({dataDir,openDataDirectory:async()=>{const error=await shell.openPath(dataDir);if(error)throw new Error(error);}});
-    for(const event of ['lock-screen','suspend'])powerMonitor.on(event,()=>{if(!service.lock())return;for(const win of BrowserWindow.getAllWindows())win.webContents.reload();});
     await service.listen();
   }
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 1000, minHeight: 700,
