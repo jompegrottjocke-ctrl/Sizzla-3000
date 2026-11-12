@@ -1,4 +1,6 @@
-Sizzla 3000 0.5.2 för Windows 11 (x64): programlås med minst 4 tecken.
+Sizzla 3000 0.5.3 för Windows 11 (x64): upplåsningshistorik.
+
+Under Säkerhet visas nu de 10 senaste lyckade upplåsningarna med lösenord, med lokalt datum och klockslag. Historiken sparas mellan starter. Den visar när programmet låstes upp, inte vem. Äldre upplåsningar kan inte återskapas.
 
 Minimilängden för programlåset har ändrats från 10 till 4 tecken. Befintliga lösenord fungerar fortfarande. Krypterade säkerhetskopior kräver fortsatt minst 10 tecken. En synlig **Lås · Ctrl + L**-knapp visas nu i överkanten från alla flikar när programlåset är aktiverat.
 

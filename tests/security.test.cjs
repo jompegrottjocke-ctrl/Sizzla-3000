@@ -57,3 +57,22 @@ test('application lock gates all data, persists across restart, throttles attemp
   app.close();app=createApp({dataDir});await app.listen();assert.equal((await fetch(app.url+'/api/state').then(r=>r.json())).security.enabled,false);
  }finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
 });
+test('unlock history retains only ten successful password unlocks, survives restart and is hidden while locked',async()=>{
+ const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-unlock-history-'));let app=createApp({dataDir});await app.listen();
+ const state=()=>fetch(app.url+'/api/state').then(r=>r.json());let token=(await state()).token;
+ const post=(route,body={})=>fetch(app.url+'/api/security/'+route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});
+ try{
+  await post('unlock');assert.deepEqual((await state()).security.unlocks,[]);
+  await post('configure',{enabled:true,minutes:0,password:'1234'});assert.deepEqual((await state()).security.unlocks,[]);
+  for(let i=0;i<12;i++){app.lock();assert.equal((await post('unlock',{password:'1234'})).status,200);}
+  const history=(await state()).security.unlocks;assert.equal(history.length,10);assert.ok(history.every((date,i)=>/^\d{4}-\d{2}-\d{2}T/.test(date)&&(!i||date<=history[i-1])));
+  await post('unlock',{password:'1234'});assert.deepEqual((await state()).security.unlocks,history);
+  await post('configure',{enabled:true,minutes:0,password:'4321',currentPassword:'1234'});assert.deepEqual((await state()).security.unlocks,history);
+  app.close();app=createApp({dataDir});await app.listen();const publicStatus=await fetch(app.url+'/api/security/status').then(r=>r.json());token=publicStatus.token;assert.equal(publicStatus.locked,true);assert.equal(publicStatus.unlocks,undefined);
+  const lockedState=await state();assert.equal(lockedState.security.unlocks,undefined);
+  assert.equal((await post('unlock',{password:'incorrect'})).status,400);await new Promise(resolve=>setTimeout(resolve,1550));
+  assert.equal((await post('unlock',{password:'4321'})).status,200);
+  const restored=(await state()).security.unlocks;assert.equal(restored.length,10);assert.deepEqual(restored.slice(1),history.slice(0,9));
+  await post('configure',{enabled:false,minutes:0,currentPassword:'4321'});assert.deepEqual((await state()).security.unlocks,restored);
+ }finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
+});

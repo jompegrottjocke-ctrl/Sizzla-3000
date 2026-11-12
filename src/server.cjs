@@ -43,7 +43,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       }
       if(url.pathname.startsWith('/api/')&&security.status().locked&&!['/api/security/status','/api/security/unlock'].includes(url.pathname))return send(res,423,{error:'locked',token,preferences:preferences(),security:security.status()});
       if(req.method==='GET'&&url.pathname==='/api/security/status')return send(res,200,{...security.status(),token});
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, security:security.status(), preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice'),...hr.state(),accounting:accounting.state(),purchases:purchases.state() });
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, security:{...security.status(),unlocks:security.history()}, preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice'),...hr.state(),accounting:accounting.state(),purchases:purchases.state() });
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       let raw = '';
       for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (url.pathname==='/api/security/import'?90*1024*1024:262144)) return send(res,413,{error:'size'}); }

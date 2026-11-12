@@ -26,16 +26,17 @@ function initSecurity(db,{dataDir,openDataDirectory}){
  const lock=()=>{if(!enabled())return false;locked=true;return true;};
  const status=()=>{if(enabled()&&config.minutes&&Date.now()-lastActivity>=config.minutes*60000)lock();return {enabled:enabled(),locked,minutes:config.minutes||0,canOpenFolder:!!openDataDirectory,importPending:fs.existsSync(path.join(dataDir,'pending-import.sqlite'))};};
  const verify=value=>{if(Date.now()<nextAttempt)throw new Error('passwordWait');if(typeof value!=='string'||value.length>256)throw new Error('passwordWrong');nextAttempt=Date.now()+1500;const valid=crypto.timingSafeEqual(key(value,Buffer.from(config.salt,'hex'),4),Buffer.from(config.hash,'hex'));if(!valid)throw new Error('passwordWrong');nextAttempt=0;};
- return {status,lock,handle:async(route,body)=>{
+ const history=()=>Array.isArray(config.unlocks)?config.unlocks.filter(value=>typeof value==='string'&&Number.isFinite(Date.parse(value))).slice(0,10):[];
+ return {status,lock,history,handle:async(route,body)=>{
   if(route==='status')return status();
-  if(route==='unlock'){if(enabled())verify(body.password);locked=false;lastActivity=Date.now();return {ok:true};}
+  if(route==='unlock'){if(enabled()){verify(body.password);if(locked){const next={...config,unlocks:[new Date().toISOString(),...history()].slice(0,10)};db.prepare('INSERT INTO app_security VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify(next));config=next;}}locked=false;lastActivity=Date.now();return {ok:true};}
   if(status().locked)throw new Error('locked');
   if(route==='activity'){lastActivity=Date.now();return {ok:true};}
   if(route==='lock'){lock();return {ok:true};}
   if(route==='configure'){
    if(enabled())verify(body.currentPassword);
    if(typeof body.enabled!=='boolean'||![0,5,15,30].includes(body.minutes))throw new Error('securityInvalid');
-   let next={minutes:body.minutes};if(body.enabled){const salt=crypto.randomBytes(16);next={...next,salt:salt.toString('hex'),hash:key(body.password,salt,4).toString('hex')};}
+   let next={minutes:body.minutes,unlocks:history()};if(body.enabled){const salt=crypto.randomBytes(16);next={...next,salt:salt.toString('hex'),hash:key(body.password,salt,4).toString('hex')};}
    db.prepare('INSERT INTO app_security VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify(next));config=next;lastActivity=Date.now();return {ok:true};
   }
   if(route==='open-folder'){if(!openDataDirectory)throw new Error('desktopOnly');await openDataDirectory();return {ok:true};}
