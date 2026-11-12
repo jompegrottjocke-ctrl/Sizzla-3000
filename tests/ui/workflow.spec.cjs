@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 test('company → customer → article → invoice draft, language and beta tabs',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/');
- await page.getByRole('button',{name:'Fyll i företagsuppgifter'}).click();
+ await page.locator('nav').getByRole('button',{name:'Mitt företag',exact:true}).click();
  await page.getByLabel('Namn').fill('Sizzla Test AB');
  await page.getByLabel('Organisationsnummer').fill('559123-4567');
  await page.getByRole('button',{name:'Spara',exact:true}).click();
@@ -38,11 +38,11 @@ test('company → customer → article → invoice draft, language and beta tabs
  await page.getByRole('button',{name:'Avbryt'}).click();
  await page.getByLabel('Sök…').fill('finnsinte');await expect(page.getByText('Inga träffar')).toBeVisible();
  await page.getByLabel('Språk',{exact:true}).selectOption('en');
- await page.locator('nav').getByRole('button',{name:'People & payroll'}).click();
+ await page.locator('nav').getByRole('button',{name:'Accounting',exact:true}).click();
  await expect(page.getByRole('heading',{name:'beta comes later'})).toBeVisible();
  await page.reload();
  await expect(page.locator('html')).toHaveAttribute('lang','en');
- await page.locator('nav').getByRole('button',{name:'People & payroll'}).click();
+ await page.locator('nav').getByRole('button',{name:'Accounting',exact:true}).click();
  await page.getByLabel('Language',{exact:true}).selectOption('sv');
  await expect(page.getByRole('heading',{name:'beta kommer senare'})).toBeVisible();
  await page.locator('nav').getByRole('button',{name:'Översikt',exact:true}).click();

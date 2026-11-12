@@ -4,17 +4,20 @@ const path = require('node:path');
 const { randomBytes, randomUUID } = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 const { ValidationError, text, decimal, invoice } = require('./domain.cjs');
+const { initHr, HrError } = require('./hr.cjs');
 function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirname, '..', '.local') } = {}) {
-  fs.mkdirSync(dataDir, { recursive: true });
+  fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const db = new DatabaseSync(path.join(dataDir, 'sizzla.sqlite'));
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
     CREATE TABLE IF NOT EXISTS records (kind TEXT NOT NULL, id TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(kind,id));
     CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL);
-    PRAGMA user_version=1;`);
+    CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL);`);
+  const hr=initHr(db);
   const token = randomBytes(32).toString('hex');
   const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data) }));
   const get = (kind,id) => { const row = db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,id); return row ? { id, data: JSON.parse(row.data) } : null; };
   const settings = () => JSON.parse(db.prepare('SELECT data FROM settings WHERE id=1').get()?.data || '{}');
+  const preferences = () => JSON.parse(db.prepare('SELECT data FROM preferences WHERE id=1').get()?.data || '{}');
   function send(res, status, value, type = 'application/json; charset=utf-8') {
     res.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
       'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" });
@@ -24,17 +27,26 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && ['/','/app.js','/style.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/app.js','/hr.js','/style.css','/hr.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice') });
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice'),...hr.state() });
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       let raw = '';
       for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 262144) return send(res,413,{error:'size'}); }
       let body;
       try { body = JSON.parse(raw); } catch { return send(res,400,{error:'json'}); }
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new ValidationError('data');
+      if(url.pathname==='/api/preferences') {
+        if(!['sv','en'].includes(body.language)||!['light','dark','system'].includes(body.theme))throw new ValidationError('preferences');
+        db.prepare('INSERT INTO preferences VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify({language:body.language,theme:body.theme}));
+        return send(res,200,{ok:true});
+      }
+      if (/^\/api\/(employees|payruns|leaves)(\/|$)/.test(url.pathname)) {
+        const result=hr.handle(url.pathname,body,settings());
+        return send(res,result?200:404,result||{error:'route'});
+      }
       if (url.pathname === '/api/company') {
         const data = {};
         for (const key of ['name','org','email','phone','address','postal','city','bankgiro']) data[key] = text(body[key] ?? '',key,key === 'name');
@@ -61,7 +73,8 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));
       send(res,200,{id});
     } catch (error) {
-      if (error instanceof ValidationError) send(res,400,{error:error.message});
+      if (error instanceof HrError) send(res,error.status,{error:error.message});
+      else if (error instanceof ValidationError) send(res,400,{error:error.message});
       else { console.error(error); send(res,500,{error:'internal'}); }
     }
   });

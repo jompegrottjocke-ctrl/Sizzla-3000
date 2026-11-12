@@ -1,0 +1,30 @@
+:root[data-theme=dark]{color-scheme:dark;color:#dbe5ee;background:#111b26;--green:#27886c;--line:#2b3b4b;--muted:#a1adbc}
+[data-theme=dark] aside,[data-theme=dark] .panel,[data-theme=dark] .stat-card,[data-theme=dark] .hr-stats>div,[data-theme=dark] .editor,[data-theme=dark] .dialog-foot{background:#1a2735;color:#dbe5ee}
+[data-theme=dark] header{background:#172330}
+[data-theme=dark] .brand,[data-theme=dark] h1,[data-theme=dark] h2,[data-theme=dark] h3,[data-theme=dark] .totals strong,[data-theme=dark] .totals .grand,[data-theme=dark] td strong,[data-theme=dark] .step{color:#dbe5ee}
+[data-theme=dark] .company-chip,[data-theme=dark] th,[data-theme=dark] .step,[data-theme=dark] .icon-button{background:#202f3f}
+[data-theme=dark] .company-icon{background:#31455a}
+[data-theme=dark] input,[data-theme=dark] select,[data-theme=dark] textarea,[data-theme=dark] .language select,[data-theme=dark] .secondary{background:#142231;color:#d2deea;border-color:#405268}
+[data-theme=dark] input:disabled{background:#24303e;color:#91a1b2}
+[data-theme=dark] .search input{background:transparent}
+[data-theme=dark] .nav-item{color:#aebccc}
+[data-theme=dark] .nav-item:hover,[data-theme=dark] .hr-tabs button:hover{background:#263b4a}
+[data-theme=dark] .nav-item.active,[data-theme=dark] .hr-tabs button[aria-selected=true]{background:#20443d;color:#b7e9d4}
+[data-theme=dark] .setup-banner{background:linear-gradient(110deg,#1e3c32,#283d32);border-color:#3d5a48}
+[data-theme=dark] .setup-banner .eyebrow,[data-theme=dark] .hr-form-heading{color:#a4d8bf}
+[data-theme=dark] .notice{background:#213648;color:#bbd1df;border-color:#3b5268}
+[data-theme=dark] td{color:#b0c0d0;border-bottom-color:#2b3b4b}
+[data-theme=dark] th,[data-theme=dark] .field,[data-theme=dark] .hr-check,[data-theme=dark] .breadcrumb strong,[data-theme=dark] .local-pill{color:#adbdcb}
+[data-theme=dark] .text-button,[data-theme=dark] .hr-balances strong{color:#8bd4b4}
+[data-theme=dark] .text-button:hover{background:#274639}
+[data-theme=dark] .hr-total{background:#244438}
+[data-theme=dark] .hr-total td{color:#c5ebd8}
+[data-theme=dark] .hr-error{color:#f2a79c}
+[data-theme=dark] .beta-tag{background:#314253;color:#b6c4d0}
+[data-theme=dark] .hr-badge{background:#344759;color:#d5e0e9}
+[data-theme=dark] .hr-badge.active,[data-theme=dark] .hr-badge.paid{background:#264d3d;color:#b1e4c6}
+[data-theme=dark] .hr-badge.approved{background:#2d4261;color:#c0d4f7}
+[data-theme=dark] .hr-badge.cancelled,[data-theme=dark] .hr-badge.ended{background:#593c38;color:#f0c3b4}
+[data-theme=dark] .draft-badge,[data-theme=dark] .hr-badge.draft,[data-theme=dark] .hr-badge.upcomingEmployee{background:#4c4430;border-color:#6c5d3a;color:#e9d498}
+[data-theme=dark] .print-sheet{background:#1a2735}
+@media print{:root[data-theme=dark]{color-scheme:light;color:#182a40;background:#fff}[data-theme=dark] .print-sheet{background:#fff;color:#182a40}[data-theme=dark] .print-sheet h1,[data-theme=dark] .print-sheet h2,[data-theme=dark] .print-sheet h3,[data-theme=dark] .print-sheet td,[data-theme=dark] .print-sheet th,[data-theme=dark] .print-sheet .totals strong{color:#182a40}[data-theme=dark] .print-sheet th{background:#f5f7fa}[data-theme=dark] .print-sheet td{border-color:#ddd}[data-theme=dark] .hr-total{background:#eef5f2}}
