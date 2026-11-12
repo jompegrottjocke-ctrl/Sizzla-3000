@@ -6,7 +6,7 @@ Detta är en teknisk grund för systemdokumentation, inte en försäkran om full
 
 ## Organisation och lagring
 
-En lokal Windowsapp används för ett företag per databas. Flera databaser kan registreras under Databaser, men endast en är aktiv åt gången. Register, bokföring, löner, lager och PDF-historik är separerade. Electron visar gränssnittet; ett API på loopback validerar och lagrar uppgifter i SQLite. Ingen molnsynkronisering eller fleranvändarhantering finns. Databaskatalogen kan öppnas från Säkerhet & säkerhetskopiering. Normal Windowsplats är `%APPDATA%/Sizzla 3000/data`; `SIZZLA_DATA_DIR` kan ändra den. Första databasen ligger kvar i denna katalog. `databases.json` innehåller listan och aktivt val; nya databaser ligger i `databases/<id>/`. En gemensam nätverksmapp stöds inte.
+En lokal Windowsapp används för ett företag per databas. Upp till tio företagsdatabaser, inklusive den första, kan registreras under Databaser, men endast en är aktiv åt gången. Register, bokföring, löner, lager och PDF-historik är separerade. Electron visar gränssnittet; ett API på loopback validerar och lagrar uppgifter i SQLite. Ingen molnsynkronisering eller fleranvändarhantering finns. Databaskatalogen kan öppnas från Säkerhet & säkerhetskopiering. Normal Windowsplats är `%APPDATA%/Sizzla 3000/data`; `SIZZLA_DATA_DIR` kan ändra den. Första databasen ligger kvar i denna katalog. `databases.json` innehåller listan och aktivt val; nya databaser ligger i `databases/<id>/`. En gemensam nätverksmapp stöds inte.
 
 | Del | Lagring och samband |
 | --- | --- |

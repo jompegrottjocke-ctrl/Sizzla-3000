@@ -1,6 +1,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {randomUUID}=require('node:crypto');
+const MAX_DATABASES=10;
 class DatabaseError extends Error{constructor(message,status=409){super(message);this.status=status;}}
 function initDatabases(root){
  const file=path.join(root,'databases.json');
@@ -17,10 +18,10 @@ function initDatabases(root){
  return {
   created,
   get activeId(){return data.activeId;},directory,
-  state:()=>({activeId:data.activeId,revision:data.revision,entries:data.entries.map(e=>({...e,active:e.id===data.activeId}))}),
-  create(body,initialize){check(body.revision);const name=label(body.name);if(data.entries.some(e=>e.name.toLocaleLowerCase()===name.toLocaleLowerCase()))throw new DatabaseError('dbNameUsed',400);const id=randomUUID(),parent=path.join(root,'databases');if(fs.existsSync(parent)&&fs.lstatSync(parent).isSymbolicLink())throw new DatabaseError('dbUnavailable');fs.mkdirSync(parent,{recursive:true,mode:0o700});const dir=path.join(parent,id);fs.mkdirSync(dir,{mode:0o700});try{initialize(dir,name);commit({...data,revision:data.revision+1,entries:[...data.entries,{id,name,created:new Date().toISOString()}]});}catch(error){fs.rmSync(dir,{recursive:true,force:true});throw error;}return {id};},
+  state:()=>({limit:MAX_DATABASES,activeId:data.activeId,revision:data.revision,entries:data.entries.map(e=>({...e,active:e.id===data.activeId}))}),
+  create(body,initialize){check(body.revision);if(data.entries.length>=MAX_DATABASES)throw new DatabaseError('dbLimit',400);const name=label(body.name);if(data.entries.some(e=>e.name.toLocaleLowerCase()===name.toLocaleLowerCase()))throw new DatabaseError('dbNameUsed',400);const id=randomUUID(),parent=path.join(root,'databases');if(fs.existsSync(parent)&&fs.lstatSync(parent).isSymbolicLink())throw new DatabaseError('dbUnavailable');fs.mkdirSync(parent,{recursive:true,mode:0o700});const dir=path.join(parent,id);fs.mkdirSync(dir,{mode:0o700});try{initialize(dir,name);commit({...data,revision:data.revision+1,entries:[...data.entries,{id,name,created:new Date().toISOString()}]});}catch(error){fs.rmSync(dir,{recursive:true,force:true});throw error;}return {id};},
   rename(body){check(body.revision);const name=label(body.name);directory(body.id);if(data.entries.some(e=>e.id!==body.id&&e.name.toLocaleLowerCase()===name.toLocaleLowerCase()))throw new DatabaseError('dbNameUsed',400);commit({...data,revision:data.revision+1,entries:data.entries.map(e=>e.id===body.id?{...e,name}:e)});return {ok:true};},
   activate(body,open){check(body.revision);if(body.confirm!==true)throw new DatabaseError('dbConfirm',400);const dir=directory(body.id);if(body.id===data.activeId)return {unchanged:true};if(!fs.existsSync(path.join(dir,'sizzla.sqlite'))||!fs.statSync(path.join(dir,'sizzla.sqlite')).size)throw new DatabaseError('dbUnavailable');const candidate=open(dir);try{commit({...data,activeId:body.id,revision:data.revision+1});}catch(error){candidate.db.close();throw error;}return {candidate};}
  };
 }
-module.exports={initDatabases,DatabaseError};
+module.exports={initDatabases,DatabaseError,MAX_DATABASES};

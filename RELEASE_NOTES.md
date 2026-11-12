@@ -1,6 +1,6 @@
 Sizzla 3000 0.9.0 för Windows 11 (x64): Flera företagsdatabaser.
 
-- Ny flik Inställningar → Databaser: skapa och namnge företagsdatabaser samt välj Aktivera. Bara en databas är aktiv åt gången; valet finns kvar efter omstart.
+- Ny flik Inställningar → Databaser: skapa och namnge företagsdatabaser samt välj Aktivera. Högst 10 företagsdatabaser, inklusive den första. Antalet visas i fliken. Bara en databas är aktiv åt gången; valet finns kvar efter omstart.
 - Den befintliga databasen bevaras som Företag 1 på samma plats. Nya företag får egna tomma register, bokföring, löner, lager, fakturanummerserier och PDF-historik.
 - Företagsnamn och databasetikett syns i sidomenyn. Etiketten kan ändras utan att den bokförda företagsidentiteten ändras.
 - Osparade formulärändringar ger en fråga innan vyn lämnas. Byte läser in vyerna på nytt och blockerar skrivning från gamla fönster eller anrop som började före bytet.

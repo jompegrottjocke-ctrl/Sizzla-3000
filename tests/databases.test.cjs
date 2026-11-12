@@ -48,3 +48,11 @@ test('a damaged catalog or missing active file never silently creates a replacem
  // Restore the registry explicitly; the original file remains untouched.
  const db=new DatabaseSync(path.join(f.dataDir,'sizzla.sqlite'),{readOnly:true});assert.equal(JSON.parse(db.prepare('SELECT data FROM settings').get().data).name,'Bevara AB');db.close();fs.writeFileSync(path.join(f.dataDir,'databases.json'),registry);fs.renameSync(path.join(f.dataDir,'sizzla.sqlite'),path.join(f.dataDir,'saved.sqlite'));assert.throws(()=>createApp({dataDir:f.dataDir}),/dbUnavailable/);assert.equal(fs.existsSync(path.join(f.dataDir,'sizzla.sqlite')),false);
 });
+test('ten-company limit includes the existing database and does not prevent switching or renaming',async t=>{
+ const f=setup(t);await f.app.listen();const {post,state}=f;let last;
+ for(let n=2;n<=10;n++){last=await (await post('databases/create',{name:'Företag '+n,revision:(await state()).databases.revision})).json();assert.ok(last.id);}
+ const full=await state();assert.equal(full.databases.entries.length,10);assert.equal(full.databases.limit,10);
+ const extra=await post('databases/create',{name:'Företag 11',revision:full.databases.revision});assert.equal(extra.status,400);assert.equal((await extra.json()).error,'dbLimit');assert.equal(fs.readdirSync(path.join(f.dataDir,'databases')).length,9);assert.equal((await state()).databases.revision,full.databases.revision);
+ assert.equal((await post('databases/rename',{id:last.id,name:'Tionde företaget',revision:full.databases.revision})).status,200);
+ assert.equal((await post('databases/activate',{id:last.id,revision:(await state()).databases.revision,confirm:true})).status,200);assert.equal((await state()).databases.entries.filter(e=>e.active).length,1);
+});

@@ -18,3 +18,8 @@ test('separate companies, guarded unsaved changes, rename, persistent selection 
  await page.screenshot({path:testInfo.outputPath('databases.png'),fullPage:true});
  page.once('dialog',d=>d.accept());await page.locator('tr[data-database="default"]').getByRole('button',{name:'Aktivera',exact:true}).click();await expect(page.getByRole('heading',{name:'Aktiv: Företag 1',exact:true})).toBeVisible();s=await page.request.get('/api/state').then(r=>r.json());expect(s.company.name).toBe(baseline.company.name);expect(s.customers.length).toBe(baseline.customers.length);expect(s.customers.some(c=>c.name==='Bara i två')).toBe(false);expect(s.sales.documents.length).toBe(baseline.sales.documents.length);expect(errors).toEqual([]);
 });
+test('database page shows the ten-company limit and prevents creating an eleventh',async({page})=>{
+ await page.goto('/');let s=await page.request.get('/api/state').then(r=>r.json());
+ while(s.databases.entries.length<10){const result=await page.request.post('/api/databases/create',{headers:{Origin:'http://127.0.0.1:3199','X-Sizzla-Token':s.token},data:{name:'Gränstest '+(s.databases.entries.length+1),revision:s.databases.revision}});expect(result.ok()).toBeTruthy();s=await page.request.get('/api/state').then(r=>r.json());}
+ await page.goto('/?page=databases');await expect(page.locator('main')).toContainText('10 / 10');await expect(page.locator('main')).toContainText('Gränsen på 10 företagsdatabaser är nådd.');await expect(page.locator('#database-create input')).toBeDisabled();await expect(page.getByRole('button',{name:'Skapa databas',exact:true})).toBeDisabled();await expect(page.locator('[data-db-activate]:not([disabled])')).toHaveCount(9);
+});
