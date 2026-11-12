@@ -1,0 +1,26 @@
+name: Investigate Windows release security warning
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/security-scan.yml'
+      - 'scripts/scan-release.ps1'
+permissions:
+  contents: read
+jobs:
+  scan-published-release:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify and scan the published 0.5.3 installer
+        shell: pwsh
+        run: ./scripts/scan-release.ps1
+      - name: Retain security investigation evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Sizzla-0.5.3-security-report
+          path: '${{ runner.temp }}/sizzla-security-report/*.txt'
+          if-no-files-found: warn
