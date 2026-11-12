@@ -19,7 +19,7 @@ function purchaseLines(input,invoice=false){
     const tax=vatManual?decimal(line.vatAmount,'purchaseVatAmount'):expected;
     if(Math.abs(tax-expected)>1||((!vat||!net)&&tax))invalid('purchaseVatAmount');
     const deductible=invoice?decimal(line.deductible??'100','purchaseDeduction',{max:10000}):10000;
-    return {id:line.id===undefined?randomUUID():text(line.id,'purchaseLines'),description:text(line.description,'purchaseDescription'),sku:text(line.sku??'','purchaseSku',false),unit:text(line.unit||'st','purchaseUnit'),quantity,price,discount,vat,net,tax,vatManual,deductible,deductibleTax:Math.round(tax*deductible/10000),expenseAccount:invoice?text(line.expenseAccount||'4000','purchaseExpenseAccount'):''};
+    return {articleId:line.articleId?text(line.articleId,'invMissing'):'',id:line.id===undefined?randomUUID():text(line.id,'purchaseLines'),description:text(line.description,'purchaseDescription'),sku:text(line.sku??'','purchaseSku',false),unit:text(line.unit||'st','purchaseUnit'),quantity,price,discount,vat,net,tax,vatManual,deductible,deductibleTax:Math.round(tax*deductible/10000),expenseAccount:invoice?text(line.expenseAccount||'4000','purchaseExpenseAccount'):''};
   });
   if(new Set(lines.map(l=>l.id)).size!==lines.length)invalid('purchaseLines');return lines;
 }
@@ -30,7 +30,7 @@ function totals(lines,rounding='0'){
   if(total<0||total>10000000000)invalid('purchaseTotal');return {net,tax,rounding:r,total};
 }
 const invoiceKey=value=>value.normalize('NFKC').trim().toLocaleUpperCase('sv-SE');
-function initPurchases(db,accounting){
+function initPurchases(db,accounting,inventory={}){
   db.exec('BEGIN IMMEDIATE');
   try{
     db.exec(`CREATE TABLE IF NOT EXISTS purchase_suppliers(id TEXT PRIMARY KEY,number INTEGER UNIQUE NOT NULL,revision INTEGER NOT NULL,data TEXT NOT NULL);
@@ -110,13 +110,13 @@ function initPurchases(db,accounting){
           const old=body.id?current(orders(),body):null;if(old&&old.status!=='draft')throw new PurchaseError('purchaseLocked');
           const s=supplier(body.supplierId);if(!s.active)throw new PurchaseError('purchaseSupplierInactive');
           const date=purchaseDate(body.date),expected=body.expected?purchaseDate(body.expected):'';if(expected&&expected<date)invalid('purchaseDeliveryDate');
-          const lines=purchaseLines(body.lines);if(new Set(lines.map(l=>l.id)).size!==lines.length)invalid('purchaseLines');
+          const rawLines=purchaseLines(body.lines),lines=inventory.prepareOrderLines?inventory.prepareOrderLines(rawLines):rawLines;if(new Set(lines.map(l=>l.id)).size!==lines.length)invalid('purchaseLines');
           const id=old?.id||randomUUID(),number=old?.number||db.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM purchase_orders').get().n;
           const data={supplierId:s.id,supplier:s,company,date,expected,reference:text(body.reference??'','purchaseReference',false),note:text(body.note??'','purchaseNote',false,2000),lines,...totals(lines),currency:'SEK'};
           db.prepare("INSERT INTO purchase_orders VALUES(?,?,?,'draft',?,NULL) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,data=excluded.data").run(id,number,(old?.revision||0)+1,JSON.stringify(data));event('order',id,old?'updated':'created',data);result={id};
         }else if(['/api/purchases/orders/issue','/api/purchases/orders/cancel','/api/purchases/orders/close'].includes(route)){
           const o=current(orders(),body),action=route.split('/').at(-1);let status,reason=null;
-          if(action==='issue'){if(o.status!=='draft')throw new PurchaseError('purchaseLocked');documentReview(o,body,company);if(!o.total)invalid('purchaseTotal');status='issued';}
+          if(action==='issue'){if(o.status!=='draft')throw new PurchaseError('purchaseLocked');documentReview(o,body,company);inventory.assertOrderLines?.(o.lines);if(!o.total)invalid('purchaseTotal');status='issued';}
           else{if(!['draft','issued'].includes(o.status)||(action==='close'&&o.status!=='issued'))throw new PurchaseError('purchaseLocked');reason=text(body.reason,'purchaseReason');if(action==='cancel'&&(receipts().some(r=>r.orderId===o.id&&r.active)||invoices().some(i=>i.orderId===o.id&&i.status==='approved')))throw new PurchaseError('purchaseOrderUsed');status=action==='close'?'closed':'cancelled';}
           db.prepare('UPDATE purchase_orders SET status=?,revision=revision+1,reason=? WHERE id=?').run(status,reason,o.id);event('order',o.id,action,{reason});result={id:o.id};
         }else if(route==='/api/purchases/receipts'){
@@ -125,9 +125,9 @@ function initPurchases(db,accounting){
           if(!Array.isArray(body.lines)||!body.lines.length)invalid('purchaseReceipt');
           const counts=received(o),seen=new Set(),lines=body.lines.map(l=>{if(!l||typeof l!=='object')invalid('purchaseReceipt');const line=o.lines.find(x=>x.id===l.lineId);if(!line||seen.has(l.lineId))invalid('purchaseReceipt');seen.add(l.lineId);const quantity=decimal(l.quantity,'purchaseQuantity',{max:10000000});if(quantity+counts[line.id]>line.quantity)invalid('purchaseOverDelivery');return {lineId:line.id,quantity};}).filter(l=>l.quantity>0);
           if(!lines.length)invalid('purchaseReceipt');
-          const id=randomUUID(),data={date,reference:text(body.reference,'purchaseReference'),lines};db.prepare('INSERT INTO purchase_receipts VALUES(?,?,1,1,?,NULL)').run(id,o.id,JSON.stringify(data));db.prepare('UPDATE purchase_orders SET revision=revision+1 WHERE id=?').run(o.id);event('receipt',id,'created',data);result={id};
+          const id=randomUUID(),data={date,reference:text(body.reference,'purchaseReference'),lines};db.prepare('INSERT INTO purchase_receipts VALUES(?,?,1,1,?,NULL)').run(id,o.id,JSON.stringify(data));db.prepare('UPDATE purchase_orders SET revision=revision+1 WHERE id=?').run(o.id);inventory.receive?.(o,{id,...data});event('receipt',id,'created',data);result={id};
         }else if(route==='/api/purchases/receipts/reverse'){
-          const r=current(receipts(),body);if(!r.active)throw new PurchaseError('purchaseLocked');const reason=text(body.reason,'purchaseReason');db.prepare('UPDATE purchase_receipts SET active=0,revision=revision+1,reason=? WHERE id=?').run(reason,r.id);db.prepare('UPDATE purchase_orders SET revision=revision+1 WHERE id=?').run(r.orderId);event('receipt',r.id,'reversed',{reason});result={id:r.id};
+          const r=current(receipts(),body);if(!r.active)throw new PurchaseError('purchaseLocked');const reason=text(body.reason,'purchaseReason');inventory.reverseReceipt?.(r,reason);db.prepare('UPDATE purchase_receipts SET active=0,revision=revision+1,reason=? WHERE id=?').run(reason,r.id);db.prepare('UPDATE purchase_orders SET revision=revision+1 WHERE id=?').run(r.orderId);event('receipt',r.id,'reversed',{reason});result={id:r.id};
         }else if(route==='/api/purchases/invoices'){
           if(body.currency&&body.currency!=='SEK')invalid('purchaseCurrency');
           const old=body.id?current(invoices(),body):null;if(old&&old.status!=='draft')throw new PurchaseError('purchaseLocked');

@@ -1,5 +1,5 @@
 const {randomUUID}=require('node:crypto');
-const KINDS=['invoice','payroll','voucher','report','purchase_order','purchase_invoice'];
+const KINDS=['invoice','payroll','voucher','report','purchase_order','purchase_invoice','inventory_report','inventory_count'];
 class PrintError extends Error{}
 const field=(value,max=200)=>{if(typeof value!=='string'||value.length>max)throw new PrintError('printInvalid');return value;};
 function initPrinting(db){
@@ -8,7 +8,8 @@ function initPrinting(db){
  CREATE INDEX IF NOT EXISTS print_attempts_created ON print_attempts(created DESC);
  CREATE TRIGGER IF NOT EXISTS print_document_immutable BEFORE UPDATE ON print_documents BEGIN SELECT RAISE(ABORT,'Print snapshots are immutable'); END;
  CREATE TRIGGER IF NOT EXISTS print_document_preserved BEFORE DELETE ON print_documents BEGIN SELECT RAISE(ABORT,'Print snapshots are preserved'); END;
- PRAGMA user_version=5;`);
+ `);
+ if(db.prepare('PRAGMA user_version').get().user_version<5)db.exec('PRAGMA user_version=5;');
  // A previous process may have stopped with a native dialog open. Never infer success.
  db.prepare("UPDATE print_attempts SET status='unknown' WHERE status IN ('preparing','dialog')").run();
  function create(meta,pdf,allowMissing=false){

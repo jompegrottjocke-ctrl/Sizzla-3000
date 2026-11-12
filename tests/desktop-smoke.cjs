@@ -61,6 +61,17 @@ const path = require('node:path');
   await window.getByRole('button',{name:'Stäng',exact:true}).click();
 
   await window.locator('nav').getByRole('button',{name:'Lager',exact:true}).click();
+  await expect(window.getByRole('tab',{name:'Lagersaldo',exact:true})).toBeVisible();
+  await window.evaluate(async()=>{const a=await post('articles',{name:'Desktop stock item',sku:'DESKTOP-STOCK',unit:'st',price:'10',vat:25});await post('inventory/settings',{articleId:a.id,revision:0,enabled:true,minimum:'1',location:'A'});await post('inventory/movements',{articleId:a.id,kind:'opening',quantity:'3.25',date:'2026-11-12',reference:'START',reason:'Opening stock',stockRevision:0,settingsRevision:1});await load();render();});
+  const stockPdfPath=path.join(dataDir,'stock-report.pdf');await app.evaluate((_,destination)=>{global.pdfDestination=destination;},stockPdfPath);
+  const stockPopup=window.waitForEvent('popup');await window.getByRole('button',{name:'Skriv ut urval',exact:true}).click();const stockPreview=await stockPopup;
+  await expect(stockPreview.locator('.print-sheet')).toContainText('Desktop stock item');
+  if(process.env.SIZZLA_HEADLESS)await stockPreview.evaluate(()=>Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Spara PDF').click());else await stockPreview.getByRole('button',{name:'Spara PDF',exact:true}).click();
+  await expect(stockPreview.locator('.snapshot-toolbar').getByRole('status')).toContainText('Sparad som PDF');await stockPreview.close();
+  if(fs.readFileSync(stockPdfPath).subarray(0,5).toString()!=='%PDF-')throw Error('Stock PDF was not generated');
+  const stockHistory=await window.evaluate(async()=>fetch('/api/prints?kind=inventory_report').then(r=>r.json()));if(stockHistory.total!==1)throw Error('Stock report missing from print history');
+
+  await window.locator('nav').getByRole('button',{name:'Tid & projekt',exact:true}).click();
   await expect(window.getByRole('heading',{name:'beta kommer senare'})).toBeVisible();
   const preferences=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
   if(preferences.nodeIntegration || !preferences.contextIsolation || !preferences.sandbox) throw new Error('Unsafe renderer preferences');

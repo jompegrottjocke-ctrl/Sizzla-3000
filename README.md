@@ -25,9 +25,25 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Granskning mot originalbelopp, momsavdrag, bokföring, delbetalningar, återbetalningar och rättelser. Historiska underlag bevaras.
 - **Säkerhet & säkerhetskopiering**: komplett databasexport, krypterade säkerhetskopior, import med förhandskontroll och möjlighet att öppna databasens katalog.
 - Textstorlek 100–200 % och fet text sparas mellan starter.
-- Betalningar, lager, tid/projekt, bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
+- Betalningar, tid/projekt, bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
 
 Fakturautkast utfärdas inte, får inga fakturanummer och skapar inga bokföringsposter. Det här är en utvecklingsversion, inte ett färdigt bokförings-, löne- eller faktureringssystem för skarp drift. Bankintegration, kreditfakturor, automatisk säkerhetskopiering och komplett verifierade regelverk ingår ännu inte. HR-ändringar och lönekörningarnas statusövergångar loggas lokalt; detta är ingen fullständig revisionslogg för bokföring.
+
+## Arbetsflöde för Lager
+
+1. Skapa varor och tjänster i artikelregistret. Öppna Lager → Inställningar på de varor som ska lagerföras och aktivera lagerhantering, ange plats/hylla och beställningspunkt. Tjänster kan förbli ej lagerförda. Lagerartiklar behöver unika artikelnummer (även utan skillnad på stora/små bokstäver). Ett enda lager med en platsnotering per artikel stöds.
+2. Registrera **Ingående saldo** före artikelns första rörelse, eller skapa en inventering för att ange aktuellt faktiskt antal. Ingen historik från äldre inleveranser räknas om automatiskt. Nya poster använder heltal i hundradelar av artikelns enhet; högst två decimaler kan anges.
+3. **Registrera lagerrörelse** för inleverans eller uttag, med datum, underlag och orsak. Negativa saldon avvisas både nu och i den kronologiska historiken. Framtida lagerdatum stöds inte. Artikelnummer och enhet skyddas när lagerhantering används eller artikeln har rörelser; namn och försäljningspris kan fortfarande ändras.
+4. På nya inköpsorder: välj artikel från registret eller koppla raden med **Artikelkoppling för lager**. Spara och granska ordern. Kopplingen och om raden ska lagerföras sparas före utfärdande. Ändrad lageraktivering kräver att utkastet sparas om före utfärdande. Enheten måste överensstämma; ingen automatisk förpackningsomräkning görs. Ordervyn visar vilka rader som lagerförs.
+5. Inleveranser från utfärdade lagerkopplade order uppdaterar inköp och lager atomiskt, även vid delleverans. Rättelse görs i Inköp och skapar en motrörelse i lager på dagens datum. Om varorna redan förbrukats och rättelsen skulle ge negativt saldo avvisas hela rättelsen; mottagningsstatus och lager lämnas då båda oförändrade. En manuell rad med samma artikelnummer utan artikelkoppling påverkar inte lagret.
+6. **Ny inventering**: välj datum och referens, fyll faktiskt antal för artiklar som räknats och lämna övriga tomma. Ett utkast kan omfatta upp till 500 artiklar. Granska registrerat antal, räknat antal och differenser och välj **Godkänn och uppdatera saldo**. Ändrade lagerrörelser eller lagerinställningar efter räkningens start blockerar godkännande. Makulera då utkastet, uppdatera uppgifterna och skapa ett nytt.
+7. Godkända inventeringar och lagerrörelser ändras eller raderas inte. Manuell in-/utleverans kan rättas med en motsatt rörelse; original och orsak bevaras. Inleveranser från inköp rättas vid inköpsunderlaget, inventeringsdifferenser med en ny inventering. Nya rörelser eller inventeringar får inte dateras före en senare godkänd inventering för samma artikel, så att dess räknade saldo inte ändras retroaktivt. Rörelser samma dag ordnas efter registreringsordning.
+8. Sök och filtrera lagerlistan, visa artiklar under beställningspunkten och filtrera rörelsehistoriken på artikel, typ och datum. **Uppdatera** läser aktuella uppgifter om en annan vy har ändrat lagret. Lagerhantering kan avaktiveras först när saldo är noll och utfärdade lagerkopplade order avslutats.
+9. Lagerlistor, rörelser och inventeringar kan skrivas ut till PDF med den befintliga utskriftshistoriken. Aktuellt urval kan exporteras som CSV. PDF-kopior, lagerdata och historik ingår i databasens säkerhetskopior.
+
+Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Försäljningsfakturor är fortsatt utkast och drar inte lager; registrera utleverans manuellt med referens. Leverantörsfakturor/krediter ändrar inte antal. Reservationer, flera lager, lagerflyttar, batch-/serienummer, FIFO/medelpris och automatisk koppling till kundorder ingår inte i denna version.
+
+Version 0.7 använder **schema 6**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5-kopior från 0.5/0.6-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 
 ## Utskriftshistorik under Dokument
 
@@ -37,7 +53,7 @@ Fakturautkast utfärdas inte, får inga fakturanummer och skapar inga bokföring
 - Status skiljer mellan förberedelse, öppnad dialog, skickad till utskriftssystemet, sparad PDF, avbrutet och misslyckat. Native utskriftsdialogens callback avgör status; fysiskt papper kan inte bekräftas. Efter avbrott/omstart med ett oavslutat försök visas **Okänt resultat**, aldrig en antagen lyckad utskrift. Fel vid PDF-generering registreras med förklaring och utan PDF-knappar.
 - Historiken registrerar appens utskriftsknappar och Ctrl + P i utskriftsvyn. Utskrift direkt från en PDF-visares egna kontroller eller externa program registreras inte. Utvecklingsläget i vanlig webbläsare har kvar utskriftsförhandsvisning men kan inte skapa automatiska PDF-kopior eller tillförlitlig historik; detta anges i vyn.
 - PDF-kopior och historik lagras i SQLite och ingår i databasexport/import. En PDF får vara högst 20 MB. Databasen växer när kopior sparas; gränsen på 64 MB för import via appen gäller fortfarande för hela säkerhetskopian. Ta regelbundna säkerhetskopior. Historiken kan inte återskapa utskrifter gjorda före uppdateringen och har ingen funktion för radering eller separat åtkomstkontroll för löner.
-- Version 0.6 använder **schema 5**. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
+- Utskriftshistoriken infördes i version 0.6 med schema 5; nuvarande version använder schema 6. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
 
 ## Arbetsflöde för Bokföring
 
@@ -58,7 +74,7 @@ Bilagereferenser pekar på underlag som du själv bevarar. Digitala bilagor, SIE
 
 1. Skapa leverantör med kontaktuppgifter, betalningsvillkor och eventuellt bankgiro/plusgiro. Leverantörer kan arkiveras genom att markera dem som inaktiva. Historiska order och fakturor behåller en kopia av uppgifterna. Ändrade leverantörsuppgifter kräver att utkast sparas om före granskning.
 2. Skapa inköpsorder med inköpspris, antal, rabatt och moms. Artikelregistret kan fylla i namn, artikelnummer och enhet; försäljningspriset används inte som inköpspris. Granska och utfärda ordern, som sedan kan skrivas ut. Ingen e-post skickas.
-3. Registrera inleveranser med följesedelsreferens. Delleveranser stöds och överleverans avvisas. Rätta felregistreringar med orsak. Order kan avslutas med kvarstående kvantitet; detta är inte samma sak som att allt har levererats. Inleveranser ändrar inte lagersaldo eller bokföring.
+3. Registrera inleveranser med följesedelsreferens. Delleveranser stöds och överleverans avvisas. Rätta felregistreringar med orsak. Order kan avslutas med kvarstående kvantitet; detta är inte samma sak som att allt har levererats. Inleveranser uppdaterar lagersaldot för rader som kopplats till lagerförda artiklar före utfärdande. Inga bokföringsposter skapas.
 4. Registrera leverantörsfaktura, eventuellt från ordern. Ange leverantörens nummer, datum, förfallodag, betalningsreferens och hänvisning till originalet. Inköpsorder och fakturarader jämförs manuellt; inga lagersaldon eller mottagningsattester skapas automatiskt.
 5. Kontrollera radpriser, rabatt, moms och avdragsgill andel. Andelen avdragsgill moms är ett förslag, inte en automatisk bedömning av avdragsrätt. Moms beräknas per rad; en manuell avvikelse på högst ett öre per rad tillåts för avstämning mot fakturan. Öresutjämning stöds inom ±1 SEK. Ange originalets totalbelopp, som måste stämma exakt före godkännande. Dubbelregistrering av godkänt fakturanummer för samma leverantör avvisas.
 6. Godkända fakturor är låsta. Välj **Bokför faktura**, öppet räkenskapsår, datum och granskade konton. Ej avdragsgill moms läggs på kostnads-/tillgångskontot. Avdragsgill moms och leverantörsskuld bokförs separat. Godkännande och bokföring är skilda steg; reskontran visar även ännu ej bokförda dokument.
@@ -115,7 +131,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 - **Text & läsbarhet** i samma flik ger 100, 125, 150, 175 och 200 % storlek för hela gränssnittet samt valbar fet text. Standard är 100 % och normal text. Menyer och formulär anpassas vid förstoring; breda tabeller kan rullas i sidled. Pappersutskrifter behåller normal skala.
 - Programlås och upplåsningshistorik är bortkopplade i 0.5.4. Låsknapp, Ctrl + L, inaktivitetsmätning och Windowskoppling för låsning ingår inte. Äldre låsinställningar och historik ligger kvar orörda för kompatibilitet med säkerhetskopior, men kan inte aktivera ett lås, heller inte efter import. Använd Win + L för att låsa Windows.
 - Databasen är inte krypterad i applikationen. Använd Windowskontots åtkomstskydd och exempelvis BitLocker för skydd på disk.
-- Versionerna 0.2–0.6 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Inköp använder schema 4. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+- Versionerna 0.2–0.7 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 6. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 - API:t lyssnar endast på loopback och tillåter endast rätt Host-header. Skrivningar kräver samma origin och en sessionsspecifik token. Rendererprocessen saknar Node-åtkomst och kör med sandbox och context isolation.
 - Det finns ännu ingen fjärrinloggning eller fleranvändarhantering. Exponera inte den lokala tjänsten på nätverket.
 
@@ -134,3 +150,5 @@ Det ger en grund för en framtida `sizzla-3000-server`. Serverdrift kräver sepa
 Säkerhetskopiering, och import ligger i `src/security.cjs`; gränssnitt och läsbarhet i `public/security.js` och `public/accessibility.css`. Lösenord för krypterade säkerhetskopior kräver fortfarande minst 10 tecken.
 
 Utskriftshistorik och PDF-lagring finns i `src/printing.cjs`, den begränsade IPC-bryggan i `src/print-preload.cjs` och de inbyggda dialogerna i `src/desktop-printing.cjs`. Ursprung och huvudram kontrolleras före native anrop; renderern får varken generell Node-åtkomst eller valfria filvägar.
+
+Lagermodulen ligger i `src/inventory.cjs` och `public/inventory.js`. Inköpsmodulens lagerkoppling körs inom samma SQLite-transaktion som mottagningen/rättelsen. Ingången via artikelregistret skyddar artikelnummer och enhet när de används i lager.
