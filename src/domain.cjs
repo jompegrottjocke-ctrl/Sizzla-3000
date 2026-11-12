@@ -41,4 +41,4 @@ function invoice(input, customer) {
   return { customerId: customer.id, customer: customer.data, date: issued, due, lines,
     note: text(input.note ?? '', 'note', false, 2000), net, tax, total: net + tax, currency: 'SEK' };
 }
-module.exports = { ValidationError, text, decimal, invoice };
+module.exports = { ValidationError, text, decimal, date, invoice };

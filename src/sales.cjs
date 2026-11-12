@@ -20,7 +20,8 @@ function initSales(db,accounting){
  CREATE TRIGGER IF NOT EXISTS sales_allocation_preserved BEFORE DELETE ON sales_allocations BEGIN SELECT RAISE(ABORT,'Credit allocations are preserved'); END;
  CREATE TRIGGER IF NOT EXISTS sales_payment_locked BEFORE UPDATE OF id,number,document_id,date,amount,reference,data ON sales_payments BEGIN SELECT RAISE(ABORT,'Sales payments are immutable'); END;
  CREATE TRIGGER IF NOT EXISTS sales_allocation_locked BEFORE UPDATE OF id,invoice_id,credit_id,date,amount,reference,data ON sales_allocations BEGIN SELECT RAISE(ABORT,'Credit allocations are immutable'); END;
- PRAGMA user_version=7;`);
+ `);
+ if(db.prepare('PRAGMA user_version').get().user_version<7)db.exec('PRAGMA user_version=7;');
  const documents=()=>db.prepare('SELECT * FROM sales_documents ORDER BY number DESC').all().map(r=>({...JSON.parse(r.data),id:r.id,number:r.number,type:r.type,draftId:r.draft_id,originalId:r.original_id,revision:r.revision}));
  const payments=()=>db.prepare('SELECT * FROM sales_payments ORDER BY number DESC').all().map(r=>({...JSON.parse(r.data),id:r.id,number:r.number,documentId:r.document_id,revision:r.revision,status:r.status,date:r.date,amount:r.amount,reference:r.reference,reversalId:r.reversal_id}));
  const allocations=()=>db.prepare('SELECT * FROM sales_allocations ORDER BY rowid DESC').all().map(r=>({...JSON.parse(r.data),id:r.id,invoiceId:r.invoice_id,creditId:r.credit_id,revision:r.revision,status:r.status,date:r.date,amount:r.amount,reference:r.reference,reversalId:r.reversal_id}));

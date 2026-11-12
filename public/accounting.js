@@ -118,7 +118,7 @@ function bookView(id){
  const reverse=document.querySelector('#book-reverse');if(reverse)reverse.onclick=()=>bookOpen('reverse',{id:v.id,revision:v.revision});
  document.querySelector('#book-print').onclick=()=>bookPrintOpen({type:'voucher',id:v.id});appendSourceHistory('#book-print',{kind:'voucher',id:v.id});
 }
-function bookPrintOpen(ref){sessionStorage.removeItem('sizzla-sales-print');sessionStorage.removeItem('sizzla-purchase-print');sessionStorage.removeItem('sizzla-print');sessionStorage.removeItem('sizzla-hr-print');sessionStorage.setItem('sizzla-book-print',JSON.stringify(ref));window.open('/print','_blank');}
+function bookPrintOpen(ref){sessionStorage.removeItem('sizzla-time-print');sessionStorage.removeItem('sizzla-sales-print');sessionStorage.removeItem('sizzla-purchase-print');sessionStorage.removeItem('sizzla-print');sessionStorage.removeItem('sizzla-hr-print');sessionStorage.setItem('sizzla-book-print',JSON.stringify(ref));window.open('/print','_blank');}
 function bookPrint(){let ref;try{ref=JSON.parse(sessionStorage.getItem('sizzla-book-print'));}catch{return false;}if(!ref)return false;let body,title;
  if(ref.type==='voucher'){
   const v=state.accounting.vouchers.find(v=>v.id===ref.id);if(!v)return false;title=bt(v.status==='draft'?'draftPrint':'voucherPrint');body=`<h1>${esc(v.company.name)}</h1><h2>${title} · ${bookNumber(v)}</h2><p>${v.date} · ${esc(v.description)} · ${bt(bookStatus(v))}</p>${v.corrects?`<p>${bt('corrects')}: ${bookNumber(state.accounting.vouchers.find(j=>j.id===v.corrects))}</p>`:''}<p>${bt('reference')}: ${esc(v.reference)}</p>${bookLineTable(v)}`;

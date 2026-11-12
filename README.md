@@ -26,8 +26,9 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Inköp: leverantörsregister, inköpsorder, delleveranser, leverantörsfakturor och kreditfakturor med aktuell reskontra.
 - Granskning mot originalbelopp, momsavdrag, bokföring, delbetalningar, återbetalningar och rättelser. Historiska underlag bevaras.
 - **Säkerhet & säkerhetskopiering**: komplett databasexport, krypterade säkerhetskopior, import med förhandskontroll och möjlighet att öppna databasens katalog.
+- Tid & projekt: kundkopplade och interna projekt, tidsbudget, manuella tidsrader, granskning/låsning och spårbar makulering. Överför godkända debiterbara rader till fakturautkast utan dubbelöverföring.
 - Textstorlek 100–200 % och fet text sparas mellan starter.
-- Tid/projekt, bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
+- Bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
 
 Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring och lönehantering är inte färdigt. Bankintegration, automatisk säkerhetskopiering och komplett verifierade regelverk återstår. Se [Systemdokumentation och kvarstående krav](SYSTEMDOKUMENTATION.md) för uppbyggnad, spårbarhet och kända luckor, inklusive avsaknad av identifierad användare vid rättelser.
 
@@ -41,6 +42,19 @@ Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring oc
 6. För att lägga till ett företag från en säkerhetskopia: skapa en ny databas, aktivera den och importera kopian under Säkerhet & säkerhetskopiering. Starta sedan om appen. Kontrollera aktivt företag före import.
 
 Databaslistan och aktivt val finns i `databases.json` i den ursprungliga datakatalogen. Första databasens `sizzla.sqlite` ligger kvar där; nya företag ligger i `databases/<id>/`. Listan ingår inte i en enskild databasexport. För en manuell kopia av **hela arbetsplatsen**, stäng appen och kopiera hela den ursprungliga datakatalogen med `databases.json`, underkataloger och eventuella WAL/SHM-filer. Externa originalunderlag måste fortfarande kopieras separat. Redigera inte databaslistan eller flytta databasfiler medan programmet körs. Radering, sammanslagning, delade nätverksdatabaser och samtidig användning från flera programinstanser ingår inte. Använd inte 0.8 eller äldre för att hantera en arbetsplats med flera databaser.
+
+## Arbetsflöde för Tid & projekt
+
+1. Skapa ett projekt med unik kod, namn och eventuell kund. Utan kund är projektet internt och kan bara ha icke debiterbar tid. Ange standardtimpris, moms, valfria start-/slutdatum och tidsbudget. Budgeten är en jämförelse, inte ett hårt stopp. Projektkod och kund låses när det finns tidsregistreringar, även makulerade; historiken behåller sina uppgifter.
+2. Välj **Registrera tid**. Ange arbetsdatum, person, timmar och arbetsbeskrivning. Du kan välja en aktiv anställd eller ange ett namn manuellt för exempelvis ägare/konsult. Ange **decimaltimmar**: 1,50 = 1 timme 30 minuter; högst två decimaler. Ingen start-/stopptimer finns. Framtida arbete och arbete utanför projektets datum avvisas. Summan får inte överstiga 24 timmar för samma registrerade person och dag, även över flera projekt. Manuella namn är inte verifierade identiteter.
+3. Projektets pris och moms fylls i som förslag och kan ändras på tidsraden. Debiterbar tid kräver kund och pris över noll. Spara utkastet, öppna det och välj **Godkänn och lås**. Knappen sparar synliga utkaständringar först och visar sedan uppgifterna för uttrycklig granskning. Om projektet/personen ändrats måste tidsutkastet sparas om. Godkänd tid ändras inte i efterhand.
+4. Felregistrerad tid makuleras med orsak och bevaras i historiken. Skapa därefter en korrekt ny registrering. Tid som redan överförts måste först frigöras genom återtagning av det ej utfärdade fakturautkastet. Utfärdad tid kan inte frigöras för ny fakturering.
+5. Under **Fakturaunderlag → Skapa fakturautkast**, välj ett kundprojekt och högst 100 godkända debiterbara rader. Hela tidsrader överförs, inte delar av en rad. Granska timmar, pris, fakturadatum, förfallodatum och urval. Varje rad blir en fakturarad med timmar, timpris, moms och beskrivning. Överföring, koppling och fakturautkast skapas tillsammans eller inte alls; samma tidsrad kan inte överföras två gånger.
+6. Välj **Öppna faktura / utkast** och granska underlaget i Fakturering. Där kan utkastet redigeras och sedan uttryckligen utfärdas/bokföras med fakturanummer. Överföring från Tid & projekt skapar ingen bokföring och skickar ingenting till kunden. Fakturaunderlaget bevarar den ursprungliga tids- och prissammanställningen även om fakturautkastet redigeras separat; jämför dokumenten före utfärdande.
+7. **Återta fakturautkast** fungerar bara före utfärdandet och kräver granskning och orsak. Det raderar utkastet inklusive eventuella manuella ändringar och frigör alla dess tidsrader. Tidsunderlaget bevaras som makulerat. Utfärdade fakturor rättas med kreditfaktura i Fakturering. Krediter eller motbokning av fakturans verifikation frigör inte automatiskt timmarna.
+8. Filtrera tidsregistreringar på projekt, status, datum och söktext (person/arbete/projekt). Exportera urval till CSV eller skriv ut tidsrapport med PDF-historik. Ett fakturaunderlag kan också skrivas ut separat. Projektöversikten visar godkända timmar mot budget; statistik visar registrerad/godkänd tid och återstående debiterbar tid. Avslut kräver att tidsutkast hanterats; arkivering kräver även att kvarvarande debiterbar tid hanterats. Projekt kan återöppnas.
+
+Tid, projekt och fakturaunderlag hålls separerade per företagsdatabas och ingår i dess säkerhetskopia. Detta är manuell tids- och fakturaunderlagshantering, inte automatisk löneberäkning, avtalsstyrd arbetstidskontroll eller attest av en identifierad chef. Övertid, OB, frånvaroavdrag, utlägg, kostnader, projektvinst och automatisk löneöverföring ingår inte. Faktureringen gäller SEK; fakturans vanliga granskningskrav gäller även tidsunderlag.
 
 ## Arbetsflöde för Fakturering och Betalningar
 
@@ -69,17 +83,17 @@ Flödet gäller vanliga svenska fakturor i **SEK enligt fakturametoden**. Andra 
 
 Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Fakturautkast och utfärdade kundfakturor drar inte lager; registrera utleverans manuellt med referens. Leverantörsfakturor/krediter ändrar inte antal. Reservationer, flera lager, lagerflyttar, batch-/serienummer, FIFO/medelpris och automatisk koppling till kundorder ingår inte i denna version.
 
-Version 0.9 använder fortsatt **schema 7**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6-kopior från 0.5–0.7-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+Version 0.10 använder **schema 8**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6/7-kopior från 0.5–0.9-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 
 ## Utskriftshistorik under Dokument
 
 - Öppna **Dokument → Utskriftshistorik** för datum, dokumenttyp, nummer, mottagare och status. Sök, filtrera på lokala datum, typ (inklusive Lönebesked) och status samt bläddra 25 rader åt gången. Övrig dokumenthantering är fortfarande beta.
-- Befintliga utskriftsvyer för fakturautkast, utfärdade kundfakturor/krediter, enskilda eller samlade lönebesked, verifikationer, bokföringsrapporter, inköpsorder och leverantörsfakturor får **Spara PDF** och **Historik för underlaget**. Historiklänkar finns även vid underlagens utskriftsknappar. Dessa underlag behåller sina befintliga utkast-/granskningsmarkeringar.
+- Befintliga utskriftsvyer för tidsrapporter/fakturaunderlag, fakturautkast, utfärdade kundfakturor/krediter, enskilda eller samlade lönebesked, verifikationer, bokföringsrapporter, inköpsorder och leverantörsfakturor får **Spara PDF** och **Historik för underlaget**. Historiklänkar finns även vid underlagens utskriftsknappar. Dessa underlag behåller sina befintliga utkast-/granskningsmarkeringar.
 - I skrivbordsappen skapas en oföränderlig PDF innan utskrifts- eller spara-dialogen öppnas. Varje försök får en egen historikrad. Från detaljerna kan du **Visa PDF**, **Spara PDF**, **Skriv ut igen** eller **Öppna underlag**. Omutskrift och ny PDF-export använder sparade PDF-bytes, även om originalunderlaget har ändrats. PDF-kopians ursprungliga tidpunkt visas också.
 - Status skiljer mellan förberedelse, öppnad dialog, skickad till utskriftssystemet, sparad PDF, avbrutet och misslyckat. Native utskriftsdialogens callback avgör status; fysiskt papper kan inte bekräftas. Efter avbrott/omstart med ett oavslutat försök visas **Okänt resultat**, aldrig en antagen lyckad utskrift. Fel vid PDF-generering registreras med förklaring och utan PDF-knappar.
 - Historiken registrerar appens utskriftsknappar och Ctrl + P i utskriftsvyn. Utskrift direkt från en PDF-visares egna kontroller eller externa program registreras inte. Utvecklingsläget i vanlig webbläsare har kvar utskriftsförhandsvisning men kan inte skapa automatiska PDF-kopior eller tillförlitlig historik; detta anges i vyn.
 - PDF-kopior och historik lagras i SQLite och ingår i databasexport/import. En PDF får vara högst 20 MB. Databasen växer när kopior sparas; gränsen på 64 MB för import via appen gäller fortfarande för hela säkerhetskopian. Ta regelbundna säkerhetskopior. Historiken kan inte återskapa utskrifter gjorda före uppdateringen och har ingen funktion för radering eller separat åtkomstkontroll för löner.
-- Utskriftshistoriken infördes i version 0.6 med schema 5; nuvarande version använder schema 7. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
+- Utskriftshistoriken infördes i version 0.6 med schema 5; nuvarande version använder schema 8. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
 
 ## Arbetsflöde för Bokföring
 
@@ -157,7 +171,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 - **Text & läsbarhet** i samma flik ger 100, 125, 150, 175 och 200 % storlek för hela gränssnittet samt valbar fet text. Standard är 100 % och normal text. Menyer och formulär anpassas vid förstoring; breda tabeller kan rullas i sidled. Pappersutskrifter behåller normal skala.
 - Programlås och upplåsningshistorik är bortkopplade i 0.5.4. Låsknapp, Ctrl + L, inaktivitetsmätning och Windowskoppling för låsning ingår inte. Äldre låsinställningar och historik ligger kvar orörda för kompatibilitet med säkerhetskopior, men kan inte aktivera ett lås, heller inte efter import. Använd Win + L för att låsa Windows.
 - Databasen är inte krypterad i applikationen. Använd Windowskontots åtkomstskydd och exempelvis BitLocker för skydd på disk.
-- Versionerna 0.2–0.9 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 7. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+- Versionerna 0.2–0.10 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 8. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 - API:t lyssnar endast på loopback och tillåter endast rätt Host-header. Skrivningar kräver samma origin och en sessionsspecifik token. Rendererprocessen saknar Node-åtkomst och kör med sandbox och context isolation.
 - Det finns ännu ingen fjärrinloggning eller fleranvändarhantering. Exponera inte den lokala tjänsten på nätverket.
 
@@ -181,4 +195,6 @@ Lagermodulen ligger i `src/inventory.cjs` och `public/inventory.js`. Inköpsmodu
 
 Fakturering och kundbetalningar ligger i `src/sales.cjs` och `public/sales.js`. Utfärdande, regleringar och bokföringskopplingar använder gemensamma SQLite-transaktioner. Schema 7 bevarar befintliga data, lager och PDF-historik.
 
-Databaslistan hanteras i `src/databases.cjs` och `public/databases.js`. Servern öppnar ett nytt sammanhang före byte, sparar aktivt val och byter sessionsidentifierare. Native utskrift blockeras under bytet och använder aktuell session; databasformatet är fortfarande schema 7.
+Databaslistan hanteras i `src/databases.cjs` och `public/databases.js`. Servern öppnar ett nytt sammanhang före byte, sparar aktivt val och byter sessionsidentifierare. Native utskrift blockeras under bytet och använder aktuell session; databasformatet är nu schema 8.
+
+Tid och projekt finns i `src/time.cjs` och `public/time.js`. Schema 8 tillför projekt, tidsrader, låsta fakturaunderlag och händelser. Vid databasbyte laddas även tidsmodulen om; äldre kompletta säkerhetskopior får tomma tidstabeller utan att kund-, bokförings- eller PDF-data ersätts.

@@ -6,6 +6,7 @@ const { DatabaseSync } = require('node:sqlite');
 const { ValidationError, text, decimal, invoice } = require('./domain.cjs');
 const { initHr, HrError } = require('./hr.cjs');
 const { initAccounting, AccountingError } = require('./accounting.cjs');
+const {initTime,TimeError}=require('./time.cjs');
 const {initSales,SalesError}=require('./sales.cjs');
 const {initInventory,InventoryError}=require('./inventory.cjs');
 const {initPrinting,PrintError}=require('./printing.cjs');
@@ -15,7 +16,7 @@ const { initPurchases, PurchaseError } = require('./purchases.cjs');
 function openDatabase(dataDir,openDataDirectory){
   applyPending(dataDir);
   const db=new DatabaseSync(path.join(dataDir,'sizzla.sqlite'));
-  let hr, accounting, purchases,inventory,sales,printing,security;
+  let hr, accounting, purchases,inventory,sales,time,printing,security;
   try {
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
     CREATE TABLE IF NOT EXISTS records (kind TEXT NOT NULL, id TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(kind,id));
@@ -26,16 +27,17 @@ function openDatabase(dataDir,openDataDirectory){
   purchases=initPurchases(db,accounting,{prepareOrderLines:lines=>inventory.prepareOrderLines(lines),assertOrderLines:lines=>inventory.assertOrderLines(lines),receive:(o,r)=>inventory.receive(o,r),reverseReceipt:(r,reason)=>inventory.reverseReceipt(r,reason)});
   inventory=initInventory(db);
   sales=initSales(db,accounting);
+  time=initTime(db);
   printing=initPrinting(db);
   security=initSecurity(db,{dataDir,openDataDirectory:openDataDirectory?()=>openDataDirectory(dataDir):undefined});
   } catch(error) { db.close(); throw error; }
-  return {db,hr,accounting,purchases,inventory,sales,printing,security};
+  return {db,hr,accounting,purchases,inventory,sales,time,printing,security};
 }
 function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirname, '..', '.local'), openDataDirectory, canSwitchDatabase=()=>true, onDatabaseChanged=()=>{} } = {}) {
   fs.mkdirSync(dataDir,{recursive:true,mode:0o700});
   const databases=initDatabases(dataDir);
   if(!databases.created&&(!fs.existsSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite'))||!fs.statSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite')).size))throw new DatabaseError('dbUnavailable');
-  let {db,hr,accounting,purchases,inventory,sales,printing,security}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
+  let {db,hr,accounting,purchases,inventory,sales,time,printing,security}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
   let token=randomBytes(32).toString('hex'),databaseSession=randomUUID();
   const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data) }));
   const get = (kind,id) => { const row = db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,id); return row ? { id, data: JSON.parse(row.data) } : null; };
@@ -51,7 +53,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && ['/','/app.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/app.js','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
@@ -59,7 +61,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(req.method==='GET'&&url.pathname==='/api/prints')return send(res,200,printing.list(Object.fromEntries(url.searchParams)));
       const pdfMatch=url.pathname.match(/^\/api\/prints\/([a-f0-9-]{36})\/pdf$/);
       if(req.method==='GET'&&pdfMatch){const doc=printing.document(pdfMatch[1]);if(!doc.pdf)return send(res,404,{error:'printPdfFailed'});res.setHeader('Content-Disposition',`inline; filename="Sizzla-${doc.id}.pdf"`);return send(res,200,doc.pdf,'application/pdf');}
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,databases:databases.state(), security:security.status(), preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state() });
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,databases:databases.state(), security:security.status(), preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state(),time:time.state() });
       if(req.method==='POST'&&req.headers.origin===`http://127.0.0.1:${server.address().port}`&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       const requestToken=token;
@@ -76,8 +78,8 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if(route==='activate'){
           if(security.status().importPending)throw new DatabaseError('dbImportPending');
           if(!canSwitchDatabase())throw new DatabaseError('dbPrintBusy');
-          const result=databases.activate(body,dir=>{if(fs.existsSync(path.join(dir,'pending-import.sqlite')))throw new DatabaseError('dbImportPending');let candidate;try{candidate=openDatabase(dir,openDataDirectory);if(candidate.db.prepare('PRAGMA quick_check').get().quick_check!=='ok'||candidate.db.prepare('PRAGMA foreign_key_check').all().length)throw Error();for(const row of candidate.db.prepare('SELECT data FROM records UNION ALL SELECT data FROM settings UNION ALL SELECT data FROM preferences').all()){const value=JSON.parse(row.data);if(!value||typeof value!=='object'||Array.isArray(value))throw Error();}candidate.hr.state();candidate.accounting.state();candidate.purchases.state();candidate.inventory.state();candidate.sales.state();return candidate;}catch{candidate?.db.close();throw new DatabaseError('dbUnavailable');}});
-          if(!result.unchanged){const old=db;({db,hr,accounting,purchases,inventory,sales,printing,security}=result.candidate);token=randomBytes(32).toString('hex');databaseSession=randomUUID();old.close();try{onDatabaseChanged();}catch(error){console.error(error);}}
+          const result=databases.activate(body,dir=>{if(fs.existsSync(path.join(dir,'pending-import.sqlite')))throw new DatabaseError('dbImportPending');let candidate;try{candidate=openDatabase(dir,openDataDirectory);if(candidate.db.prepare('PRAGMA quick_check').get().quick_check!=='ok'||candidate.db.prepare('PRAGMA foreign_key_check').all().length)throw Error();for(const row of candidate.db.prepare('SELECT data FROM records UNION ALL SELECT data FROM settings UNION ALL SELECT data FROM preferences').all()){const value=JSON.parse(row.data);if(!value||typeof value!=='object'||Array.isArray(value))throw Error();}candidate.hr.state();candidate.accounting.state();candidate.purchases.state();candidate.inventory.state();candidate.sales.state();candidate.time.state();return candidate;}catch{candidate?.db.close();throw new DatabaseError('dbUnavailable');}});
+          if(!result.unchanged){const old=db;({db,hr,accounting,purchases,inventory,sales,time,printing,security}=result.candidate);token=randomBytes(32).toString('hex');databaseSession=randomUUID();old.close();try{onDatabaseChanged();}catch(error){console.error(error);}}
           return send(res,200,{ok:true});
         }
         throw new DatabaseError('dbMissing',404);
@@ -87,6 +89,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if(result.download){res.setHeader('Content-Disposition',`attachment; filename="Sizzla-3000-${databases.state().entries.find(e=>e.active).name.normalize('NFKD').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,60)}-${new Date().toISOString().replace(/[:.]/g,'-')}.${result.extension}"`);return send(res,200,result.download,'application/octet-stream');}
         return send(res,200,result);}catch(error){if(['passwordLength','securityInvalid','desktopOnly','backupPassword','backupInvalid'].includes(error.message))return send(res,400,{error:error.message});throw error;}
       }
+      if(url.pathname.startsWith('/api/time/'))return send(res,200,time.handle(url.pathname,body,settings()));
       if(url.pathname.startsWith('/api/sales/'))return send(res,200,sales.handle(url.pathname,body,settings()));
       if(url.pathname.startsWith('/api/inventory/'))return send(res,200,inventory.handle(url.pathname,body));
       if(url.pathname.startsWith('/api/purchases/')){
@@ -140,7 +143,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     } catch (error) {
       if(error instanceof SyntaxError&&req.url.startsWith('/api/prints'))send(res,400,{error:'printInvalid'});
       else if(error instanceof PrintError)send(res,error.message==='printMissing'?404:400,{error:error.message});
-      else if (error instanceof DatabaseError || error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError || error instanceof InventoryError || error instanceof SalesError) send(res,error.status,{error:error.message});
+      else if (error instanceof TimeError || error instanceof DatabaseError || error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError || error instanceof InventoryError || error instanceof SalesError) send(res,error.status,{error:error.message});
       else if (error instanceof ValidationError) send(res,400,{error:error.message});
       else { console.error(error); send(res,500,{error:'internal'}); }
     }

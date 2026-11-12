@@ -1,19 +1,17 @@
-Sizzla 3000 0.9.0 för Windows 11 (x64): Flera företagsdatabaser.
+Sizzla 3000 0.10.0 för Windows 11 (x64): Tid & projekt lämnar beta.
 
-- Ny flik Inställningar → Databaser: skapa och namnge företagsdatabaser samt välj Aktivera. Högst 10 företagsdatabaser, inklusive den första. Antalet visas i fliken. Bara en databas är aktiv åt gången; valet finns kvar efter omstart.
-- Den befintliga databasen bevaras som Företag 1 på samma plats. Nya företag får egna tomma register, bokföring, löner, lager, fakturanummerserier och PDF-historik.
-- Företagsnamn och databasetikett syns i sidomenyn. Etiketten kan ändras utan att den bokförda företagsidentiteten ändras.
-- Osparade formulärändringar ger en fråga innan vyn lämnas. Byte läser in vyerna på nytt och blockerar skrivning från gamla fönster eller anrop som började före bytet.
-- Byte väntar på pågående utskrifts-/PDF-åtgärder. Gamla utskriftsfönster stängs vid byte i skrivbordsappen.
-- Export/import och öppna katalog gäller aktiv databas. Säkerhetskopior får databasnamnet i filnamnet. En förberedd import måste slutföras genom omstart eller avbrytas före byte.
-- Svenska/engelska, mörkt läge och textinställningar stöds.
+- Projekt med kod, kund eller intern användning, status, standardtimpris/moms, datum och tidsbudget.
+- Manuell tidsregistrering med person/anställd, arbetsdatum, decimaltimmar, beskrivning, timpris och debiterbar/ej debiterbar tid. Ingen framtida registrering; högst 24 timmar per registrerad person och dag.
+- Granskning och låsning av godkänd tid. Makulering med orsak bevarar registreringen. Projektkod/kund skyddas efter första tidsregistreringen.
+- Skapa ett fakturautkast från högst 100 godkända debiterbara tidsrader inom ett projekt. Samma rad kan inte överföras två gånger. Koppling och utkast sparas atomiskt.
+- Fakturaunderlagets ursprungliga sammanställning bevaras även om utkastet redigeras. Öppna och granska fakturan i Fakturering för utfärdande/bokföring. Överföring av tid skickar ingen faktura och skapar ingen bokföring.
+- Återta ett ej utfärdat fakturautkast med granskning och orsak: utkastet inklusive manuella ändringar raderas och timmarna frigörs, medan underlaget bevaras. Utfärdad tid frigörs inte automatiskt, heller inte vid kredit eller motbokning.
+- Datum-/projekt-/statusfilter, textsökning, CSV, tidsrapporter och fakturaunderlag till utskrift/PDF med utskriftshistorik. Svenska/engelska, mörkt läge och textinställningar stöds.
 
-**Exportera hela den befintliga databasen före uppdatering.** Databasformatet är fortsatt schema 7. Varje företag säkerhetskopieras separat. Databaslistan ingår inte i en enskild export. För en manuell säkerhetskopia av alla företag: stäng programmet och kopiera hela den ursprungliga datakatalogen inklusive databases.json och underkataloger. Externa originalunderlag måste kopieras separat.
+**Exportera varje företagsdatabas före uppdatering och stäng appen.** Databasen uppgraderas till schema 8 när den öppnas. Kompletta kopior från schema 4/5/6/7 stöds; befintliga register, bokföring, lager och PDF-kopior bevaras. Kör inte 0.9 eller äldre mot uppgraderade databaser. Tidsuppgifter ingår i respektive företags säkerhetskopia. Högst 10 företagsdatabaser och en aktiv åt gången gäller fortsatt.
 
-Första databasen ligger kvar i den ursprungliga datakatalogen. Nya företag ligger i databases/<id>/. Använd inte 0.8 eller äldre för att hantera en arbetsplats med flera databaser. Radering, sammanslagning, gemensam nätverkslagring och samtidig användning från flera programinstanser ingår inte.
+Tid anges i decimaltimmar: 1,50 = 1 timme 30 minuter. Hela tidsrader överförs; dela upp arbete i separata rader före godkännande om det ska faktureras vid olika tillfällen. Ingen timer, automatisk löneöverföring, OB-/övertidsberäkning, avtalskontroll, utlägg, projektkostnad eller vinstberäkning ingår. Tidsbudget är en jämförelse, inte ett hårt stopp.
 
-Vill du lägga till ett företag från en kopia: skapa och aktivera en ny databas, importera kopian där och starta om. Import ersätter bara det aktiva företagets databas, inte listan eller andra företag. Importgränsen på 64 MB inklusive PDF-kopior gäller fortfarande.
-
-Befintliga begränsningar kvarstår: vanliga svenska faktura-/inköpsflöden i SEK enligt fakturametoden, inga banköverföringar, ingen automatisk skatt eller AGI-inlämningsfil. Fullständig behandlingshistorik med identifierad operatör och övriga dokumenterade krav inför skarp bokföring återstår; se SYSTEMDOKUMENTATION.md.
+Befintliga begränsningar kvarstår: vanliga svenska faktura-/inköpsflöden i SEK enligt fakturametoden, inga banköverföringar, ingen automatisk skatt eller AGI-inlämningsfil. Fullständig behandlingshistorik med identifierad operatör och övriga dokumenterade krav inför skarp bokföring återstår; se SYSTEMDOKUMENTATION.md. Säkerhetskopiors importgräns på 64 MB inklusive PDF-kopior gäller fortfarande; externa originalunderlag bevaras separat.
 
 Det här är en förhandsversion med osignerat installationsprogram. Fullständig manuell verifiering på Windows 11 återstår. Ladda ned installationsfilen under Assets.

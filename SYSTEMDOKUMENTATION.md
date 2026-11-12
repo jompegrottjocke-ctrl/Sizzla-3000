@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.9.0, databasschema 7. Upprättad 2026-11-12.
+Version 0.10.0, databasschema 8. Upprättad 2026-11-12.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -16,6 +16,7 @@ En lokal Windowsapp används för ett företag per databas. Upp till tio företa
 | Inköp | `src/purchases.cjs`; order, mottagningar, fakturor och betalningar med sparade uppgifter och bokföringskoppling. |
 | Kundfakturor och regleringar | `sales_documents`, `sales_payments`, `sales_allocations`, `sales_events`. Kredit pekar på original; betalning och kvittning pekar på berörda dokument. |
 | Lager | `src/inventory.cjs`; antal, rörelser och inventeringar. Inköpsmottagning och lagerrörelse sparas tillsammans. Ingen automatisk lagerbokföring. |
+| Tid och projekt | `time_projects`, `time_entries`, `time_batches`, `time_events`. Godkänd tid låses; fakturaunderlag pekar på fakturautkast och bevarar en kopia av valda tidsrader, projekt, kund och företag. |
 | Utskrifter | `src/printing.cjs`; PDF-bytes och försökshistorik i databasen. PDF skapas vid utskrift/export, inte automatiskt vid varje bokföring. |
 
 ## Bearbetning och identifiering
@@ -30,11 +31,13 @@ Utfärdande av kundfaktura, kundbetalning och kvittning samt motsvarande verifik
 
 Vid byte öppnas måldatabasen först. Aktivt val sparas atomiskt i en separat JSON-fil, skrivsessionen byts och den tidigare anslutningen stängs. Gamla och ofullständiga skrivförfrågningar avvisas. Skrivbordsappen blockerar byte under pågående PDF-/utskriftsåtgärd och stänger gamla utskriftsfönster. Databasbytet är ingen bokföringsrättelse eller användaridentifiering. Databaslistan är inte en revisionslogg.
 
+Tid anges i hundradelstimmar och pris i heltalsören. Samma beräkningsfunktion används när tidsrader blir fakturarader. Godkännande är en uttrycklig lokal granskningsåtgärd, inte identifierad chefsattest. Överföring till ett fakturautkast kopplar hela tidsrader atomiskt utan bokföringspost. Bokföring skapas först vid fakturans utfärdande. Fakturautkast kan redigeras separat; det sparade tidsunderlaget ändras inte. Återtagning före utfärdande tar bort utkastet och frigör tidsrader i samma transaktion, medan underlaget och orsaken bevaras. Utfärdande identifieras via försäljningsmodulens koppling till utkast-ID och hindrar återtagning. Krediter/motbokning frigör inte automatiskt tid. Ingen löneöverföring eller kostnads-/projektresultatbokföring sker.
+
 ## Rättelser och befintlig historik
 
 Bokförda verifikationsdata skyddas mot ändring och radering i appen och med SQLite-triggers. Rättelse görs genom en ny motbokningsverifikation med orsak och datum; original och rättelse pekar på varandra (`corrects`, `reversed_by`). En korrekt ny registrering kan sedan göras vid behov. Avstämda perioder kan låsas framåt. Utfärdade kundfakturor ändras inte; kommersiella rättelser görs med kreditfakturor.
 
-`ledger_events` bevarar tidpunkt, objekt, åtgärd och JSON-data för bland annat utkast, bokföring, rättelser, konton och årshantering. Bokföringsvyn visar tidpunkt, objekt och åtgärd; den visar inte hela loggens JSON-innehåll. `sales_events` kompletterar med kundfakturornas och regleringarnas händelser. Betalningsrättelse från Bokföring uppdaterar berörd reskontra i samma transaktion. Tidpunkter lagras som UTC; gränssnittet visar lokal tid. Historiken bygger på datorns klocka.
+`ledger_events` bevarar tidpunkt, objekt, åtgärd och JSON-data för bland annat utkast, bokföring, rättelser, konton och årshantering. Bokföringsvyn visar tidpunkt, objekt och åtgärd; den visar inte hela loggens JSON-innehåll. `sales_events` kompletterar med kundfakturornas och regleringarnas händelser. `time_events` registrerar projektändringar, tidsregistrering, godkännande, makulering och överföring/återtagning av fakturaunderlag. Inte heller denna historik identifierar operatören. Betalningsrättelse från Bokföring uppdaterar berörd reskontra i samma transaktion. Tidpunkter lagras som UTC; gränssnittet visar lokal tid. Historiken bygger på datorns klocka.
 
 Historiken är **inte en fullständig behandlingshistorik**. Ingen identifierad operatör sparas vid rättelser och ingen inloggning finns. Det saknas också en sammanhållen användarvy/export av alla historikdetaljer och all registerändring. Lokala SQL-skydd skyddar inte mot någon med full kontroll över databasfilen. Dessa begränsningar måste åtgärdas och verifieras innan stöd för full efterlevnad kan beskrivas som färdigt.
 
