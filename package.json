@@ -1,0 +1,29 @@
+{
+  "name": "sizzla-3000",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sizzla 3000 – lokal företagsadministration",
+  "main": "src/desktop.cjs",
+  "author": "Sizzla 3000",
+  "scripts": {
+    "start": "node src/server.cjs",
+    "desktop": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "test:ui": "playwright test",
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "engines": { "node": ">=24" },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "electron": "45.3.1",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "se.sizzla.desktop",
+    "productName": "Sizzla 3000",
+    "files": ["src/**", "public/**", "package.json"],
+    "directories": { "output": "dist" },
+    "win": { "target": "nsis" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+  }
+}
