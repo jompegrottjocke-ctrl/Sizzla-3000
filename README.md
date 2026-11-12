@@ -10,6 +10,7 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Moms 0, 6, 12 eller 25 procent per rad, beräknad i heltalsören med avrundning per rad. Endast SEK och priser exklusive moms i denna version.
 - Utfärda och bokför granskade kundfakturor med löpnummer, låsta uppgifter, fakturautskrift och PDF-historik. Utkast behåller märkningen **UTKAST – EJ FAKTURA**.
 - Betalningar: kund- och leverantörsreskontra, delbetalningar, kundkrediter, kvittning mot ursprungsfakturan, återbetalningar och spårbara motbokningar.
+- Flera företagsdatabaser med en aktiv åt gången via Inställningar → Databaser. Skapa, namnge och aktivera; byte läser in företaget på nytt och skyddar mot skrivning från gamla fönster.
 - Lokal SQLite-databas; uppgifterna finns kvar efter omstart. Sparade utkast innehåller en kopia av företagets och kundens uppgifter vid senaste sparandet.
 - Personalregister med kontakt-, anställnings-, bank- och löneuppgifter. Sökning, filtrering, arkivering och återställning. Unika anställningsnummer och kontroll av svenska person-/samordningsnummer.
 - Frånvaro och manuellt tilldelade betalda semesterdagar per kalenderår. Uttag kontrolleras mot saldot; överlappande frånvaro avvisas. Frånvaroregistret beräknar inte automatiskt löneavdrag eller lagstadgad semester-/sjuklön.
@@ -29,6 +30,17 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Tid/projekt, bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
 
 Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring och lönehantering är inte färdigt. Bankintegration, automatisk säkerhetskopiering och komplett verifierade regelverk återstår. Se [Systemdokumentation och kvarstående krav](SYSTEMDOKUMENTATION.md) för uppbyggnad, spårbarhet och kända luckor, inklusive avsaknad av identifierad användare vid rättelser.
+
+## Flera företag under Databaser
+
+1. Öppna **Inställningar → Databaser**. Den befintliga databasen finns kvar som **Företag 1**, på sin tidigare plats. Inga gamla uppgifter flyttas eller ersätts.
+2. Ange ett databasnamn och välj **Skapa databas**. Den läggs till i listan utan att aktiveras. Varje ny databas börjar med egna tomma register, egen bokföring, egna nummerserier och tom PDF-historik. Namnet fylls initialt i som företagsnamn; språk, utseende och läsbarhet kopieras som startvärden och kan därefter ändras separat.
+3. Välj **Aktivera** vid önskat företag och bekräfta bytet. Bara en databas är aktiv. Vyerna läses in på nytt och valet sparas till nästa start. Företagets namn och databasetikett visas i sidomenyn. Ändra namn ändrar etiketten, inte företagets bokförda identitet; företagsuppgifter hanteras under Mitt företag.
+4. Osparade formulärändringar ger en fråga innan vyn lämnas. Avsluta pågående utskrift/PDF-åtgärd före byte. Öppna utskriftsfönster stängs vid byte i skrivbordsappen. Gamla fönster och ofullständiga anrop kan inte skriva i den nya databasen; de behöver läsa in aktiv databas igen.
+5. Export, import och **Öppna databasens katalog** gäller den aktiva databasen. Säkerhetskopians filnamn innehåller databasetiketten. Exportera varje företag separat. En förberedd import måste slutföras genom omstart eller avbrytas före byte. Import ersätter endast den aktiva databasens innehåll; listan och övriga företag påverkas inte.
+6. För att lägga till ett företag från en säkerhetskopia: skapa en ny databas, aktivera den och importera kopian under Säkerhet & säkerhetskopiering. Starta sedan om appen. Kontrollera aktivt företag före import.
+
+Databaslistan och aktivt val finns i `databases.json` i den ursprungliga datakatalogen. Första databasens `sizzla.sqlite` ligger kvar där; nya företag ligger i `databases/<id>/`. Listan ingår inte i en enskild databasexport. För en manuell kopia av **hela arbetsplatsen**, stäng appen och kopiera hela den ursprungliga datakatalogen med `databases.json`, underkataloger och eventuella WAL/SHM-filer. Externa originalunderlag måste fortfarande kopieras separat. Redigera inte databaslistan eller flytta databasfiler medan programmet körs. Radering, sammanslagning, delade nätverksdatabaser och samtidig användning från flera programinstanser ingår inte. Använd inte 0.8 eller äldre för att hantera en arbetsplats med flera databaser.
 
 ## Arbetsflöde för Fakturering och Betalningar
 
@@ -57,7 +69,7 @@ Flödet gäller vanliga svenska fakturor i **SEK enligt fakturametoden**. Andra 
 
 Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Fakturautkast och utfärdade kundfakturor drar inte lager; registrera utleverans manuellt med referens. Leverantörsfakturor/krediter ändrar inte antal. Reservationer, flera lager, lagerflyttar, batch-/serienummer, FIFO/medelpris och automatisk koppling till kundorder ingår inte i denna version.
 
-Version 0.8 använder **schema 7**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6-kopior från 0.5–0.7-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+Version 0.9 använder fortsatt **schema 7**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6-kopior från 0.5–0.7-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 
 ## Utskriftshistorik under Dokument
 
@@ -145,7 +157,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 - **Text & läsbarhet** i samma flik ger 100, 125, 150, 175 och 200 % storlek för hela gränssnittet samt valbar fet text. Standard är 100 % och normal text. Menyer och formulär anpassas vid förstoring; breda tabeller kan rullas i sidled. Pappersutskrifter behåller normal skala.
 - Programlås och upplåsningshistorik är bortkopplade i 0.5.4. Låsknapp, Ctrl + L, inaktivitetsmätning och Windowskoppling för låsning ingår inte. Äldre låsinställningar och historik ligger kvar orörda för kompatibilitet med säkerhetskopior, men kan inte aktivera ett lås, heller inte efter import. Använd Win + L för att låsa Windows.
 - Databasen är inte krypterad i applikationen. Använd Windowskontots åtkomstskydd och exempelvis BitLocker för skydd på disk.
-- Versionerna 0.2–0.8 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 7. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+- Versionerna 0.2–0.9 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 7. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 - API:t lyssnar endast på loopback och tillåter endast rätt Host-header. Skrivningar kräver samma origin och en sessionsspecifik token. Rendererprocessen saknar Node-åtkomst och kör med sandbox och context isolation.
 - Det finns ännu ingen fjärrinloggning eller fleranvändarhantering. Exponera inte den lokala tjänsten på nätverket.
 
@@ -168,3 +180,5 @@ Utskriftshistorik och PDF-lagring finns i `src/printing.cjs`, den begränsade IP
 Lagermodulen ligger i `src/inventory.cjs` och `public/inventory.js`. Inköpsmodulens lagerkoppling körs inom samma SQLite-transaktion som mottagningen/rättelsen. Ingången via artikelregistret skyddar artikelnummer och enhet när de används i lager.
 
 Fakturering och kundbetalningar ligger i `src/sales.cjs` och `public/sales.js`. Utfärdande, regleringar och bokföringskopplingar använder gemensamma SQLite-transaktioner. Schema 7 bevarar befintliga data, lager och PDF-historik.
+
+Databaslistan hanteras i `src/databases.cjs` och `public/databases.js`. Servern öppnar ett nytt sammanhang före byte, sparar aktivt val och byter sessionsidentifierare. Native utskrift blockeras under bytet och använder aktuell session; databasformatet är fortfarande schema 7.

@@ -1,22 +1,19 @@
-Sizzla 3000 0.8.0 för Windows 11 (x64): Fakturering och Betalningar.
+Sizzla 3000 0.9.0 för Windows 11 (x64): Flera företagsdatabaser.
 
-- Utfärda och bokför kundfakturor med gemensam löpande nummerserie för fakturor och krediter. Startnummer väljs före första utfärdandet. Utfärdade uppgifter är låsta.
-- Granskning av kund, företag, moms och konton. Fakturautskrift, momsspecifikation och oföränderliga PDF-kopior via utskriftshistoriken.
-- Delbetalningar, kreditfakturor från originalets rader, kvittning mot ursprungsfakturan och registrering av faktiskt genomförda återbetalningar.
-- Betalningar samlar kund- och leverantörsreskontra, betalningshistorik och kundhändelser. Sökning, filter och CSV-export.
-- Registrering och bokföring sparas tillsammans. Spårbara motbokningar uppdaterar reskontran även från Bokföring. Återbokföring av ett oförändrat utfärdat underlag behåller fakturanumret.
-- Svenska/engelska, mörkt läge och läsbarhetsinställningar stöds.
+- Ny flik Inställningar → Databaser: skapa och namnge företagsdatabaser samt välj Aktivera. Bara en databas är aktiv åt gången; valet finns kvar efter omstart.
+- Den befintliga databasen bevaras som Företag 1 på samma plats. Nya företag får egna tomma register, bokföring, löner, lager, fakturanummerserier och PDF-historik.
+- Företagsnamn och databasetikett syns i sidomenyn. Etiketten kan ändras utan att den bokförda företagsidentiteten ändras.
+- Osparade formulärändringar ger en fråga innan vyn lämnas. Byte läser in vyerna på nytt och blockerar skrivning från gamla fönster eller anrop som började före bytet.
+- Byte väntar på pågående utskrifts-/PDF-åtgärder. Gamla utskriftsfönster stängs vid byte i skrivbordsappen.
+- Export/import och öppna katalog gäller aktiv databas. Säkerhetskopior får databasnamnet i filnamnet. En förberedd import måste slutföras genom omstart eller avbrytas före byte.
+- Svenska/engelska, mörkt läge och textinställningar stöds.
 
-**Exportera hela databasen före uppdatering och stäng programmet.** Databasen uppgraderas till schema 7. Kompletta schema 4/5/6-kopior stöds; tidigare data, lager och PDF-kopior bevaras. Kör inte 0.7 eller äldre mot den uppgraderade databasen. Befintliga utkast utfärdas inte automatiskt.
+**Exportera hela den befintliga databasen före uppdatering.** Databasformatet är fortsatt schema 7. Varje företag säkerhetskopieras separat. Databaslistan ingår inte i en enskild export. För en manuell säkerhetskopia av alla företag: stäng programmet och kopiera hela den ursprungliga datakatalogen inklusive databases.json och underkataloger. Externa originalunderlag måste kopieras separat.
 
-Börja med fullständiga företags-/kundadresser, företagets momsregistreringsnummer vid momspliktig försäljning samt ett öppet räkenskapsår. Kontrollera tidigare fakturanummer innan första utfärdandet. Utfärdande skickar inte fakturan; spara PDF och leverera den själv.
+Första databasen ligger kvar i den ursprungliga datakatalogen. Nya företag ligger i databases/<id>/. Använd inte 0.8 eller äldre för att hantera en arbetsplats med flera databaser. Radering, sammanslagning, gemensam nätverkslagring och samtidig användning från flera programinstanser ingår inte.
 
-Försäljning och inköp gäller vanliga svenska flöden i SEK enligt fakturametoden. Andra valutor, kontantmetod, utländsk/omvänd moms, förskott, överbetalningar, bankfiler och automatisk fakturaleverans ingår inte. Kvittning av kundkredit gäller dess egen ursprungsfaktura. Programmet genomför inga banköverföringar; en motbokning rättar bara registreringen.
+Vill du lägga till ett företag från en kopia: skapa och aktivera en ny databas, importera kopian där och starta om. Import ersätter bara det aktiva företagets databas, inte listan eller andra företag. Importgränsen på 64 MB inklusive PDF-kopior gäller fortfarande.
 
-Reskontrorna visar aktuell status, inte historiska saldon per valfritt datum. Leverantörsvyn inkluderar godkända ännu ej bokförda underlag. Kundfakturor vars bokning motbokats ligger kvar som utfärdade och markeras utan aktiv bokföring. Bokför inte redan bokförda äldre fakturor igen.
-
-Kundfakturor och krediter uppdaterar inte lagerantal. Utleveranser registreras manuellt. Ingen automatisk lagervärdering/bokföring ingår. Säkerhetskopiornas befintliga importgräns på 64 MB gäller inklusive PDF-kopior. Originalunderlag utanför databasen måste bevaras separat.
-
-Systemets uppbyggnad och kända luckor beskrivs i SYSTEMDOKUMENTATION.md. Historiken saknar identifierad användare vid rättelser och är inte en fullständig behandlingshistorik. Fullständigt stöd för skarp bokföring är ännu inte färdigt. Lönehanteringen kräver manuellt verifierade skattebelopp; automatisk skatt, sjuk-/semesterregler, lönerättelser och AGI-inlämningsfil återstår.
+Befintliga begränsningar kvarstår: vanliga svenska faktura-/inköpsflöden i SEK enligt fakturametoden, inga banköverföringar, ingen automatisk skatt eller AGI-inlämningsfil. Fullständig behandlingshistorik med identifierad operatör och övriga dokumenterade krav inför skarp bokföring återstår; se SYSTEMDOKUMENTATION.md.
 
 Det här är en förhandsversion med osignerat installationsprogram. Fullständig manuell verifiering på Windows 11 återstår. Ladda ned installationsfilen under Assets.

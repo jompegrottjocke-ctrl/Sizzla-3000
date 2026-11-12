@@ -1,12 +1,12 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.8.0, databasschema 7. Upprättad 2026-11-12.
+Version 0.9.0, databasschema 7. Upprättad 2026-11-12.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
 ## Organisation och lagring
 
-En lokal Windowsapp används för ett företag per databas. Electron visar gränssnittet; ett API på loopback validerar och lagrar uppgifter i SQLite. Ingen molnsynkronisering eller fleranvändarhantering finns. Databaskatalogen kan öppnas från Säkerhet & säkerhetskopiering. Normal Windowsplats är `%APPDATA%/Sizzla 3000/data`; `SIZZLA_DATA_DIR` kan ändra den. En gemensam nätverksmapp stöds inte.
+En lokal Windowsapp används för ett företag per databas. Flera databaser kan registreras under Databaser, men endast en är aktiv åt gången. Register, bokföring, löner, lager och PDF-historik är separerade. Electron visar gränssnittet; ett API på loopback validerar och lagrar uppgifter i SQLite. Ingen molnsynkronisering eller fleranvändarhantering finns. Databaskatalogen kan öppnas från Säkerhet & säkerhetskopiering. Normal Windowsplats är `%APPDATA%/Sizzla 3000/data`; `SIZZLA_DATA_DIR` kan ändra den. Första databasen ligger kvar i denna katalog. `databases.json` innehåller listan och aktivt val; nya databaser ligger i `databases/<id>/`. En gemensam nätverksmapp stöds inte.
 
 | Del | Lagring och samband |
 | --- | --- |
@@ -28,6 +28,8 @@ Manuella verifikationer innehåller datum, beskrivning, referens, konton, radnot
 
 Utfärdande av kundfaktura, kundbetalning och kvittning samt motsvarande verifikation sker i samma SQLite-transaktion. Fel rullar tillbaka hela operationen. Kundfakturan får sitt nummer först vid lyckat utfärdande och bokföring. Leverantörsfakturans godkännande och bokföring är separata steg. Aktuell leverantörsreskontra inkluderar även godkända ännu ej bokförda underlag.
 
+Vid byte öppnas måldatabasen först. Aktivt val sparas atomiskt i en separat JSON-fil, skrivsessionen byts och den tidigare anslutningen stängs. Gamla och ofullständiga skrivförfrågningar avvisas. Skrivbordsappen blockerar byte under pågående PDF-/utskriftsåtgärd och stänger gamla utskriftsfönster. Databasbytet är ingen bokföringsrättelse eller användaridentifiering. Databaslistan är inte en revisionslogg.
+
 ## Rättelser och befintlig historik
 
 Bokförda verifikationsdata skyddas mot ändring och radering i appen och med SQLite-triggers. Rättelse görs genom en ny motbokningsverifikation med orsak och datum; original och rättelse pekar på varandra (`corrects`, `reversed_by`). En korrekt ny registrering kan sedan göras vid behov. Avstämda perioder kan låsas framåt. Utfärdade kundfakturor ändras inte; kommersiella rättelser görs med kreditfakturor.
@@ -38,7 +40,7 @@ Historiken är **inte en fullständig behandlingshistorik**. Ingen identifierad 
 
 ## Bevarande och återställning
 
-Exportera hela databasen regelbundet, även före uppdatering. Exporten omfattar register, bokföring, historik, inställningar och sparade PDF-kopior. Refererade originalfakturor, bankunderlag och andra filer utanför databasen ingår inte och måste bevaras separat med tydliga referenser. CSV är ett urval, inte en fullständig säkerhetskopia eller SIE-fil.
+Exportera varje företagsdatabas regelbundet, även före uppdatering. Export/import gäller bara aktiv databas. Databaslistan ingår inte i databasexporten; en manuell kopia av hela arbetsplatsen kräver stängd app och hela den ursprungliga datakatalogen med listan och alla underkataloger. Exporten omfattar register, bokföring, historik, inställningar och sparade PDF-kopior. Refererade originalfakturor, bankunderlag och andra filer utanför databasen ingår inte och måste bevaras separat med tydliga referenser. CSV är ett urval, inte en fullständig säkerhetskopia eller SIE-fil.
 
 Krypterad export använder AES-256-GCM och scrypt. Själva arbetsdatabasen är inte applikationskrypterad. Skydda dator och kopior med åtkomstskydd och lämpligt diskskydd. Programlås ingår inte. Import av komplett kopia ersätter hela databasen vid nästa start; räddningskopior bevaras lokalt. Importgränsen är 64 MB inklusive PDF-kopior.
 

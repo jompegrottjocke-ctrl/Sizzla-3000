@@ -7,13 +7,14 @@ const primary=app.requestSingleInstanceLock();
 if(!primary)app.quit();
 app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.focus();}});
 let service;
+let printController;
 let window;
 async function open() {
   if (!service) {
     const dataDir=process.env.SIZZLA_DATA_DIR || path.join(app.getPath('userData'), 'data');
-    service = createApp({dataDir,openDataDirectory:async()=>{const error=await shell.openPath(dataDir);if(error)throw new Error(error);}});
+    service = createApp({dataDir,openDataDirectory:async directory=>{const error=await shell.openPath(directory);if(error)throw new Error(error);},canSwitchDatabase:()=>!printController?.isBusy(),onDatabaseChanged:()=>{for(const other of BrowserWindow.getAllWindows())if(other!==window)other.destroy();}});
     await service.listen();
-    setupPrinting(service);
+    printController=setupPrinting(service);
   }
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 1000, minHeight: 700,
     title: 'Sizzla 3000', backgroundColor: '#f4f6fa',

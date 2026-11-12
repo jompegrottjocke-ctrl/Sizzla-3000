@@ -14,7 +14,7 @@ function setupPrinting(service){
   try{
    win=new BrowserWindow({width:1000,height:800,title:doc.title,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false}});
    win.setMenuBarVisibility(false);win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
-   const pdfUrl=service.url+'/api/prints/'+doc.id+'/pdf';
+   const pdfUrl=service.url+'/api/prints/'+doc.id+'/pdf?databaseSession='+service.databaseSession;
    win.webContents.on('will-navigate',(event,url)=>{if(url.split('#')[0]!==pdfUrl)event.preventDefault();});
    const loaded=new Promise(resolve=>win.webContents.once('did-stop-loading',resolve));
    await win.loadURL(pdfUrl+'#toolbar=0');await loaded;
@@ -26,18 +26,19 @@ function setupPrinting(service){
    });
   }catch(error){if(win?.isDestroyed())return {cancelled:true};throw error;}finally{if(win&&!win.isDestroyed())win.close();}
  }
- ipcMain.handle('sizzla:capture-print',async(event,{meta,action}={})=>{
-  valid(event,true);if(!['print','save_pdf'].includes(action))throw Error('printInvalid');if(busy.has(event.sender.id))throw Error('printBusy');busy.add(event.sender.id);
+ ipcMain.handle('sizzla:capture-print',async(event,{meta,action,token}={})=>{
+  valid(event,true);if(token!==service.sessionToken)throw Error('dbChanged');if(!['print','save_pdf'].includes(action))throw Error('printInvalid');if(busy.has(event.sender.id))throw Error('printBusy');busy.add(event.sender.id);
   try{let pdf;try{pdf=await event.sender.printToPDF({printBackground:true,preferCSSPageSize:true,pageSize:'A4'});}catch(error){return service.printing.captureFailure(meta,action,error);}const id=service.printing.create(meta,pdf);return await service.printing.attempt(id,action,(doc,kind,onDialog)=>driver(doc,kind,event.sender,onDialog));}finally{busy.delete(event.sender.id);}
  });
- ipcMain.handle('sizzla:print-action',async(event,{documentId,action}={})=>{
-  valid(event);if(busy.has(event.sender.id))throw Error('printBusy');busy.add(event.sender.id);
+ ipcMain.handle('sizzla:print-action',async(event,{documentId,action,token}={})=>{
+  valid(event);if(token!==service.sessionToken)throw Error('dbChanged');if(busy.has(event.sender.id))throw Error('printBusy');busy.add(event.sender.id);
   try{
    if(action==='view'){
-    const doc=service.printing.document(documentId);if(!doc.pdf)throw Error('printPdfFailed');const win=new BrowserWindow({width:1000,height:800,title:doc.title,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false}});win.setMenuBarVisibility(false);win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',event=>event.preventDefault());await win.loadURL(service.url+'/api/prints/'+doc.id+'/pdf');return {status:'viewed'};
+    const doc=service.printing.document(documentId);if(!doc.pdf)throw Error('printPdfFailed');const win=new BrowserWindow({width:1000,height:800,title:doc.title,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false}});win.setMenuBarVisibility(false);win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',event=>event.preventDefault());await win.loadURL(service.url+'/api/prints/'+doc.id+'/pdf?databaseSession='+service.databaseSession);return {status:'viewed'};
    }
    return await service.printing.attempt(documentId,action,(doc,kind,onDialog)=>driver(doc,kind,event.sender,onDialog));
   }finally{busy.delete(event.sender.id);}
  });
+ return {isBusy:()=>busy.size>0};
 }
 module.exports={setupPrinting};
