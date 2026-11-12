@@ -126,7 +126,7 @@ function pOrderView(id){
  bind('purchase-receive',()=>purchaseOpen('receive',{id:o.id,revision:o.revision,date:today()}));bind('purchase-close-order',()=>purchaseOpen('closeOrder',{id:o.id,revision:o.revision}));bind('purchase-cancel-document',()=>purchaseOpen('cancelOrder',{id:o.id,revision:o.revision}));
  bind('purchase-from-order',()=>purchaseOpen('invoice',{supplierId:o.supplierId,orderId:o.id,lines:o.lines.map(pInputLine),reference:'',type:'invoice'}));
  document.querySelectorAll('[data-receipt-reverse]').forEach(b=>b.onclick=()=>{const r=history.find(r=>r.id===b.dataset.receiptReverse);purchaseOpen('reverseReceipt',{id:r.id,revision:r.revision});});
- bind('purchase-print',()=>pPrintOpen('order',o.id));
+ bind('purchase-print',()=>pPrintOpen('order',o.id));appendSourceHistory('#purchase-print',{kind:'purchase_order',id:o.id});
 }
 function pInvoiceView(id){
  const i=pData().invoices.find(i=>i.id===id),cash=pData().payments.filter(p=>p.invoiceId===id),orig=pData().invoices.find(x=>x.id===i.originalId);
@@ -141,7 +141,7 @@ function pInvoiceView(id){
  bind('purchase-credit',()=>purchaseOpen('invoice',{supplierId:i.supplierId,type:'credit',originalId:i.id,lines:i.lines.map(pInputLine),documentTotal:'',reference:'',note:`${pt('original')}: ${i.invoiceNo}`}));
  bind('purchase-copy',()=>purchaseOpen('invoice',{supplierId:i.supplierId,type:i.type,originalId:i.originalId,orderId:i.orderId,lines:i.lines.map(pInputLine),documentTotal:'',rounding:number(i.rounding),reference:''}));
  document.querySelectorAll('[data-payment-reverse]').forEach(b=>b.onclick=()=>{const p=cash.find(p=>p.id===b.dataset.paymentReverse);purchaseOpen('reversePayment',{id:p.id,revision:p.revision,invoiceId:i.id,date:today()<p.date?p.date:today()});});
- bind('purchase-print',()=>pPrintOpen('invoice',i.id));
+ bind('purchase-print',()=>pPrintOpen('invoice',i.id));appendSourceHistory('#purchase-print',{kind:'purchase_invoice',id:i.id});
 }
 function pPrintOpen(type,id){for(const key of ['sizzla-print','sizzla-hr-print','sizzla-book-print'])sessionStorage.removeItem(key);sessionStorage.setItem('sizzla-purchase-print',JSON.stringify({type,id}));window.open('/print','_blank');}
 function purchasePrint(){

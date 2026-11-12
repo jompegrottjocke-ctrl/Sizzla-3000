@@ -43,7 +43,8 @@ function initPurchases(db,accounting){
       CREATE TRIGGER IF NOT EXISTS purchase_invoice_locked BEFORE UPDATE OF data,supplier_id,invoice_key ON purchase_invoices WHEN OLD.status!='draft' BEGIN SELECT RAISE(ABORT,'Approved invoices are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS purchase_order_locked BEFORE UPDATE OF data ON purchase_orders WHEN OLD.status!='draft' BEGIN SELECT RAISE(ABORT,'Issued orders are immutable'); END;
       CREATE TRIGGER IF NOT EXISTS purchase_payment_locked BEFORE UPDATE OF data ON purchase_payments BEGIN SELECT RAISE(ABORT,'Payment history is immutable'); END;
-      PRAGMA user_version=4;`);
+      `);
+    if(db.prepare('PRAGMA user_version').get().user_version<4)db.exec('PRAGMA user_version=4;');
     db.exec('COMMIT');
   }catch(e){db.exec('ROLLBACK');throw e;}
   const suppliers=()=>db.prepare('SELECT * FROM purchase_suppliers ORDER BY number').all().map(r=>({...JSON.parse(r.data),id:r.id,number:r.number,revision:r.revision}));

@@ -123,7 +123,7 @@ function hrRunView(id){
  const paid=document.querySelector('#hr-paid');if(paid)paid.onclick=()=>{if(confirm(t('paidConfirm')))action('paid');};
  const cancel=document.querySelector('#hr-cancel-run');if(cancel)cancel.onclick=()=>{const reason=prompt(t('cancelPrompt'));if(reason?.trim())action('cancel',{reason});};
  const print=employeeId=>{sessionStorage.removeItem('sizzla-purchase-print');sessionStorage.removeItem('sizzla-book-print');sessionStorage.removeItem('sizzla-print');sessionStorage.setItem('sizzla-hr-print',JSON.stringify({id:r.id,employeeId}));window.open('/print','_blank');};
- document.querySelectorAll('[data-slip]').forEach(el=>el.onclick=()=>print(el.dataset.slip));document.querySelector('#hr-print-run').onclick=()=>print(null);
+ document.querySelectorAll('[data-slip]').forEach(el=>{el.onclick=()=>print(el.dataset.slip);appendSourceHistory(el,{kind:'payroll',id:r.id,employeeId:el.dataset.slip});});document.querySelector('#hr-print-run').onclick=()=>print(null);appendSourceHistory('#hr-print-run',{kind:'payroll',id:r.id});
  if(['approved','paid'].includes(r.status)){
   const button=document.createElement('button');button.className='secondary';button.textContent=t('bankExport');button.onclick=()=>hrBankExport(r);root.querySelector('.dialog-body').append(button);
  }

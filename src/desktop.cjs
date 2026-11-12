@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell, dialog } = require('electron');
 const path = require('node:path');
+const {setupPrinting}=require('./desktop-printing.cjs');
 const { createApp } = require('./server.cjs');
 app.setName('Sizzla 3000');
 const primary=app.requestSingleInstanceLock();
@@ -12,10 +13,11 @@ async function open() {
     const dataDir=process.env.SIZZLA_DATA_DIR || path.join(app.getPath('userData'), 'data');
     service = createApp({dataDir,openDataDirectory:async()=>{const error=await shell.openPath(dataDir);if(error)throw new Error(error);}});
     await service.listen();
+    setupPrinting(service);
   }
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 1000, minHeight: 700,
     title: 'Sizzla 3000', backgroundColor: '#f4f6fa',
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true } });
+    webPreferences: { preload:path.join(__dirname,'print-preload.cjs'),nodeIntegration: false, contextIsolation: true, sandbox: true } });
   window.setMenuBarVisibility(false);
   const origin = service.url;
   window.webContents.session.on('will-download',(event,item,contents)=>{
@@ -26,8 +28,8 @@ async function open() {
     if (new URL(url).origin !== origin) event.preventDefault();
   });
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (url === origin + '/print') return { action: 'allow', overrideBrowserWindowOptions: {
-      webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true }
+    if (url === origin + '/print') return { action: 'allow', overrideBrowserWindowOptions: {width:1100,height:850,show:true,
+      webPreferences: { preload:path.join(__dirname,'print-preload.cjs'),nodeIntegration: false, contextIsolation: true, sandbox: true }
     } };
     if (url.startsWith('https://')) shell.openExternal(url);
     return { action: 'deny' };

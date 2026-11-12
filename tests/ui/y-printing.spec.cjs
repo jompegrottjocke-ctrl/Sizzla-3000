@@ -1,0 +1,25 @@
+const {test,expect}=require('@playwright/test');
+const {DatabaseSync}=require('node:sqlite');
+const path=require('node:path');
+const os=require('node:os');
+const {initPrinting}=require('../../src/printing.cjs');
+test('documents history filters, paging, immutable-copy details and source navigation',async({page},testInfo)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');if(await page.locator('#language').inputValue()==='en')await page.locator('#language').selectOption('sv');
+ const state=await page.request.get('/api/state').then(r=>r.json());const headers={Origin:'http://127.0.0.1:3199','X-Sizzla-Token':state.token};
+ if(!state.company.name)await page.request.post('/api/company',{headers,data:{name:'Print UI AB'}});
+ const customer=await page.request.post('/api/customers',{headers,data:{name:'Historik <kund> AB'}}).then(r=>r.json());
+ const invoice=await page.request.post('/api/invoices',{headers,data:{customerId:customer.id,date:'2026-11-12',due:'2026-12-12',lines:[{description:'Historik',quantity:'1',price:'50',vat:25}]}}).then(r=>r.json());
+ const db=new DatabaseSync(path.join(process.env.SIZZLA_TEST_DATA||path.join(os.tmpdir(),'sizzla-ui-tests'),'sizzla.sqlite'));const prints=initPrinting(db);
+ const id=prints.create({kind:'invoice',title:'Arkiverat fakturautkast',number:'H-123',recipient:'Historik <kund> AB',source:{kind:'invoice',id:invoice.id}},Buffer.from('%PDF-1.7\nUI fixture\n%%EOF'));
+ for(let i=0;i<30;i++)await prints.attempt(id,'print',async()=>({}));
+ const payroll=prints.create({kind:'payroll',title:'Lönebesked oktober',number:'L-1',recipient:'Testperson',source:{kind:'payroll',id:'test-run'}},Buffer.from('%PDF-1.7\nPayroll UI fixture\n%%EOF'));
+ await prints.attempt(payroll,'print',async()=>({cancelled:true}));db.close();
+ await page.locator('nav').getByRole('button',{name:'Dokument',exact:true}).click();await expect(page.getByRole('heading',{name:'Utskriftshistorik',exact:true})).toBeVisible();await expect(page.locator('#history-results tbody tr')).toHaveCount(25);
+ await page.getByRole('button',{name:'Nästa',exact:true}).click();await expect(page.locator('#history-results tbody tr')).toHaveCount(6);
+ await page.getByLabel('Dokumenttyp',{exact:true}).selectOption('payroll');await expect(page.locator('#history-results tbody tr')).toHaveCount(1);await expect(page.locator('#history-results')).toContainText('Testperson');
+ await page.getByLabel('Status',{exact:true}).selectOption('submitted');await expect(page.locator('#history-results')).toContainText('Inga utskrifter i urvalet.');
+ await page.getByLabel('Status',{exact:true}).selectOption('');await page.getByLabel('Dokumenttyp',{exact:true}).selectOption('invoice');await page.getByLabel('Sök dokument eller mottagare').fill('H-123');await expect(page.locator('#history-results tbody tr')).toHaveCount(25);
+ await page.locator('#history-results').getByRole('button',{name:'Visa detaljer',exact:true}).first().click();await expect(page.getByRole('dialog')).toContainText('Historik <kund> AB');await expect(page.getByRole('dialog')).toContainText('PDF-kopian visar uppgifterna');await expect(page.getByRole('button',{name:'Skriv ut igen',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Öppna underlag',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('Historik <kund> AB');await page.getByRole('button',{name:'Historik för underlaget',exact:true}).click();await expect(page.getByRole('button',{name:'Visa alla underlag',exact:true})).toBeVisible();await expect(page.locator('#history-results tbody tr')).toHaveCount(25);
+ await page.screenshot({path:testInfo.outputPath('print-history.png'),fullPage:true});expect(errors).toEqual([]);
+});

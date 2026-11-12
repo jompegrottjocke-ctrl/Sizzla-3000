@@ -50,7 +50,7 @@ function bindAccounting(){
  const y=document.querySelector('#book-year');if(y)y.onchange=()=>{bookYearId=y.value;bookFrom='';bookTo='';search='';render();};
  for(const [id,key]of [['book-report','report'],['book-from','from'],['book-to','to'],['book-ledger','ledger']]){const el=document.getElementById(id);if(el)el.onchange=()=>{if(key==='report')bookReport=el.value;if(key==='from')bookFrom=el.value;if(key==='to')bookTo=el.value;if(key==='ledger')bookLedger=el.value;render();};}
  const exp=document.querySelector('#book-export');if(exp)exp.onclick=bookExport;
- const print=document.querySelector('#book-print-report');if(print)print.onclick=()=>bookPrintOpen({type:'report',yearId:bookYearId,report:bookReport,from:bookFrom,to:bookTo,account:bookLedger});
+ const print=document.querySelector('#book-print-report');if(print){appendSourceHistory('#book-print-report',{kind:'report',yearId:bookYearId});print.onclick=()=>bookPrintOpen({type:'report',yearId:bookYearId,report:bookReport,from:bookFrom,to:bookTo,account:bookLedger});}
 }
 function bookField(name,label,value='',type='text',required=false){return `<label class="field"><span>${bt(label)}${required?' *':''}</span><input name="${name}" type="${type}" value="${esc(value)}" ${required?'required':''} maxlength="200"></label>`;}
 function bookSelect(name,label,value,options,required=true){return `<label class="field"><span>${bt(label)}</span><select name="${name}" ${required?'required':''}>${options.map(([v,n])=>`<option value="${esc(v)}" ${v===value?'selected':''}>${esc(n)}</option>`).join('')}</select></label>`;}
@@ -116,7 +116,7 @@ function bookView(id){
  const discard=document.querySelector('#book-discard');if(discard)discard.onclick=()=>{if(confirm(bt('discardConfirm')))action('discard');};
  const postButton=document.querySelector('#book-post');if(postButton)postButton.onclick=()=>{if(confirm(bt('postConfirm')))action('post');};
  const reverse=document.querySelector('#book-reverse');if(reverse)reverse.onclick=()=>bookOpen('reverse',{id:v.id,revision:v.revision});
- document.querySelector('#book-print').onclick=()=>bookPrintOpen({type:'voucher',id:v.id});
+ document.querySelector('#book-print').onclick=()=>bookPrintOpen({type:'voucher',id:v.id});appendSourceHistory('#book-print',{kind:'voucher',id:v.id});
 }
 function bookPrintOpen(ref){sessionStorage.removeItem('sizzla-purchase-print');sessionStorage.removeItem('sizzla-print');sessionStorage.removeItem('sizzla-hr-print');sessionStorage.setItem('sizzla-book-print',JSON.stringify(ref));window.open('/print','_blank');}
 function bookPrint(){let ref;try{ref=JSON.parse(sessionStorage.getItem('sizzla-book-print'));}catch{return false;}if(!ref)return false;let body,title;

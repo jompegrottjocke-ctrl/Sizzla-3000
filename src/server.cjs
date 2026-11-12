@@ -6,6 +6,7 @@ const { DatabaseSync } = require('node:sqlite');
 const { ValidationError, text, decimal, invoice } = require('./domain.cjs');
 const { initHr, HrError } = require('./hr.cjs');
 const { initAccounting, AccountingError } = require('./accounting.cjs');
+const {initPrinting,PrintError}=require('./printing.cjs');
 const {initSecurity,applyPending}=require('./security.cjs');
 const { initPurchases, PurchaseError } = require('./purchases.cjs');
 function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirname, '..', '.local'), openDataDirectory } = {}) {
@@ -22,6 +23,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   accounting=initAccounting(db,{beforeReverse:v=>purchases?.beforeReverse(v),afterReverse:(v,r,reason)=>purchases?.afterReverse(v,r,reason)});
   purchases=initPurchases(db,accounting);
   } catch(error) { db.close(); throw error; }
+  const printing=initPrinting(db);
   const security=initSecurity(db,{dataDir,openDataDirectory});
   const token = randomBytes(32).toString('hex');
   const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data) }));
@@ -37,10 +39,13 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && ['/','/app.js','/security.js','/accessibility.css','/hr.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/app.js','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
+      if(req.method==='GET'&&url.pathname==='/api/prints')return send(res,200,printing.list(Object.fromEntries(url.searchParams)));
+      const pdfMatch=url.pathname.match(/^\/api\/prints\/([a-f0-9-]{36})\/pdf$/);
+      if(req.method==='GET'&&pdfMatch){const doc=printing.document(pdfMatch[1]);if(!doc.pdf)return send(res,404,{error:'printPdfFailed'});res.setHeader('Content-Disposition',`inline; filename="Sizzla-${doc.id}.pdf"`);return send(res,200,doc.pdf,'application/pdf');}
       if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, security:security.status(), preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice'),...hr.state(),accounting:accounting.state(),purchases:purchases.state() });
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       let raw = '';
@@ -97,12 +102,14 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));
       send(res,200,{id});
     } catch (error) {
-      if (error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError) send(res,error.status,{error:error.message});
+      if(error instanceof SyntaxError&&req.url.startsWith('/api/prints'))send(res,400,{error:'printInvalid'});
+      else if(error instanceof PrintError)send(res,error.message==='printMissing'?404:400,{error:error.message});
+      else if (error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError) send(res,error.status,{error:error.message});
       else if (error instanceof ValidationError) send(res,400,{error:error.message});
       else { console.error(error); send(res,500,{error:'internal'}); }
     }
   });
-  return { server, db, get url() { return `http://127.0.0.1:${server.address().port}`; },
+  return { server, db, printing, get url() { return `http://127.0.0.1:${server.address().port}`; },
     listen(port=0) { return new Promise((resolve,reject) => { server.once('error',reject); server.listen(port,'127.0.0.1',resolve); }); },
     close() { server.closeAllConnections(); server.close(); db.close(); } };
 }
