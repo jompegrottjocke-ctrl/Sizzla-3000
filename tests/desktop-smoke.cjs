@@ -12,6 +12,8 @@ const path = require('node:path');
   await window.locator('nav').getByRole('button',{name:'Personal'}).click();
   await expect(window.getByRole('button',{name:'Ny anställd'})).toBeVisible();
   await window.locator('nav').getByRole('button',{name:'Bokföring',exact:true}).click();
+  await expect(window.getByRole('tab',{name:'Verifikationer'})).toBeVisible();
+  await window.locator('nav').getByRole('button',{name:'Inköp',exact:true}).click();
   await expect(window.getByRole('heading',{name:'beta kommer senare'})).toBeVisible();
   const preferences=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
   if(preferences.nodeIntegration || !preferences.contextIsolation || !preferences.sandbox) throw new Error('Unsafe renderer preferences');

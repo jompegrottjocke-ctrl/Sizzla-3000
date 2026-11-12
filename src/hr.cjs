@@ -55,13 +55,13 @@ function calculatePay(person, entry) {
     taxBasis:text(entry.taxBasis??'','taxBasis',false,500)};
 }
 class HrError extends Error {constructor(code,status=409){super(code);this.status=status;}}
-function initHr(db) {
+function initHr(db, { payrollHasPosting = () => false } = {}) {
   const version=db.prepare('PRAGMA user_version').get().user_version;
-  if(version>2)throw new Error('Database belongs to a newer Sizzla version.');
+  if(version>3)throw new Error('Database belongs to a newer Sizzla version.');
   db.exec(`CREATE TABLE IF NOT EXISTS employees (id TEXT PRIMARY KEY, number INTEGER NOT NULL UNIQUE, person_id TEXT UNIQUE, revision INTEGER NOT NULL, data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS payruns (id TEXT PRIMARY KEY, number INTEGER NOT NULL UNIQUE, revision INTEGER NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS hr_events (id INTEGER PRIMARY KEY, at TEXT NOT NULL, entity TEXT NOT NULL, entity_id TEXT NOT NULL, action TEXT NOT NULL);
-    PRAGMA user_version=2;`);
+    CREATE TABLE IF NOT EXISTS hr_events (id INTEGER PRIMARY KEY, at TEXT NOT NULL, entity TEXT NOT NULL, entity_id TEXT NOT NULL, action TEXT NOT NULL);`);
+  if(version<2)db.exec('PRAGMA user_version=2;');
   const employees=()=>db.prepare('SELECT * FROM employees ORDER BY number').all().map(r=>({...JSON.parse(r.data),id:r.id,number:r.number,revision:r.revision}));
   const runs=()=>db.prepare('SELECT * FROM payruns ORDER BY number DESC').all().map(r=>({...JSON.parse(r.data),id:r.id,number:r.number,revision:r.revision,status:r.status}));
   const leaves=()=>db.prepare("SELECT id,data FROM records WHERE kind='leave' ORDER BY rowid DESC").all().map(r=>({id:r.id,...JSON.parse(r.data)}));
@@ -128,7 +128,7 @@ function initHr(db) {
           }
           status='approved';
         } else if(action==='paid') {if(old.status!=='approved')throw new HrError('locked');status='paid';}
-        else {if(old.status==='cancelled'||old.status==='paid')throw new HrError('locked');status='cancelled';}
+        else {if(old.status==='cancelled'||old.status==='paid')throw new HrError('locked');if(payrollHasPosting(old.id))throw new HrError('bookPayrollPosted');status='cancelled';}
         const data={...old,updated:new Date().toISOString()};delete data.id;delete data.number;delete data.revision;delete data.status;
         if(action==='cancel')data.cancelReason=text(body.reason,'reason',true,500);
         db.prepare('UPDATE payruns SET revision=?,status=?,data=? WHERE id=?').run(old.revision+1,status,JSON.stringify(data),old.id);event('payrun',old.id,action);return {id:old.id};

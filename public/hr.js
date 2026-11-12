@@ -38,7 +38,7 @@ function hrAgi(){
  const rows=hrReportRows();
  return `<div class="notice">${t('agiNotice')}</div><section class="panel"><div class="toolbar hr-toolbar"><label class="field"><span>${t('month')}</span><input type="month" id="hr-month" value="${hrMonth}" required></label><button class="secondary" id="hr-export" ${rows.length?'':'disabled'}>${t('exportCsv')}</button></div>${rows.length?`<div class="table-wrap"><table><thead><tr>${['employee','cashGross','benefits','taxable','tax','contribution','netPay'].map(k=>`<th>${ht(k)}</th>`).join('')}</tr></thead><tbody>${rows.map(e=>`<tr><td><strong>${esc(hrName(e.person))}</strong><small>#${e.person.number}</small></td>${['cashGross','benefits','taxable','tax','contribution','net'].map(k=>`<td>${money(e[k])}</td>`).join('')}</tr>`).join('')}<tr class="hr-total"><td>${t('total')}</td>${['cashGross','benefits','taxable','tax','contribution','net'].map(k=>`<td>${money(hrTotals(rows,k))}</td>`).join('')}</tr></tbody></table></div>`:`<div class="empty"><h3>${t('noRuns')}</h3></div>`}</section>`;
 }
-function hrError(error){const key=error.message;if(words[lang][key])return ht(key);if(key==='personId')return t('validPersonId');return `${t('hrInvalid')} ${words[lang][key]||t('failed')}`;}
+function hrError(error){const key=error.message;if(key==='bookPayrollPosted')return bt(key);if(words[lang][key])return ht(key);if(key==='personId')return t('validPersonId');return `${t('hrInvalid')} ${words[lang][key]||t('failed')}`;}
 async function hrAction(route,data){try{await post(route,data);editor=null;await load();render();toast(t('changesSaved'));}catch(e){toast(hrError(e));}}
 function bindHr(){
  document.querySelectorAll('[data-hr-tab]').forEach(el=>el.onclick=()=>{hrTab=el.dataset.hrTab;search='';render();});
@@ -122,7 +122,7 @@ function hrRunView(id){
  const approve=document.querySelector('#hr-approve');if(approve)approve.onclick=()=>{if(confirm(t('approveConfirm')))action('approve');};
  const paid=document.querySelector('#hr-paid');if(paid)paid.onclick=()=>{if(confirm(t('paidConfirm')))action('paid');};
  const cancel=document.querySelector('#hr-cancel-run');if(cancel)cancel.onclick=()=>{const reason=prompt(t('cancelPrompt'));if(reason?.trim())action('cancel',{reason});};
- const print=employeeId=>{sessionStorage.removeItem('sizzla-print');sessionStorage.setItem('sizzla-hr-print',JSON.stringify({id:r.id,employeeId}));window.open('/print','_blank');};
+ const print=employeeId=>{sessionStorage.removeItem('sizzla-book-print');sessionStorage.removeItem('sizzla-print');sessionStorage.setItem('sizzla-hr-print',JSON.stringify({id:r.id,employeeId}));window.open('/print','_blank');};
  document.querySelectorAll('[data-slip]').forEach(el=>el.onclick=()=>print(el.dataset.slip));document.querySelector('#hr-print-run').onclick=()=>print(null);
  if(['approved','paid'].includes(r.status)){
   const button=document.createElement('button');button.className='secondary';button.textContent=t('bankExport');button.onclick=()=>hrBankExport(r);root.querySelector('.dialog-body').append(button);
