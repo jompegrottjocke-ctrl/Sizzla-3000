@@ -1,21 +1,23 @@
-Sizzla 3000 0.3.0 för Windows 11 (x64): Bokföring.
+Sizzla 3000 0.4.0 för Windows 11 (x64): Inköp.
 
-- Redigerbar startkontoplan med svenska och engelska kontonamn.
-- Räkenskapsår och ingående balanser.
-- Balanserade verifikationsutkast och bokföring med löpnummer i serie A.
-- Bokförda rader låses. Rättelser görs genom nya, länkade motbokningar.
-- Saldobalans, huvudbok, resultat- och balansrapport med datumurval och utskrift.
-- CSV-export av bokförda rader och ändringshistorik i programmet.
-- Granskad lönebokföring och separat bokning av registrerad nettolöneutbetalning, med skydd mot dubbelbokföring.
-- Periodlåsning, resultatöverföring och avslut av år med valfri överföring av balanser till nästa år.
-- Tidigare kund-, faktura- och personaluppgifter samt språk och mörkt läge bevaras.
+- Leverantörsregister med kontaktuppgifter, villkor och arkivering.
+- Inköpsorder, utskrift, delleveranser och rättelser av inleveranser.
+- Leverantörsfakturor och kreditfakturor med granskning mot originalbelopp.
+- Rabatt, moms, manuellt kontrollerad avdragsrätt och öresutjämning.
+- Koppling till bokföring med skydd mot dubbelbokning.
+- Delbetalningar, kvittning av kreditfakturor och registrering av mottagna återbetalningar.
+- Aktuell reskontra, förfallna belopp, historik och CSV-export.
+- Samordnade motbokningar från både Inköp och Bokföring.
+- Svenska/engelska samt ljust/mörkt läge.
 
 Ladda ned installationsprogrammet under **Assets**.
 
-**Säkerhetskopiera hela datakatalogen med programmet stängt före uppdatering.** Databasen uppgraderas till schema 3. Kör inte äldre programversioner mot den uppgraderade databasen. Period- och årslåsning saknar återöppning i denna version. Organisationsnumret låses efter första bokförda verifikationen.
+**Stäng programmet och säkerhetskopiera hela datakatalogen före uppdatering.** Databasen uppgraderas till schema 4 och tidigare kund-, personal- och bokföringsuppgifter bevaras. Kör inte äldre programversioner mot den uppgraderade databasen.
 
-Startkontoplanen är ett urval, inte en komplett eller versionscertifierad BAS-kontoplan. Bilagor bevaras separat och anges med referens. CSV är inte SIE, momsdeklaration eller årsredovisning. Kundfakturor är fortfarande utkast och bokförs inte automatiskt. Inga banköverföringar görs av programmet.
+Inköpsflödet gäller vanliga svenska inköp i SEK enligt fakturametoden. Momsavdrag måste kontrolleras manuellt. Utländsk/omvänd moms, förskott, överbetalningar, bankfiler och automatisk lagerhantering ingår inte. Originalunderlag bevaras separat. Programmet skickar inga order, pengar eller deklarationer automatiskt.
 
-Lönehanteringen använder fortfarande manuellt verifierade skatte- och avgiftsbelopp. Automatisk skatt, regelstyrd sjuk-/semesterlön, rättelser av utbetald lön och AGI-inlämningsfil återstår.
+Reskontran visar aktuell status och inkluderar godkända fakturor som ännu inte bokförts. Det är ingen historisk reskontrarapport. Gamla, redan bokförda fakturor ska inte bokföras igen vid migrering. Rättelse av en betalningsregistrering återtar ingen faktisk banköverföring.
 
-Det här är en förhandsversion med ett osignerat installationsprogram. Fullständig manuell verifiering på Windows 11 återstår.
+Tidigare begränsningar kvarstår: kundfakturor är utkast, och lönehanteringen använder manuellt verifierade skattebelopp. Automatisk skatt, sjuk-/semesterregler, lönerättelser och AGI-inlämningsfil återstår. CSV är inte SIE eller deklarationsfil.
+
+Det här är en förhandsversion med osignerat installationsprogram. Fullständig manuell verifiering på Windows 11 återstår.

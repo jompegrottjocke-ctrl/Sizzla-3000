@@ -23,7 +23,7 @@ const starterAccounts = [
   ['2440','Leverantörsskulder','Trade payables'],['2611','Utgående moms 25 %','Output VAT 25%'],['2621','Utgående moms 12 %','Output VAT 12%'],['2631','Utgående moms 6 %','Output VAT 6%'],['2641','Ingående moms','Input VAT'],['2650','Redovisningskonto för moms','VAT settlement'],
   ['2710','Personalskatt','Payroll tax withheld'],['2731','Avräkning sociala avgifter','Employer contributions payable'],['2910','Upplupna löner','Wages payable'],
   ['3001','Försäljning, 25 % moms','Sales, 25% VAT'],['3002','Försäljning, 12 % moms','Sales, 12% VAT'],['3003','Försäljning, 6 % moms','Sales, 6% VAT'],['3044','Momsfri försäljning','VAT-exempt sales'],
-  ['4000','Inköp av varor','Purchases of goods'],['5010','Lokalhyra','Rent'],['5410','Förbrukningsinventarier','Low-value equipment'],['5800','Resekostnader','Travel expenses'],['6110','Kontorsmaterial','Office supplies'],['6210','Telekommunikation','Telecommunications'],['6540','IT-tjänster','IT services'],['6570','Bankkostnader','Bank charges'],
+  ['3740','Öres- och kronutjämning','Rounding differences'],['4000','Inköp av varor','Purchases of goods'],['5010','Lokalhyra','Rent'],['5410','Förbrukningsinventarier','Low-value equipment'],['5800','Resekostnader','Travel expenses'],['6110','Kontorsmaterial','Office supplies'],['6210','Telekommunikation','Telecommunications'],['6540','IT-tjänster','IT services'],['6570','Bankkostnader','Bank charges'],
   ['7010','Löner till kollektivanställda','Wages'],['7210','Löner till tjänstemän','Salaries'],['7390','Övriga kostnadsersättningar och förmåner','Other employee expenses and benefits'],['7510','Arbetsgivaravgifter','Employer contributions'],['8310','Ränteintäkter','Interest income'],['8410','Räntekostnader','Interest expense'],['8999','Årets resultat, omföring','Result transfer']
 ];
 function validateLines(input, accounts, opening = false) {
@@ -43,7 +43,7 @@ function validateLines(input, accounts, opening = false) {
   return lines;
 }
 const {ledgerBalances:balances}=require('../public/ledger-math.js');
-function initAccounting(db) {
+function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} } = {}) {
   db.exec('BEGIN IMMEDIATE');
   try {
   db.exec(`CREATE TABLE IF NOT EXISTS ledger_accounts(code TEXT PRIMARY KEY, name TEXT NOT NULL, name_en TEXT NOT NULL, active INTEGER NOT NULL);
@@ -55,7 +55,7 @@ function initAccounting(db) {
     CREATE TRIGGER IF NOT EXISTS ledger_immutable_delete BEFORE DELETE ON ledger_vouchers WHEN OLD.status='posted' BEGIN SELECT RAISE(ABORT,'Posted vouchers cannot be deleted'); END;`);
   const insert = db.prepare('INSERT OR IGNORE INTO ledger_accounts VALUES(?,?,?,1)');
   for (const [code,name,en] of starterAccounts) insert.run(code,name,en);
-  db.exec('PRAGMA user_version=3;');
+  if(db.prepare('PRAGMA user_version').get().user_version<3)db.exec('PRAGMA user_version=3;');
   db.exec('COMMIT');
   } catch(error) { db.exec('ROLLBACK'); throw error; }
   const accounts = () => db.prepare('SELECT * FROM ledger_accounts ORDER BY code').all().map(a=>({code:a.code,name:a.name,nameEn:a.name_en,active:!!a.active,type:accountType(a.code)}));
@@ -66,7 +66,7 @@ function initAccounting(db) {
   const current = (items,body) => { const row=items.find(v=>v.id===body.id);if(!row)throw new AccountingError('bookMissing',404);if(row.revision!==body.revision)throw new AccountingError('bookConflict');return row; };
   const checkDate = (year,date) => { validDate(date);if(year.closed)throw new AccountingError('bookYearClosed');if(date<year.start||date>year.end)invalid('bookOutsideYear');if(year.lockedThrough&&date<=year.lockedThrough)throw new AccountingError('bookPeriodLocked'); };
   const saveYear = year => { const {id,start,end,revision,...data}=year;db.prepare('UPDATE ledger_years SET revision=?,data=? WHERE id=?').run(revision+1,JSON.stringify(data),id); };
-  const activeSource = (kind,id) => vouchers().find(v=>v.status==='posted'&&v.sourceKind===kind&&v.sourceId===id&&!v.reversedBy);
+  const activeSource = (kind,id) => {const v=db.prepare("SELECT * FROM ledger_vouchers WHERE source_kind=? AND source_id=? AND reversed_by IS NULL AND status='posted'").get(kind,id);return v?{...JSON.parse(v.data),id:v.id,yearId:v.year_id,number:v.number,status:v.status,revision:v.revision,corrects:v.corrects,reversedBy:v.reversed_by,sourceKind:v.source_kind,sourceId:v.source_id}:undefined;};
   function createPosted(year,data,{id=randomUUID(),revision=1,corrects=null,sourceKind=null,sourceId=null}={}) {
     if(!data.company?.name||!/^\d{6}-?\d{4}$/.test(data.company.org||''))throw new AccountingError('bookCompanyChanged');
     checkDate(year,data.date);
@@ -74,13 +74,27 @@ function initAccounting(db) {
     // Validate again inside the posting transaction; snapshots use the current account names.
     const lines=validateLines(data.lines.map(l=>({...l,debit:(l.debit/100).toFixed(2),credit:(l.credit/100).toFixed(2)})),accounts());
     const number=db.prepare("SELECT COALESCE(MAX(number),0)+1 AS next FROM ledger_vouchers WHERE year_id=? AND status='posted'").get(year.id).next;
-    const snapshot={date:data.date,description:data.description,reference:data.reference,lines,company:data.company,wagesPayableAccount:data.wagesPayableAccount||null,created:data.created||new Date().toISOString(),posted:new Date().toISOString()};
+    const snapshot={date:data.date,description:data.description,reference:data.reference,lines,company:data.company,wagesPayableAccount:data.wagesPayableAccount||null,liabilityAccount:data.liabilityAccount||null,purchaseInvoiceId:data.purchaseInvoiceId||null,created:data.created||new Date().toISOString(),posted:new Date().toISOString()};
     const existing=db.prepare('SELECT id FROM ledger_vouchers WHERE id=?').get(id);
     if(existing)db.prepare("UPDATE ledger_vouchers SET number=?,status='posted',revision=?,data=? WHERE id=?").run(number,revision,JSON.stringify(snapshot),id);
     else db.prepare("INSERT INTO ledger_vouchers VALUES(?,?,?,'posted',?,?,?,?,?,?)").run(id,year.id,number,revision,JSON.stringify(snapshot),corrects,null,sourceKind,sourceId);
     saveYear({...year,openingLocked:true});event('voucher',id,'posted',snapshot);return {id,number};
   }
+  function reversePosted(v,body,company) {
+    if(v.status!=='posted'||v.corrects||v.reversedBy)throw new AccountingError('bookImmutable');
+    if(validDate(body.date)<v.date)invalid('bookReversalDate');
+    if(v.sourceKind==='payroll'&&activeSource('payrollPayment',v.sourceId))throw new AccountingError('bookReversePaymentFirst');
+    beforeReverse(v);
+    const reason=text(body.reason,'bookReason'),y=yearById(body.yearId);
+    const result=createPosted(y,{date:body.date,description:reason,reference:`A${v.number} / ${yearById(v.yearId).name}`,lines:v.lines.map(l=>({...l,debit:l.credit,credit:l.debit})),company},{corrects:v.id});
+    db.prepare('UPDATE ledger_vouchers SET reversed_by=?,revision=revision+1 WHERE id=?').run(result.id,v.id);event('voucher',v.id,'reversed',{reversal:result.id,reason});
+    afterReverse(v,result,reason);return result;
+  }
   return {
+    source:activeSource,
+    postSource:(yearId,data,source)=>createPosted(yearById(yearId),data,source),
+    reverseSource:(id,body,company)=>reversePosted(current(vouchers(),{id,revision:body.revision}),body,company),
+    account:code=>accounts().find(a=>a.code===code&&a.active),
     payrollHasPosting:id=>!!activeSource('payroll',id),
     hasPosted:()=>!!db.prepare("SELECT 1 FROM ledger_vouchers WHERE status='posted' LIMIT 1").get(),
     state:()=>({accounts:accounts(),years:years(),vouchers:vouchers(),events:db.prepare('SELECT id,at,entity,entity_id AS entityId,action FROM ledger_events ORDER BY id DESC').all()}),
@@ -120,12 +134,7 @@ function initAccounting(db) {
           const v=current(vouchers(),body);if(v.status!=='draft')throw new AccountingError('bookImmutable');
           db.prepare("UPDATE ledger_vouchers SET status='discarded',revision=revision+1 WHERE id=?").run(v.id);event('voucher',v.id,'discarded');result={id:v.id};
         } else if(route==='/api/accounting/reverse') {
-          const v=current(vouchers(),body);if(v.status!=='posted'||v.corrects||v.reversedBy)throw new AccountingError('bookImmutable');
-          if(validDate(body.date)<v.date)invalid('bookReversalDate');
-          if(v.sourceKind==='payroll'&&activeSource('payrollPayment',v.sourceId))throw new AccountingError('bookReversePaymentFirst');
-          const reason=text(body.reason,'bookReason'),y=yearById(body.yearId);
-          result=createPosted(y,{date:body.date,description:reason,reference:`A${v.number} / ${yearById(v.yearId).name}`,lines:v.lines.map(l=>({...l,debit:l.credit,credit:l.debit})),company},{corrects:v.id});
-          db.prepare('UPDATE ledger_vouchers SET reversed_by=?,revision=revision+1 WHERE id=?').run(result.id,v.id);event('voucher',v.id,'reversed',{reversal:result.id,reason});
+          result=reversePosted(current(vouchers(),body),body,company);
         } else if(route==='/api/accounting/lock') {
           const y=current(years(),body),through=validDate(body.through);
           if(y.closed||through<y.start||through>=y.end||(y.lockedThrough&&through<=y.lockedThrough))invalid('bookLockDate');

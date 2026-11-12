@@ -57,7 +57,7 @@ function calculatePay(person, entry) {
 class HrError extends Error {constructor(code,status=409){super(code);this.status=status;}}
 function initHr(db, { payrollHasPosting = () => false } = {}) {
   const version=db.prepare('PRAGMA user_version').get().user_version;
-  if(version>3)throw new Error('Database belongs to a newer Sizzla version.');
+  if(version>4)throw new Error('Database belongs to a newer Sizzla version.');
   db.exec(`CREATE TABLE IF NOT EXISTS employees (id TEXT PRIMARY KEY, number INTEGER NOT NULL UNIQUE, person_id TEXT UNIQUE, revision INTEGER NOT NULL, data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS payruns (id TEXT PRIMARY KEY, number INTEGER NOT NULL UNIQUE, revision INTEGER NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS hr_events (id INTEGER PRIMARY KEY, at TEXT NOT NULL, entity TEXT NOT NULL, entity_id TEXT NOT NULL, action TEXT NOT NULL);`);
