@@ -1,4 +1,6 @@
-Sizzla 3000 0.5.0 för Windows 11 (x64): säkerhetskopiering och läsbarhet.
+Sizzla 3000 0.5.1 för Windows 11 (x64): programlås med minst 4 tecken.
+
+Minimilängden för programlåset har ändrats från 10 till 4 tecken. Befintliga lösenord fungerar fortfarande. Krypterade säkerhetskopior kräver fortsatt minst 10 tecken. Övriga funktioner är oförändrade från 0.5.0.
 
 - Ny flik **Säkerhet & säkerhetskopiering** på svenska och engelska.
 - Export av hela databasen medan appen är öppen; lösenordskryptering är förvalt. Okrypterad SQLite-export kan också väljas.

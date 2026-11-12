@@ -54,7 +54,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(url.pathname.startsWith('/api/security/')){
         try{const result=await security.handle(url.pathname.slice('/api/security/'.length),body);
         if(result.download){res.setHeader('Content-Disposition',`attachment; filename="Sizzla-3000-${new Date().toISOString().replace(/[:.]/g,'-')}.${result.extension}"`);return send(res,200,result.download,'application/octet-stream');}
-        return send(res,200,result);}catch(error){if(['passwordLength','passwordWrong','passwordWait','securityInvalid','desktopOnly','backupPassword','backupInvalid','locked'].includes(error.message))return send(res,error.message==='locked'?423:400,{error:error.message});throw error;}
+        return send(res,200,result);}catch(error){if(['lockPasswordLength','passwordLength','passwordWrong','passwordWait','securityInvalid','desktopOnly','backupPassword','backupInvalid','locked'].includes(error.message))return send(res,error.message==='locked'?423:400,{error:error.message});throw error;}
       }
       if(url.pathname.startsWith('/api/purchases/')){
         const result=purchases.handle(url.pathname,body,settings());return send(res,result?200:404,result||{error:'route'});

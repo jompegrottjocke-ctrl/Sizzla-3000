@@ -5,8 +5,8 @@ const crypto=require('node:crypto');
 const {DatabaseSync}=require('node:sqlite');
 // Binary v1 envelope: magic | 16-byte salt | 12-byte nonce | 16-byte GCM tag | ciphertext.
 const MAGIC=Buffer.from('SIZZLA-BACKUP-1\n');
-function password(value){if(typeof value!=='string'||value.length<10||value.length>256)throw new Error('passwordLength');return value;}
-function key(value,salt){return crypto.scryptSync(password(value),salt,32,{N:32768,r:8,p:1,maxmem:64*1024*1024});}
+function password(value,minimum=10){if(typeof value!=='string'||value.length<minimum||value.length>256)throw new Error(minimum===4?'lockPasswordLength':'passwordLength');return value;}
+function key(value,salt,minimum=10){return crypto.scryptSync(password(value,minimum),salt,32,{N:32768,r:8,p:1,maxmem:64*1024*1024});}
 function encrypt(data,value){const salt=crypto.randomBytes(16),iv=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',key(value,salt),iv);cipher.setAAD(MAGIC);const out=Buffer.concat([cipher.update(data),cipher.final()]);return Buffer.concat([MAGIC,salt,iv,cipher.getAuthTag(),out]);}
 function decrypt(data,value){if(!data.subarray(0,MAGIC.length).equals(MAGIC))return data;try{const n=MAGIC.length,decipher=crypto.createDecipheriv('aes-256-gcm',key(value,data.subarray(n,n+16)),data.subarray(n+16,n+28));decipher.setAAD(MAGIC);decipher.setAuthTag(data.subarray(n+28,n+44));return Buffer.concat([decipher.update(data.subarray(n+44)),decipher.final()]);}catch{throw new Error('backupPassword');}}
 // VACUUM INTO includes committed WAL pages; copying the live main file alone would lose data.
@@ -25,7 +25,7 @@ function initSecurity(db,{dataDir,openDataDirectory}){
  const enabled=()=>!!config.hash;
  const lock=()=>{if(!enabled())return false;locked=true;return true;};
  const status=()=>{if(enabled()&&config.minutes&&Date.now()-lastActivity>=config.minutes*60000)lock();return {enabled:enabled(),locked,minutes:config.minutes||0,canOpenFolder:!!openDataDirectory,importPending:fs.existsSync(path.join(dataDir,'pending-import.sqlite'))};};
- const verify=value=>{if(Date.now()<nextAttempt)throw new Error('passwordWait');if(typeof value!=='string'||value.length>256)throw new Error('passwordWrong');nextAttempt=Date.now()+1500;const valid=crypto.timingSafeEqual(key(value,Buffer.from(config.salt,'hex')),Buffer.from(config.hash,'hex'));if(!valid)throw new Error('passwordWrong');nextAttempt=0;};
+ const verify=value=>{if(Date.now()<nextAttempt)throw new Error('passwordWait');if(typeof value!=='string'||value.length>256)throw new Error('passwordWrong');nextAttempt=Date.now()+1500;const valid=crypto.timingSafeEqual(key(value,Buffer.from(config.salt,'hex'),4),Buffer.from(config.hash,'hex'));if(!valid)throw new Error('passwordWrong');nextAttempt=0;};
  return {status,lock,handle:async(route,body)=>{
   if(route==='status')return status();
   if(route==='unlock'){if(enabled())verify(body.password);locked=false;lastActivity=Date.now();return {ok:true};}
@@ -35,7 +35,7 @@ function initSecurity(db,{dataDir,openDataDirectory}){
   if(route==='configure'){
    if(enabled())verify(body.currentPassword);
    if(typeof body.enabled!=='boolean'||![0,5,15,30].includes(body.minutes))throw new Error('securityInvalid');
-   let next={minutes:body.minutes};if(body.enabled){const salt=crypto.randomBytes(16);next={...next,salt:salt.toString('hex'),hash:key(body.password,salt).toString('hex')};}
+   let next={minutes:body.minutes};if(body.enabled){const salt=crypto.randomBytes(16);next={...next,salt:salt.toString('hex'),hash:key(body.password,salt,4).toString('hex')};}
    db.prepare('INSERT INTO app_security VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify(next));config=next;lastActivity=Date.now();return {ok:true};
   }
   if(route==='open-folder'){if(!openDataDirectory)throw new Error('desktopOnly');await openDataDirectory();return {ok:true};}

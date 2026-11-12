@@ -19,6 +19,7 @@ test('complete WAL backups, authenticated encryption, safe staged restore and fo
   const bytes=Buffer.from(await plain.arrayBuffer()),file=path.join(dataDir,'export.sqlite');fs.writeFileSync(file,bytes);
   const copy=new DatabaseSync(file);assert.equal(copy.prepare('PRAGMA integrity_check').get().integrity_check,'ok');
   for(const {name} of app.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all())assert.deepEqual(copy.prepare(`SELECT * FROM "${name}"`).all(),app.db.prepare(`SELECT * FROM "${name}"`).all());copy.close();
+  assert.equal((await post('security/export',{encrypted:true,password:'1234'})).status,400);
   const pass='My backup password 123';const encrypted=Buffer.from(await (await post('security/export',{encrypted:true,password:pass})).arrayBuffer());
   assert.equal(encrypted.includes(Buffer.from('Alla register')),false);assert.deepEqual(decrypt(encrypted,pass),bytes);
   assert.throws(()=>decrypt(encrypted,'Wrong password 123'),/backupPassword/);const tampered=Buffer.from(encrypted);tampered[tampered.length-1]^=1;assert.throws(()=>decrypt(tampered,pass),/backupPassword/);
@@ -40,10 +41,10 @@ test('complete WAL backups, authenticated encryption, safe staged restore and fo
 test('application lock gates all data, persists across restart, throttles attempts and checks old password',async(t)=>{
  const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-lock-'));let app=createApp({dataDir});await app.listen();let token=(await fetch(app.url+'/api/state').then(r=>r.json())).token;
  const post=(route,body={})=>fetch(app.url+'/api/'+route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});
- const pass='Lunch password 123';
+ const pass='1234';
  try{
   await post('company',{name:'Hemlig AB'});assert.equal((await post('security/configure',{enabled:true,minutes:5,password:pass})).status,200);
-  assert.equal((await post('security/configure',{enabled:true,minutes:5,currentPassword:pass,password:'short'})).status,400);assert.equal((await fetch(app.url+'/api/security/status').then(r=>r.json())).enabled,true);
+  assert.equal((await post('security/configure',{enabled:true,minutes:5,currentPassword:pass,password:'abc'})).status,400);assert.equal((await fetch(app.url+'/api/security/status').then(r=>r.json())).enabled,true);
   const now=Date.now();t.mock.method(Date,'now',()=>now+6*60000);assert.equal((await fetch(app.url+'/api/security/status').then(r=>r.json())).locked,true);t.mock.restoreAll();
   await post('security/lock');const response=await fetch(app.url+'/api/state');assert.equal(response.status,423);assert.equal((await response.text()).includes('Hemlig AB'),false);
   for(const route of ['security/export','company','security/import','security/open-folder','security/activity','preferences'])assert.equal((await post(route,{encrypted:false,name:'Bypass'})).status,423);
