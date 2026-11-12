@@ -33,7 +33,7 @@ function invoice(input, customer) {
     if (![0, 6, 12, 25].includes(vat)) fail('vat');
     const net = Math.round(quantity * price / 100);
     const tax = Math.round(net * vat / 100);
-    return { description, quantity, price, vat, net, tax };
+    return { description,unit:text(line.unit??'st','unit'),quantity,price,vat,net,tax };
   });
   const net = lines.reduce((sum,line) => sum + line.net, 0);
   const tax = lines.reduce((sum,line) => sum + line.tax, 0);

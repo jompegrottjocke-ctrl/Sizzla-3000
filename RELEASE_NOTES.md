@@ -1,24 +1,22 @@
-Sizzla 3000 0.7.0 för Windows 11 (x64): Lager lämnar beta.
+Sizzla 3000 0.8.0 för Windows 11 (x64): Fakturering och Betalningar.
 
-- Lagerhantering per artikel, lagersaldo, plats/hylla, beställningspunkt, sökning och filter. Tjänster kan lämnas utan lagerhantering.
-- Ingående saldo, manuella in- och utleveranser med underlag och orsak, historik och spårbara motregistreringar. Negativa saldon stoppas även i historiken.
-- Artikelkoppling på inköpsorder. Delleveranser och rättelser uppdaterar inköp och lager i samma transaktion. Artikelnummer och enhet skyddas när de används i lager.
-- Inventeringsutkast med räknat antal, granskning, godkännande och differensrörelser. Inaktuella underlag blockeras; godkända inventeringar bevaras. Bakdatering före en senare godkänd inventering för samma artikel stoppas.
-- CSV-export och utskrift av lagerlistor, rörelser och inventeringar. PDF-kopiorna finns i Dokument → Utskriftshistorik.
-- Svenska/engelska, mörkt läge samt större och fet text fungerar i lagervyerna. Programlåset förblir bortkopplat.
+- Utfärda och bokför kundfakturor med gemensam löpande nummerserie för fakturor och krediter. Startnummer väljs före första utfärdandet. Utfärdade uppgifter är låsta.
+- Granskning av kund, företag, moms och konton. Fakturautskrift, momsspecifikation och oföränderliga PDF-kopior via utskriftshistoriken.
+- Delbetalningar, kreditfakturor från originalets rader, kvittning mot ursprungsfakturan och registrering av faktiskt genomförda återbetalningar.
+- Betalningar samlar kund- och leverantörsreskontra, betalningshistorik och kundhändelser. Sökning, filter och CSV-export.
+- Registrering och bokföring sparas tillsammans. Spårbara motbokningar uppdaterar reskontran även från Bokföring. Återbokföring av ett oförändrat utfärdat underlag behåller fakturanumret.
+- Svenska/engelska, mörkt läge och läsbarhetsinställningar stöds.
 
-**Exportera databasen före uppdatering och stäng programmet.** Databasen uppgraderas till schema 6. Kompletta säkerhetskopior från schema 4/5 stöds och tidigare uppgifter/PDF-historik bevaras. Kör inte 0.6 eller äldre mot den uppgraderade databasen.
+**Exportera hela databasen före uppdatering och stäng programmet.** Databasen uppgraderas till schema 7. Kompletta schema 4/5/6-kopior stöds; tidigare data, lager och PDF-kopior bevaras. Kör inte 0.7 eller äldre mot den uppgraderade databasen. Befintliga utkast utfärdas inte automatiskt.
 
-Lager börjar med noll antal på befintliga artiklar. Aktivera lagerhantering för rätt artiklar och ange startsaldo eller gör en inventering. Äldre order och inleveranser får inte automatiskt en lagerkoppling och räknas inte om. Nya utfärdade order måste ha lagerkopplade rader för automatisk mottagning.
+Börja med fullständiga företags-/kundadresser, företagets momsregistreringsnummer vid momspliktig försäljning samt ett öppet räkenskapsår. Kontrollera tidigare fakturanummer innan första utfärdandet. Utfärdande skickar inte fakturan; spara PDF och leverera den själv.
 
-Modulen hanterar antal i artikelns enhet, inte automatisk lagervärdering eller bokföring. Ingen förpackningsomräkning, reservation, flera lager eller batch-/serienummerhantering ingår. Fakturautkast, leverantörsfakturor och krediter ändrar inte lagerantal; utleveranser registreras manuellt. Inköpsorder med lagerkoppling behöver avslutas innan lagerhantering kan avaktiveras.
+Försäljning och inköp gäller vanliga svenska flöden i SEK enligt fakturametoden. Andra valutor, kontantmetod, utländsk/omvänd moms, förskott, överbetalningar, bankfiler och automatisk fakturaleverans ingår inte. Kvittning av kundkredit gäller dess egen ursprungsfaktura. Programmet genomför inga banköverföringar; en motbokning rättar bara registreringen.
 
-Säkerhetskopiorna innehåller lager och PDF-kopior. Befintlig importgräns på 64 MB gäller fortfarande hela kopian. Ladda ned installationsfilen under Assets.
+Reskontrorna visar aktuell status, inte historiska saldon per valfritt datum. Leverantörsvyn inkluderar godkända ännu ej bokförda underlag. Kundfakturor vars bokning motbokats ligger kvar som utfärdade och markeras utan aktiv bokföring. Bokför inte redan bokförda äldre fakturor igen.
 
-Inköpsflödet gäller vanliga svenska inköp i SEK enligt fakturametoden. Momsavdrag måste kontrolleras manuellt. Utländsk/omvänd moms, förskott, överbetalningar, bankfiler och automatisk lagerbokföring ingår inte. Originalunderlag bevaras separat. Programmet skickar inga order, pengar eller deklarationer automatiskt.
+Kundfakturor och krediter uppdaterar inte lagerantal. Utleveranser registreras manuellt. Ingen automatisk lagervärdering/bokföring ingår. Säkerhetskopiornas befintliga importgräns på 64 MB gäller inklusive PDF-kopior. Originalunderlag utanför databasen måste bevaras separat.
 
-Reskontran visar aktuell status och inkluderar godkända fakturor som ännu inte bokförts. Det är ingen historisk reskontrarapport. Gamla, redan bokförda fakturor ska inte bokföras igen vid migrering. Rättelse av en betalningsregistrering återtar ingen faktisk banköverföring.
+Systemets uppbyggnad och kända luckor beskrivs i SYSTEMDOKUMENTATION.md. Historiken saknar identifierad användare vid rättelser och är inte en fullständig behandlingshistorik. Fullständigt stöd för skarp bokföring är ännu inte färdigt. Lönehanteringen kräver manuellt verifierade skattebelopp; automatisk skatt, sjuk-/semesterregler, lönerättelser och AGI-inlämningsfil återstår.
 
-Tidigare begränsningar kvarstår: kundfakturor är utkast, och lönehanteringen använder manuellt verifierade skattebelopp. Automatisk skatt, sjuk-/semesterregler, lönerättelser och AGI-inlämningsfil återstår. CSV är inte SIE eller deklarationsfil.
-
-Det här är en förhandsversion med osignerat installationsprogram. Fullständig manuell verifiering på Windows 11 återstår.
+Det här är en förhandsversion med osignerat installationsprogram. Fullständig manuell verifiering på Windows 11 återstår. Ladda ned installationsfilen under Assets.

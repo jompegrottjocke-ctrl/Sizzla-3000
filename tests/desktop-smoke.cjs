@@ -71,6 +71,19 @@ const path = require('node:path');
   if(fs.readFileSync(stockPdfPath).subarray(0,5).toString()!=='%PDF-')throw Error('Stock PDF was not generated');
   const stockHistory=await window.evaluate(async()=>fetch('/api/prints?kind=inventory_report').then(r=>r.json()));if(stockHistory.total!==1)throw Error('Stock report missing from print history');
 
+  const issuedSale=await window.evaluate(async()=>{
+   await post('company',{name:'Print Test AB',org:'559123-4567',vatNumber:'SE559123456701',address:'Testvägen 1',postal:'11122',city:'Stockholm',bankgiro:'123-4567'});
+   const customer=await post('customers',{name:'Issued PDF customer',address:'Customer street 2',postal:'22233',city:'Malmö'});
+   const year=await post('accounting/years',{name:'2026',start:'2026-01-01',end:'2026-12-31'});
+   const draft=await post('invoices',{customerId:customer.id,date:'2026-11-12',due:'2026-12-12',lines:[{description:'Official invoice item',quantity:'1',unit:'st',price:'100',vat:25}]});await load();const saved=state.invoices.find(d=>d.id===draft.id);
+   const issued=await post('sales/issue',{draftId:draft.id,draftUpdated:saved.updated,expectedNumber:state.sales.nextNumber,yearId:year.id,reviewed:true});await load();page='invoices';render();salesView(issued.id);return issued.id;
+  });
+  const salePdfPath=path.join(dataDir,'issued-invoice.pdf');await app.evaluate((_,destination)=>{global.pdfDestination=destination;},salePdfPath);
+  const salePopup=window.waitForEvent('popup');await window.getByRole('button',{name:'Skriv ut faktura',exact:true}).click();const salePreview=await salePopup;await expect(salePreview.locator('.print-sheet')).toContainText('FAKTURA KF1');await expect(salePreview.locator('.print-sheet')).not.toContainText('UTKAST – EJ FAKTURA');
+  if(process.env.SIZZLA_HEADLESS)await salePreview.evaluate(()=>Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Spara PDF').click());else await salePreview.getByRole('button',{name:'Spara PDF',exact:true}).click();
+  await expect(salePreview.locator('.snapshot-toolbar').getByRole('status')).toContainText('Sparad som PDF');await salePreview.close();if(fs.readFileSync(salePdfPath).subarray(0,5).toString()!=='%PDF-')throw Error('Issued invoice PDF missing');
+  const saleHistory=await window.evaluate(async()=>fetch('/api/prints?kind=sales_invoice').then(r=>r.json()));if(saleHistory.total!==1||saleHistory.rows[0].source.id!==issuedSale)throw Error('Issued PDF not linked to invoice history');
+  await window.getByRole('button',{name:'Stäng',exact:true}).click();
   await window.locator('nav').getByRole('button',{name:'Tid & projekt',exact:true}).click();
   await expect(window.getByRole('heading',{name:'beta kommer senare'})).toBeVisible();
   const preferences=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());

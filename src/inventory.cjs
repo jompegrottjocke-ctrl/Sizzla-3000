@@ -16,7 +16,8 @@ function initInventory(db){
  CREATE TRIGGER IF NOT EXISTS inventory_movement_preserved BEFORE DELETE ON inventory_movements BEGIN SELECT RAISE(ABORT,'Inventory movements are preserved'); END;
  CREATE TRIGGER IF NOT EXISTS inventory_count_locked BEFORE UPDATE ON inventory_counts WHEN OLD.status!='draft' BEGIN SELECT RAISE(ABORT,'Posted inventory counts are immutable'); END;
  CREATE TRIGGER IF NOT EXISTS inventory_count_preserved BEFORE DELETE ON inventory_counts BEGIN SELECT RAISE(ABORT,'Inventory counts are preserved'); END;
- PRAGMA user_version=6;`);
+ `);
+ if(db.prepare('PRAGMA user_version').get().user_version<6)db.exec('PRAGMA user_version=6;');
  const articles=()=>db.prepare("SELECT id,data FROM records WHERE kind='article' ORDER BY rowid DESC").all().map(r=>({id:r.id,...JSON.parse(r.data)}));
  const article=id=>{const a=articles().find(a=>a.id===id);if(!a)throw new InventoryError('invMissing');return a;};
  const settings=id=>db.prepare('SELECT * FROM inventory_settings WHERE article_id=?').get(id)||{article_id:id,revision:0,enabled:0,minimum:0,location:''};

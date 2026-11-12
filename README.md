@@ -8,7 +8,8 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Företagsuppgifter, kundregister och artikel-/tjänsteregister. Skapa och redigera poster, sök i registren.
 - Fakturautkast med kund, datum, förfallodatum, anteckning och flera rader. Artiklar kan hämtas från registret.
 - Moms 0, 6, 12 eller 25 procent per rad, beräknad i heltalsören med avrundning per rad. Endast SEK och priser exklusive moms i denna version.
-- Utskrift av sparade utkast, tydligt märkta **UTKAST – EJ FAKTURA**. PDF kan väljas i operativsystemets utskriftsdialog.
+- Utfärda och bokför granskade kundfakturor med löpnummer, låsta uppgifter, fakturautskrift och PDF-historik. Utkast behåller märkningen **UTKAST – EJ FAKTURA**.
+- Betalningar: kund- och leverantörsreskontra, delbetalningar, kundkrediter, kvittning mot ursprungsfakturan, återbetalningar och spårbara motbokningar.
 - Lokal SQLite-databas; uppgifterna finns kvar efter omstart. Sparade utkast innehåller en kopia av företagets och kundens uppgifter vid senaste sparandet.
 - Personalregister med kontakt-, anställnings-, bank- och löneuppgifter. Sökning, filtrering, arkivering och återställning. Unika anställningsnummer och kontroll av svenska person-/samordningsnummer.
 - Frånvaro och manuellt tilldelade betalda semesterdagar per kalenderår. Uttag kontrolleras mot saldot; överlappande frånvaro avvisas. Frånvaroregistret beräknar inte automatiskt löneavdrag eller lagstadgad semester-/sjuklön.
@@ -25,9 +26,22 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Granskning mot originalbelopp, momsavdrag, bokföring, delbetalningar, återbetalningar och rättelser. Historiska underlag bevaras.
 - **Säkerhet & säkerhetskopiering**: komplett databasexport, krypterade säkerhetskopior, import med förhandskontroll och möjlighet att öppna databasens katalog.
 - Textstorlek 100–200 % och fet text sparas mellan starter.
-- Betalningar, tid/projekt, bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
+- Tid/projekt, bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
 
-Fakturautkast utfärdas inte, får inga fakturanummer och skapar inga bokföringsposter. Det här är en utvecklingsversion, inte ett färdigt bokförings-, löne- eller faktureringssystem för skarp drift. Bankintegration, kreditfakturor, automatisk säkerhetskopiering och komplett verifierade regelverk ingår ännu inte. HR-ändringar och lönekörningarnas statusövergångar loggas lokalt; detta är ingen fullständig revisionslogg för bokföring.
+Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring och lönehantering är inte färdigt. Bankintegration, automatisk säkerhetskopiering och komplett verifierade regelverk återstår. Se [Systemdokumentation och kvarstående krav](SYSTEMDOKUMENTATION.md) för uppbyggnad, spårbarhet och kända luckor, inklusive avsaknad av identifierad användare vid rättelser.
+
+## Arbetsflöde för Fakturering och Betalningar
+
+1. Fyll i företagets namn, organisationsnummer och fullständiga adress. Vid momspliktig försäljning krävs momsregistreringsnummer i formen SE + organisationsnumrets tio siffror + 01. Formatet kontrolleras, inte registreringen hos Skatteverket. Ange bankgiro eller betalningsinstruktioner. Kunden behöver namn och fullständig adress.
+2. Skapa ett öppet räkenskapsår och kontrollera konton i Bokföring. Första fakturan kan föregås av **Startnummer** i Fakturering; kontrollera tidigare nummer från andra system. Fakturor och kreditfakturor delar en löpande nummerserie som inte kan ändras efter första utfärdandet.
+3. Skapa och spara ett fakturautkast med rader, enhet, datum, förfallodag och moms. Öppna det sparade utkastet och välj **Utfärda och bokför**. Granska kund, företag, rader, leverans-/utförandedatum och kontering. Momsfri försäljning kräver en förklaring. Utfärdande, nummer och verifikation sparas tillsammans; ett misslyckat försök förbrukar inget nummer.
+4. Utfärdade uppgifter är låsta och behåller sina kopior av företag, kund och rader även om registren ändras. Spara PDF eller skriv ut fakturan från **Utfärdade fakturor**. Leverera fakturan själv; utfärdandet skickar ingen e-post eller e-faktura. Betalningsmeddelandet KF + nummer är inte ett validerat OCR-nummer.
+5. Registrera en faktiskt mottagen betalning med datum, belopp, bankunderlag, bokföringsdatum och granskat bankkonto. Delbetalningar stöds; överbetalningar avvisas. Registrering och verifikation sparas atomiskt. Programmet flyttar inga pengar.
+6. Skapa kredit från originalfakturan genom att välja antal på dess rader och ange orsak. Belopp och moms hämtas proportionellt från originalet med kumulativ öresavrundning så att en full kredit motsvarar originalet exakt. Krediter kan sammanlagt inte överstiga originalets antal. Kvitta krediten mot dess egen ursprungsfaktura eller registrera en faktiskt genomförd återbetalning. Kvittning flyttar inga pengar.
+7. Felaktiga betalningar och kvittningar motbokas med datum och orsak. Samma uppdatering av reskontran görs om rättelsen startas i Bokföring. Hantera betalningar och kvittningar före fakturabokningen och kreditbokningar före originalets bokning. Motbokning återtar ingen verklig banköverföring. En utfärdad faktura ligger kvar även om bokningen motbokas och måste återbokföras innan nya betalningar kan registreras. Återbokföring ändrar inte fakturanumret.
+8. **Betalningar** samlar kundreskontra, leverantörsreskontra, betalningshistorik och kundhändelser. Sök, filtrera och exportera aktuellt urval till CSV. Leverantörsvyn länkar till befintligt inköpsunderlag. Reskontrorna visar aktuell status, inte historiska saldon per valfritt datum; leverantörsvyn inkluderar godkända underlag även före bokföring. Utfärdade kundunderlag utan aktiv bokföring markeras särskilt.
+
+Flödet gäller vanliga svenska fakturor i **SEK enligt fakturametoden**. Andra valutor, kontantmetod, utländsk/omvänd moms, förskott, överbetalningar, automatisk leverans, påminnelser, bankfiler och bankavstämning ingår inte. Befintliga utkast utfärdas inte automatiskt. Bokför inte äldre fakturor på nytt om de redan ingår i tidigare bokföring eller ingående balans. Fakturor och krediter påverkar inte lagersaldot; utleveranser registreras separat.
 
 ## Arbetsflöde för Lager
 
@@ -41,19 +55,19 @@ Fakturautkast utfärdas inte, får inga fakturanummer och skapar inga bokföring
 8. Sök och filtrera lagerlistan, visa artiklar under beställningspunkten och filtrera rörelsehistoriken på artikel, typ och datum. **Uppdatera** läser aktuella uppgifter om en annan vy har ändrat lagret. Lagerhantering kan avaktiveras först när saldo är noll och utfärdade lagerkopplade order avslutats.
 9. Lagerlistor, rörelser och inventeringar kan skrivas ut till PDF med den befintliga utskriftshistoriken. Aktuellt urval kan exporteras som CSV. PDF-kopior, lagerdata och historik ingår i databasens säkerhetskopior.
 
-Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Försäljningsfakturor är fortsatt utkast och drar inte lager; registrera utleverans manuellt med referens. Leverantörsfakturor/krediter ändrar inte antal. Reservationer, flera lager, lagerflyttar, batch-/serienummer, FIFO/medelpris och automatisk koppling till kundorder ingår inte i denna version.
+Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Fakturautkast och utfärdade kundfakturor drar inte lager; registrera utleverans manuellt med referens. Leverantörsfakturor/krediter ändrar inte antal. Reservationer, flera lager, lagerflyttar, batch-/serienummer, FIFO/medelpris och automatisk koppling till kundorder ingår inte i denna version.
 
-Version 0.7 använder **schema 6**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5-kopior från 0.5/0.6-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+Version 0.8 använder **schema 7**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6-kopior från 0.5–0.7-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 
 ## Utskriftshistorik under Dokument
 
 - Öppna **Dokument → Utskriftshistorik** för datum, dokumenttyp, nummer, mottagare och status. Sök, filtrera på lokala datum, typ (inklusive Lönebesked) och status samt bläddra 25 rader åt gången. Övrig dokumenthantering är fortfarande beta.
-- Befintliga utskriftsvyer för fakturautkast, enskilda eller samlade lönebesked, verifikationer, bokföringsrapporter, inköpsorder och leverantörsfakturor får **Spara PDF** och **Historik för underlaget**. Historiklänkar finns även vid underlagens utskriftsknappar. Dessa underlag behåller sina befintliga utkast-/granskningsmarkeringar.
+- Befintliga utskriftsvyer för fakturautkast, utfärdade kundfakturor/krediter, enskilda eller samlade lönebesked, verifikationer, bokföringsrapporter, inköpsorder och leverantörsfakturor får **Spara PDF** och **Historik för underlaget**. Historiklänkar finns även vid underlagens utskriftsknappar. Dessa underlag behåller sina befintliga utkast-/granskningsmarkeringar.
 - I skrivbordsappen skapas en oföränderlig PDF innan utskrifts- eller spara-dialogen öppnas. Varje försök får en egen historikrad. Från detaljerna kan du **Visa PDF**, **Spara PDF**, **Skriv ut igen** eller **Öppna underlag**. Omutskrift och ny PDF-export använder sparade PDF-bytes, även om originalunderlaget har ändrats. PDF-kopians ursprungliga tidpunkt visas också.
 - Status skiljer mellan förberedelse, öppnad dialog, skickad till utskriftssystemet, sparad PDF, avbrutet och misslyckat. Native utskriftsdialogens callback avgör status; fysiskt papper kan inte bekräftas. Efter avbrott/omstart med ett oavslutat försök visas **Okänt resultat**, aldrig en antagen lyckad utskrift. Fel vid PDF-generering registreras med förklaring och utan PDF-knappar.
 - Historiken registrerar appens utskriftsknappar och Ctrl + P i utskriftsvyn. Utskrift direkt från en PDF-visares egna kontroller eller externa program registreras inte. Utvecklingsläget i vanlig webbläsare har kvar utskriftsförhandsvisning men kan inte skapa automatiska PDF-kopior eller tillförlitlig historik; detta anges i vyn.
 - PDF-kopior och historik lagras i SQLite och ingår i databasexport/import. En PDF får vara högst 20 MB. Databasen växer när kopior sparas; gränsen på 64 MB för import via appen gäller fortfarande för hela säkerhetskopian. Ta regelbundna säkerhetskopior. Historiken kan inte återskapa utskrifter gjorda före uppdateringen och har ingen funktion för radering eller separat åtkomstkontroll för löner.
-- Utskriftshistoriken infördes i version 0.6 med schema 5; nuvarande version använder schema 6. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
+- Utskriftshistoriken infördes i version 0.6 med schema 5; nuvarande version använder schema 7. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
 
 ## Arbetsflöde för Bokföring
 
@@ -68,7 +82,7 @@ Version 0.7 använder **schema 6**. Befintliga uppgifter och PDF-historik bevara
 
 Lönebokningen använder de manuellt verifierade beloppen i godkänd lönekörning. Kontant bruttolön, kostnadsersättning och arbetsgivaravgift bokas mot skatt, avgiftsskuld, löneskuld och eventuella reglerade personalfordringar. Förmåners faktiska kostnader bokförs separat; förmånsvärdet skapar ingen extra kontant kostnad. Bankbokning kräver att lönen är markerad utbetald och först bokförd mot skuldkonton. Den använder lönebokningens sparade löneskuldskonto. Ingen överföring görs till banken. Motboka bankbokningen före lönebokningen vid rättelse. En lönekörning med aktiv bokföring kan inte makuleras i Personal.
 
-Bilagereferenser pekar på underlag som du själv bevarar. Digitala bilagor, SIE-import/export, automatisk momsdeklaration, bankavstämning och årsredovisning ingår ännu inte. CSV-exporten innehåller verifikationsrader för urvalet, inte IB eller en fullständig säkerhetskopia. Säkerhetskopiera hela databasen enligt instruktionerna nedan. Fakturorna är fortfarande utkast och bokförs inte automatiskt.
+Bilagereferenser pekar på underlag som du själv bevarar. Digitala bilagor, SIE-import/export, automatisk momsdeklaration, bankavstämning och årsredovisning ingår ännu inte. CSV-exporten innehåller verifikationsrader för urvalet, inte IB eller en fullständig säkerhetskopia. Säkerhetskopiera hela databasen enligt instruktionerna nedan. Kundfakturor bokförs atomiskt vid uttryckligt utfärdande; sparade utkast bokförs inte.
 
 ## Arbetsflöde för Inköp
 
@@ -131,7 +145,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 - **Text & läsbarhet** i samma flik ger 100, 125, 150, 175 och 200 % storlek för hela gränssnittet samt valbar fet text. Standard är 100 % och normal text. Menyer och formulär anpassas vid förstoring; breda tabeller kan rullas i sidled. Pappersutskrifter behåller normal skala.
 - Programlås och upplåsningshistorik är bortkopplade i 0.5.4. Låsknapp, Ctrl + L, inaktivitetsmätning och Windowskoppling för låsning ingår inte. Äldre låsinställningar och historik ligger kvar orörda för kompatibilitet med säkerhetskopior, men kan inte aktivera ett lås, heller inte efter import. Använd Win + L för att låsa Windows.
 - Databasen är inte krypterad i applikationen. Använd Windowskontots åtkomstskydd och exempelvis BitLocker för skydd på disk.
-- Versionerna 0.2–0.7 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 6. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+- Versionerna 0.2–0.8 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 7. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 - API:t lyssnar endast på loopback och tillåter endast rätt Host-header. Skrivningar kräver samma origin och en sessionsspecifik token. Rendererprocessen saknar Node-åtkomst och kör med sandbox och context isolation.
 - Det finns ännu ingen fjärrinloggning eller fleranvändarhantering. Exponera inte den lokala tjänsten på nätverket.
 
@@ -139,7 +153,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 
 Gränssnittet använder ett HTTP-API. Validering och momsberäkning ligger i `src/domain.cjs`, lagring och lokalt API i `src/server.cjs`, Windowsfönstret i `src/desktop.cjs`. Gränssnittet ligger i `public/` och använder gemensamma svenska/engelska språktexter.
 
-Personal, löneberäkning, frånvaro och statusövergångar ligger i `src/hr.cjs`; personalgränssnittet i `public/hr.js`. Pengar och decimalantal lagras som heltal i ören respektive hundradelar. Beräkningen av skatteavdrag, avgifter och klassificeringen av förmåner/kostnadsersättningar måste tills vidare göras och verifieras utanför programmet. Inga åldersgränser, skattesatser eller myndighetsformat antas som standard. Kontroll mot aktuella myndighetskällor är blockerad i den nuvarande molninstansen tills den föreslagna nätverksåtkomsten sparas och tillämpas.
+Personal, löneberäkning, frånvaro och statusövergångar ligger i `src/hr.cjs`; personalgränssnittet i `public/hr.js`. Pengar och decimalantal lagras som heltal i ören respektive hundradelar. Beräkningen av skatteavdrag, avgifter och klassificeringen av förmåner/kostnadsersättningar måste tills vidare göras och verifieras utanför programmet. Inga åldersgränser, skattesatser eller myndighetsformat antas som standard. Aktuella myndighetsregler måste verifieras innan automatisk svensk löneberäkning införs.
 
 Bokföringsmodulen ligger i `src/accounting.cjs` och `public/accounting.js`. Rapporternas saldoberäkning delas av server och gränssnitt i `public/ledger-math.js`. Låsning av bokförda belopp skyddas även med SQLite-triggers; detta gör inte databasfilen skyddad mot manipulation av någon med full filåtkomst. Databasmigreringen till schema 3 bevarar tidigare personal-, kund- och fakturadata.
 
@@ -152,3 +166,5 @@ Säkerhetskopiering, och import ligger i `src/security.cjs`; gränssnitt och lä
 Utskriftshistorik och PDF-lagring finns i `src/printing.cjs`, den begränsade IPC-bryggan i `src/print-preload.cjs` och de inbyggda dialogerna i `src/desktop-printing.cjs`. Ursprung och huvudram kontrolleras före native anrop; renderern får varken generell Node-åtkomst eller valfria filvägar.
 
 Lagermodulen ligger i `src/inventory.cjs` och `public/inventory.js`. Inköpsmodulens lagerkoppling körs inom samma SQLite-transaktion som mottagningen/rättelsen. Ingången via artikelregistret skyddar artikelnummer och enhet när de används i lager.
+
+Fakturering och kundbetalningar ligger i `src/sales.cjs` och `public/sales.js`. Utfärdande, regleringar och bokföringskopplingar använder gemensamma SQLite-transaktioner. Schema 7 bevarar befintliga data, lager och PDF-historik.

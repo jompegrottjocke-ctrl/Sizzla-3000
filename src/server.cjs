@@ -6,6 +6,7 @@ const { DatabaseSync } = require('node:sqlite');
 const { ValidationError, text, decimal, invoice } = require('./domain.cjs');
 const { initHr, HrError } = require('./hr.cjs');
 const { initAccounting, AccountingError } = require('./accounting.cjs');
+const {initSales,SalesError}=require('./sales.cjs');
 const {initInventory,InventoryError}=require('./inventory.cjs');
 const {initPrinting,PrintError}=require('./printing.cjs');
 const {initSecurity,applyPending}=require('./security.cjs');
@@ -14,16 +15,17 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   applyPending(dataDir);
   const db = new DatabaseSync(path.join(dataDir, 'sizzla.sqlite'));
-  let hr, accounting, purchases,inventory;
+  let hr, accounting, purchases,inventory,sales;
   try {
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
     CREATE TABLE IF NOT EXISTS records (kind TEXT NOT NULL, id TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(kind,id));
     CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL);`);
   hr=initHr(db,{payrollHasPosting:id=>accounting?.payrollHasPosting(id)??false});
-  accounting=initAccounting(db,{beforeReverse:v=>purchases?.beforeReverse(v),afterReverse:(v,r,reason)=>purchases?.afterReverse(v,r,reason)});
+  accounting=initAccounting(db,{beforeReverse:v=>{purchases?.beforeReverse(v);sales?.beforeReverse(v);},afterReverse:(v,r,reason)=>{purchases?.afterReverse(v,r,reason);sales?.afterReverse(v,r,reason);}});
   purchases=initPurchases(db,accounting,{prepareOrderLines:lines=>inventory.prepareOrderLines(lines),assertOrderLines:lines=>inventory.assertOrderLines(lines),receive:(o,r)=>inventory.receive(o,r),reverseReceipt:(r,reason)=>inventory.reverseReceipt(r,reason)});
   inventory=initInventory(db);
+  sales=initSales(db,accounting);
   } catch(error) { db.close(); throw error; }
   const printing=initPrinting(db);
   const security=initSecurity(db,{dataDir,openDataDirectory});
@@ -41,14 +43,14 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && ['/','/app.js','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/app.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
       if(req.method==='GET'&&url.pathname==='/api/prints')return send(res,200,printing.list(Object.fromEntries(url.searchParams)));
       const pdfMatch=url.pathname.match(/^\/api\/prints\/([a-f0-9-]{36})\/pdf$/);
       if(req.method==='GET'&&pdfMatch){const doc=printing.document(pdfMatch[1]);if(!doc.pdf)return send(res,404,{error:'printPdfFailed'});res.setHeader('Content-Disposition',`inline; filename="Sizzla-${doc.id}.pdf"`);return send(res,200,doc.pdf,'application/pdf');}
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, security:security.status(), preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice'),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state() });
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, security:security.status(), preferences:preferences(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state() });
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       let raw = '';
       for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (url.pathname==='/api/security/import'?90*1024*1024:262144)) return send(res,413,{error:'size'}); }
@@ -60,6 +62,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if(result.download){res.setHeader('Content-Disposition',`attachment; filename="Sizzla-3000-${new Date().toISOString().replace(/[:.]/g,'-')}.${result.extension}"`);return send(res,200,result.download,'application/octet-stream');}
         return send(res,200,result);}catch(error){if(['passwordLength','securityInvalid','desktopOnly','backupPassword','backupInvalid'].includes(error.message))return send(res,400,{error:error.message});throw error;}
       }
+      if(url.pathname.startsWith('/api/sales/'))return send(res,200,sales.handle(url.pathname,body,settings()));
       if(url.pathname.startsWith('/api/inventory/'))return send(res,200,inventory.handle(url.pathname,body));
       if(url.pathname.startsWith('/api/purchases/')){
         const result=purchases.handle(url.pathname,body,settings());return send(res,result?200:404,result||{error:'route'});
@@ -80,7 +83,9 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       }
       if (url.pathname === '/api/company') {
         const data = {};
-        for (const key of ['name','org','email','phone','address','postal','city','bankgiro']) data[key] = text(body[key] ?? '',key,key === 'name');
+        for (const key of ['name','org','email','phone','address','postal','city','bankgiro','vatNumber']) data[key] = text(body[key] ?? '',key,key === 'name');
+        data.vatNumber=data.vatNumber.replace(/[ -]/g,'').toUpperCase();
+        if(data.vatNumber&&(!/^SE\d{10}01$/.test(data.vatNumber)||data.vatNumber.slice(2,12)!==data.org.replace('-','')))throw new SalesError('saleVatNumber',400);
         if (data.org && !/^\d{6}-?\d{4}$/.test(data.org)) throw new ValidationError('org');
         if(accounting.hasPosted()&&data.org.replace('-','')!==(settings().org||'').replace('-',''))throw new AccountingError('bookCompanyIdentityLocked');
         if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) throw new ValidationError('email');
@@ -97,6 +102,8 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if (![0,6,12,25].includes(data.vat)) throw new ValidationError('vat');
       } else if (url.pathname === '/api/invoices') {
         kind = 'invoice';
+        if(body.id!==undefined&&typeof body.id!=='string')throw new ValidationError('id');
+        if(body.id&&sales.isIssuedDraft(body.id))throw new SalesError('saleLocked');
         if (!settings().name) throw new ValidationError('company');
         data = { ...invoice(body,get('customer',String(body.customerId))), company:settings(), status:'draft', updated:new Date().toISOString() };
       } else return send(res,404,{error:'route'});
@@ -108,7 +115,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     } catch (error) {
       if(error instanceof SyntaxError&&req.url.startsWith('/api/prints'))send(res,400,{error:'printInvalid'});
       else if(error instanceof PrintError)send(res,error.message==='printMissing'?404:400,{error:error.message});
-      else if (error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError || error instanceof InventoryError) send(res,error.status,{error:error.message});
+      else if (error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError || error instanceof InventoryError || error instanceof SalesError) send(res,error.status,{error:error.message});
       else if (error instanceof ValidationError) send(res,400,{error:error.message});
       else { console.error(error); send(res,500,{error:'internal'}); }
     }
