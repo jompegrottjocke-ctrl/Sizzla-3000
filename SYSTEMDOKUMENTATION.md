@@ -1,8 +1,10 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.11.0, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.11.1, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
+
+Utseende, textstorlek och fet text hanteras i Inställningar → Utseende & läsbarhet. De sparas i samma befintliga `preferences`-post per företagsdatabas; flytten ändrar inte lagringsformat eller tidigare val. Säkerhet & säkerhetskopiering hanterar export/import och katalogöppning.
 
 ## Organisation och lagring
 
