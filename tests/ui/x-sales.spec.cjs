@@ -2,6 +2,7 @@ const {test,expect}=require('@playwright/test');
 test('issue invoice, print, partial payment, credit allocation and consolidated receivables',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');const s=await page.request.get('/api/state').then(r=>r.json()),headers={Origin:'http://127.0.0.1:3199','X-Sizzla-Token':s.token};
  const post=async(route,data)=>{const r=await page.request.post('/api/'+route,{headers,data});expect(r.ok()).toBeTruthy();return r.json();};
+ await post('accounting/operator',{name:'Sales UI ansvarig'});
  await post('company',{...s.company,name:s.company.name||'Sales UI AB',org:'559123-4567',vatNumber:'SE559123456701',address:'Säljarvägen 1',postal:'11122',city:'Stockholm',bankgiro:'123-4567'});
  const year=await post('accounting/years',{name:'Sales UI 2025',start:'2025-01-01',end:'2025-12-31'}),customer=await post('customers',{name:'Fakturakund UI AB',address:'Kundvägen 2',postal:'22233',city:'Malmö'});
  const draft=await post('invoices',{customerId:customer.id,date:'2025-11-01',due:'2025-11-30',lines:[{description:'Utförd tjänst',quantity:'10',unit:'tim',price:'100',vat:25}]});

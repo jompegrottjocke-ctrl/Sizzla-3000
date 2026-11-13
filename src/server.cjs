@@ -1,3 +1,4 @@
+const {CurrencyError}=require('./currency.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -78,7 +79,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && ['/','/app.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/app.js','/currency.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
@@ -195,7 +196,8 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));
       send(res,200,{id});
     } catch (error) {
-      if(error instanceof TradeError)send(res,error.status,{error:error.message});
+      if(error instanceof CurrencyError)send(res,error.status,{error:error.message});
+      else if(error instanceof TradeError)send(res,error.status,{error:error.message});
       else if(error instanceof BackupError)send(res,error.status,{error:error.message,...error.details});
       else if(error instanceof BankError)send(res,error.status,{error:error.message,...error.details});
       else if(error instanceof SieError)send(res,error.status,{error:error.message,...error.details});

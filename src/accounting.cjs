@@ -18,6 +18,7 @@ function lastFiscalDay(start) {
   return limit.toISOString().slice(0,10);
 }
 const starterAccounts = [
+  ['3960','Valutakursvinster på rörelsefordringar och rörelseskulder','Exchange gains on trade receivables and payables'],['7960','Valutakursförluster på rörelsefordringar och rörelseskulder','Exchange losses on trade receivables and payables'],
   ['1220','Inventarier och verktyg','Equipment and tools'],['1229','Ackumulerade avskrivningar på inventarier','Accumulated equipment depreciation'],['7832','Avskrivningar på inventarier och verktyg','Equipment depreciation'],['3973','Vinst vid avyttring av maskiner och inventarier','Gain on equipment disposal'],['7973','Förlust vid avyttring av maskiner och inventarier','Loss on equipment disposal'],
   ['1510','Kundfordringar','Trade receivables'],['1610','Fordringar hos anställda','Employee receivables'],['1910','Kassa','Cash'],['1930','Företagskonto','Business bank account'],
   ['2010','Eget kapital, enskild firma','Owner equity, sole trader'],['2019','Årets resultat, enskild firma','Current year result, sole trader'],['2081','Aktiekapital','Share capital'],['2091','Balanserat resultat','Retained earnings'],['2099','Årets resultat','Current year result'],

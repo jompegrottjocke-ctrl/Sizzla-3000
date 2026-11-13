@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.22.0, databasschema 10. Uppdaterad 2026-11-13.
+Version 0.23.0, databasschema 10. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -218,3 +218,12 @@ Kundaccept kopplar en offert till en bekräftad order en gång. Registrerad leve
 Valda hela leveranser knyts till ett fakturaunderlag och ett utkast. Ett öppet utkast per order förhindrar senare underlag innan utfärdande eller återtagning. Kumulativ proportionering av ursprungsradens belopp och moms i heltalsören gör att delfakturorna summerar till ordern. `sales.cjs` kontrollerar de kopplade beloppen vid utfärdande; rader/kund skyddas också vid utkastredigering. Datum, förfallodatum och anteckning kan ändras. `tradeSource` följer med till den låsta kundfakturan. Bokföring skapas först genom vanligt utfärdande, inte vid offert, order, leverans eller överföring.
 
 FU-återtagning före utfärdande tar bort utkastet och frigör leveranser atomiskt med orsak. Utfärdad faktura, kredit och bokföringsmotbokning frigör inte orderantal automatiskt. Dokumenten och händelserna följer säkerhetskopian. Utskriftshistoriken stöder `sales_quote`, `customer_order` och `delivery_note`. Se [Offerter och kundorder](docs/OFFERTER_KUNDORDER.md) för arbetsgång och begränsningar.
+
+
+## Valuta i försäljningen (0.23.0)
+
+`src/currency.cjs` stöder SEK/EUR/USD med kurs i miljondelar av SEK, manuellt kursdatum och källa. `domain.invoice` skapar dokumentvalutans belopp och separat `sek`-underlag. Valet ändrar inte momsbehandling eller bokföringsvaluta. Befintliga SEK-data behåller tidigare betydelse; inga SQL-tabeller eller schemaversioner ändras.
+
+Utfärdande låser `currency`, `fx` och `sek`. `sales.cjs` bokför från SEK-raderna. Delbetalningar sparar reglerat valutabelopp, faktiskt bankbelopp i SEK och reglerat historiskt bokföringsvärde. Skillnaden balanseras normalt på 3960/7960. Motbokning återtar exakt ursprunglig betalningsverifikation och dess reskontrapåverkan. Krediter proportionerar både originalets valuta- och SEK-rader; kvittning bevarar respektive dokuments bokföringsvärde och balanserar eventuell andelsavrundning.
+
+Orderflödet skyddar kommersiell valuta och priser, men fakturans kurs kan granskas separat i utkastet. Utskrifter visar dokumentvaluta och moms/kurs i SEK. Kundreskontrans sammanräkningar och analys använder sparade SEK-värden och kvarvarande bokföringsvärde. Ingen automatisk omvärdering till dags-/bokslutskurs görs. Bankavstämning förblir i SEK; bokförd valutabetalning matchas via sin SEK-bankrad. Säkerhetskopior inkluderar alla sparade kurs-/betalningsvärden. Se [Valuta](docs/VALUTA.md) för beräkningsregler och kvarstående begränsningar.

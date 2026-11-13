@@ -1,0 +1,10 @@
+const SCALE=1000000,MAX=10000000000;
+class CurrencyError extends Error{constructor(message){super(message);this.status=400;}}
+const fail=code=>{throw new CurrencyError(code);};
+const validDate=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&s>='1900-01-01'&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
+function rate(value){if(typeof value!=='string'&&typeof value!=='number')fail('fxRate');const s=String(value).replace(',','.');if(!/^\d{1,5}(\.\d{1,6})?$/.test(s))fail('fxRate');const [whole,part='']=s.split('.'),n=Number(whole)*SCALE+Number(part.padEnd(6,'0'));if(!Number.isSafeInteger(n)||n<1||n>10000*SCALE)fail('fxRate');return n;}
+function terms(input,date){const currency=input.currency??'SEK';if(!['SEK','EUR','USD'].includes(currency))fail('fxCurrency');if(currency==='SEK')return {currency};const stored=input.fx,exchangeRate=input.exchangeRate===undefined?stored?.rate:rate(input.exchangeRate),when=input.rateDate??stored?.date,source=input.rateSource??stored?.source;if(!Number.isSafeInteger(exchangeRate)||exchangeRate<1||exchangeRate>10000*SCALE)fail('fxRate');if(!validDate(when)||when>date)fail('fxDate');if(typeof source!=='string'||!source.trim()||source.trim().length>300)fail('fxSource');return {currency,fx:{rate:exchangeRate,date:when,source:source.trim()}};}
+function convert(amount,exchangeRate){if(!Number.isSafeInteger(amount)||amount<0||!Number.isSafeInteger(exchangeRate)||exchangeRate<=0)fail('fxAmount');const result=Number((BigInt(amount)*BigInt(exchangeRate)+500000n)/1000000n);if(!Number.isSafeInteger(result)||result>MAX)fail('fxAmount');return result;}
+function snapshot(d){if((d.currency||'SEK')==='SEK')return {...d,sek:undefined};const t=terms(d,d.date),lines=d.lines.map(l=>({net:convert(l.net,t.fx.rate),tax:convert(l.tax,t.fx.rate)})),net=lines.reduce((n,l)=>n+l.net,0),tax=lines.reduce((n,l)=>n+l.tax,0);if(net+tax>MAX)fail('fxAmount');return {...d,...t,sek:{lines,net,tax,total:net+tax}};}
+const base=d=>d.sek||{lines:d.lines,net:d.net,tax:d.tax,total:d.total};
+module.exports={CurrencyError,SCALE,rate,terms,convert,snapshot,base};

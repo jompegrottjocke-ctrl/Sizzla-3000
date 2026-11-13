@@ -1,3 +1,4 @@
+const {terms:currencyTerms,snapshot:currencySnapshot}=require('./currency.cjs');
 class ValidationError extends Error {}
 const fail = message => { throw new ValidationError(message); };
 function text(value, label, required = true, max = 200) {
@@ -38,7 +39,7 @@ function invoice(input, customer) {
   const net = lines.reduce((sum,line) => sum + line.net, 0);
   const tax = lines.reduce((sum,line) => sum + line.tax, 0);
   if (net + tax > 10000000000) fail('total');
-  return { customerId: customer.id, customer: customer.data, date: issued, due, lines,
-    note: text(input.note ?? '', 'note', false, 2000), net, tax, total: net + tax, currency: 'SEK' };
+  return currencySnapshot({ customerId: customer.id, customer: customer.data, date: issued, due, lines,
+    note: text(input.note ?? '', 'note', false, 2000), net, tax, total: net + tax, ...currencyTerms(input,issued) });
 }
 module.exports = { ValidationError, text, decimal, date, invoice };

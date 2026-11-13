@@ -339,3 +339,7 @@ Under **Säkerhet & säkerhetskopiering** kan varje företag få en egen målkat
 ## Offerter och kundorder (0.22.0)
 
 Under **Fakturering → Offerter / Kundorder** finns offert → accepterad order → delleverans → fakturautkast. Lagerförda leveranser gör spårbara lageruttag, och valda leveranser kan inte användas igen i ett annat aktivt fakturaunderlag. Rader och kund skyddas i utkastet; utfärdande och bokföring sker i det befintliga fakturaflödet. Offert, orderbekräftelse och följesedel kan sparas som PDF med utskriftshistorik. Se [arbetsgång och begränsningar](docs/OFFERTER_KUNDORDER.md).
+
+## EUR och USD i försäljningen (0.23.0)
+
+Offerter, kundorder och kundfakturor stöder SEK, EUR och USD med manuellt granskad kurs, datum och källa. Bokföring och moms redovisas i SEK. Betalning i dokumentvaluta regleras mot faktiskt bankbelopp i SEK med bokförd kursvinst/-förlust; krediter använder originalets värden. Listor visar dokumentvaluta och sammanräknad analys använder SEK. Inköp och löner är fortsatt i SEK. Se [arbetsgång och begränsningar](docs/VALUTA.md).

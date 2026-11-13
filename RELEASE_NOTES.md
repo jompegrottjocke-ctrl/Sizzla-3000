@@ -1,12 +1,12 @@
-Sizzla 3000 0.22.0 för Windows 11 (x64): offerter och kundorder.
+Sizzla 3000 0.23.0 för Windows 11 (x64): EUR och USD i försäljningen.
 
-- Nya flikar Offerter och Kundorder under Fakturering, på svenska och engelska.
-- Skapa, granska och utfärda offerter; registrera accept och skapa kundorder en gång. Även direkt kundorder stöds.
-- Registrera delleveranser och skriv ut följesedlar. Lagerförda artiklar får kopplade lageruttag; negativt saldo stoppas.
-- Överför ofakturerade leveranser till skyddade fakturautkast. Avrundning bevarar orderns sammanlagda radbelopp och moms över delfakturor.
-- Orsak krävs vid återtagning eller avslut. Underlag, tidigare versioner av utskrifter och kopplingar till faktura bevaras.
-- Spara PDF för offert, orderbekräftelse och följesedel via appens utskriftshistorik.
+- Välj SEK, EUR eller USD på offert, kundorder och kundfakturautkast. Ange kurs, kursdatum och källa manuellt.
+- Artikelpriser från SEK-registret räknas om när de väljs till ett valutaunderlag. Befintliga priser måste granskas vid valutabyte.
+- Utfärdande bevarar valuta och kurs samt bokför belopp och moms i SEK. Fakturautskrift visar även moms i SEK och kursunderlag.
+- Valutabetalningar regleras mot faktiskt bankbelopp i SEK. Kursvinst/förlust bokförs normalt på 3960/7960, med spårbar rättelse.
+- Krediter och kvittning bevarar ursprungsfakturans bokföringsvärde. Analys och sammanräknade saldon använder SEK.
+- Svenska och engelska. Utökade fakturadialoger har nåbar sidfot även vid stor text. Schema 10 är oförändrat.
 
-Första stödet gäller SEK och fakturering efter registrerad leverans. Ingen lagerreservation, automatisk lagerbokföring, e-postleverans eller bankbetalning görs. Ett öppet fakturautkast per order tillåts. Databasschema 10 är oförändrat. Se docs/OFFERTER_KUNDORDER.md för arbetsgång och begränsningar.
+Första stödet gäller försäljning med befintlig svensk momsbehandling och betalning till SEK-konto. Inköp/löner är fortfarande i SEK. Kurser hämtas inte automatiskt; utländsk moms, valutakonton och automatisk årsskiftesomvärdering ingår inte. Se docs/VALUTA.md för arbetsgång och begränsningar.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.
