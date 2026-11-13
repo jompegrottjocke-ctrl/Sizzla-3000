@@ -327,3 +327,7 @@ Dokument- och kopplingsändringar gör bokslutsavstämningar inaktuella enligt s
 Importera `.se`/`.si` (högst 5 MB) till ett tomt, öppet räkenskapsår. Ange ansvarig i Bokföring, välj målår och granska företag, konton, ingående balanser och verifikationer. Bekräfta organisationsnumret och godkänn importen. Nya A-nummer tilldelas; ursprunglig serie/nummer och originalfilen bevaras. Filer som redan importerats, ändrade underlag, fel företag/år och obalans stoppas. Importen bokför och låser posterna atomiskt. Ta säkerhetskopia före import; låsta poster raderas inte i efterhand.
 
 Importen skapar inte reskontra, kunder, löner, tillgångar, lager eller dokumentkopplingar. SIE 1–3/5, objektdimensioner, kvantiteter, avvikande rad-/verifikationsdatum och äldre rättelserader RTRANS/BTRANS stöds ännu inte. Sådana filer stoppas. Originalfilen och importhistoriken ingår i företagets backup. Ingen SIE-certifiering påstås. Se [omfattning, källor och verifiering](docs/SIE_STOD.md).
+
+## Bankimport och avstämning (0.20.0)
+
+Under **Betalningar → Bank & avstämning** kan kontoutdrag i CSV importeras, granskas och matchas mot befintliga bokföringsrader. Saldoavvikelser och omatchade rader hindrar slutförd avstämning. Originalfil, historik och bevarade avstämningar följer företagets säkerhetskopia. Första stödet gäller SEK, med manuell granskning och utan bankanslutning eller automatisk bokföring. Se [arbetsgång och begränsningar](docs/BANKAVSTAMNING.md).

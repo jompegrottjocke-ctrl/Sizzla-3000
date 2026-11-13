@@ -1,12 +1,12 @@
-Sizzla 3000 0.19.0 för Windows 11 (x64): SIE-import och export.
+Sizzla 3000 0.20.0 för Windows 11 (x64): bankimport och avstämning.
 
-- Ny del i Bokföring: SIE-import & export.
-- Exportera valt års konton, IB/UB/RES och bokförda verifikationer till SIE 4 i PC8/CP437, med kontrollsumma. Tillgängliga jämförelsebalanser för direkt föregående år följer med.
-- Importera en SIE 4-fil till ett tomt, öppet målår efter kontroll och uttryckligt godkännande av företag, år, konton, balanser och verifikationer.
-- Fel företag/år, obalans, kontrollsummefel, dubbletter och ändrade underlag ger stopp. Importen sparas atomiskt.
-- Nya lokala A-nummer tilldelas. Ursprungliga identiteter och hela originalfilen bevaras och kan hämtas från importhistoriken eller verifikationen.
-- Svenska och engelska. Schema 10 är oförändrat; importunderlag följer företagets säkerhetskopia.
+- Ny del under Betalningar: Bank & avstämning, på svenska och engelska.
+- Importera kontoutdrag i CSV, välj kolumner och kontrollera period, belopp och saldon före import.
+- Granska matchningar mot befintlig bokföring och öppna kopplade kund- eller leverantörsfakturor.
+- Bevara avstämda versioner, originalfil och historik. Tidigare versioner finns kvar vid ny granskning.
+- Dubbletter, överlappande perioder och återanvända bokföringsrader stoppas. Underlag följer företagets säkerhetskopia.
+- Rättat Windows-testets fel ”require is not defined”: filen läses nu i Node-testprocessen i stället för inne i Electron-utvärderingen.
 
-Första stödet gäller SEK och konton utan objektdimensioner. SIE 1–3/5, kvantiteter, avvikande transaktionsdatum och RTRANS/BTRANS stöds ännu inte och stoppas. Ingen SIE-certifiering påstås. Reskontra, dokument, löner och övriga register överförs inte via detta flöde. Ta säkerhetskopia före import. Se docs/SIE_STOD.md för omfattning och källkontroll.
+Första bankstödet gäller SEK och CSV, högst 5 MiB och 5 000 rader. Importen utför inga bankbetalningar och skapar ingen bokföring. Matchning granskas rad för rad; automatisk uppdelning av samlingsbetalningar ingår inte. Se docs/BANKAVSTAMNING.md för arbetsgång och begränsningar. Databasschema 10 är oförändrat.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

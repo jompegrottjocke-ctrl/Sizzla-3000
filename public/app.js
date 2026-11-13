@@ -79,7 +79,7 @@ function bind() {
  document.querySelectorAll('[data-new]').forEach(el=>el.onclick=()=>openEditor(el.dataset.new));
  document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openEditor(el.dataset.edit,el.dataset.id));
  const input=document.querySelector('#search'); if(input) input.oninput=event=>{const pos=event.target.selectionStart;search=event.target.value;render();const next=document.querySelector('#search');next.focus();next.setSelectionRange(pos,pos);};
- bindSie();bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
+ bindBank();bindSie();bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
  const form=document.querySelector('#company-form'); if(form) form.onsubmit=async event=>{event.preventDefault(); const button=form.querySelector('button');button.disabled=true;try{await post('company',Object.fromEntries(new FormData(form)));await load();render();toast(t('saved'));}catch(error){button.disabled=false;toast(error.message==='bookCompanyIdentityLocked'?bt(error.message):salesWords[lang][error.message]||t('failed'));}};
 }
 function openEditor(kind,id) {

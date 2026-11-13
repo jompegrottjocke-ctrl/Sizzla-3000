@@ -1,3 +1,4 @@
+const {validateBankRecords}=require('./bank-file.cjs');
 const {validateArchive}=require('./archive.cjs');
 const fs=require('node:fs');
 const os=require('node:os');
@@ -18,7 +19,7 @@ for(const {name} of check.prepare("SELECT name FROM sqlite_master WHERE type='ta
  for(const column of ['data','source','snapshot'])if(columns.some(c=>c.name===column))for(const row of check.prepare(`SELECT "${column}" AS json FROM "${name}"`).all()){const value=JSON.parse(row.json);if(!value||typeof value!=='object'||(Array.isArray(value)&&!name.endsWith('_events')))throw Error();}
 }
 if(version>=5&&check.prepare("SELECT id FROM print_documents WHERE pdf IS NOT NULL AND (typeof(pdf)!='blob' OR length(pdf)>? OR substr(pdf,1,5)!=?) LIMIT 1").get(20*1024*1024,Buffer.from('%PDF-')))throw Error();
-if(version>=10)validateArchive(check);
+if(version>=10)validateArchive(check);validateBankRecords(check);
 const config=JSON.parse(check.prepare('SELECT data FROM app_security WHERE id=1').get()?.data||'{}');
 if(config.hash&&(!/^[a-f0-9]{64}$/.test(config.hash)||!/^[a-f0-9]{32}$/.test(config.salt)||![0,5,15,30].includes(config.minutes)))throw Error();}catch{throw new Error('backupInvalid');}finally{check?.close();}}
 function initSecurity(db,{dataDir,openDataDirectory}){

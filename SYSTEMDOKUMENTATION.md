@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.19.0, databasschema 10. Uppdaterad 2026-11-13.
+Version 0.20.0, databasschema 10. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -194,3 +194,9 @@ Schema 10 tillför nya `archive_`-tabeller/index/triggers. Kompletta schema 4–
 `src/sie-format.cjs` och `src/sie-codec.cjs` hanterar ett begränsat SIE 4-flöde med PC8/CP437, strikt belopps-/datum-/postvalidering och CRC. `src/sie.cjs` hanterar förhandsgranskning, kontroll av företag/tomt målår, fingeravtryck, idempotent bekräftelse, originalfil och historik. `accounting.importSie` används inom importens gemensamma SQLite-transaktion och följer ordinarie bokföringsvalidering och årsskydd. Konton/IB/bokningar/importhistorik rullas tillbaka tillsammans vid fel.
 
 Varje bokförd post lagrar lokal ansvarig och ny registreringstid, separat från ursprungliga SIE-identiteter och signaturer i `importSource`. `records.kind=sie_import` innehåller filnamn, base64-original, SHA-256, mappning och historik. Original hämtas med aktuell sessionstoken och följer säkerhetskopian. Import av enbart IB låser också företagets organisationsnummer via befintlig identitetskontroll. Schema 10 är oförändrat. Omfattning, källa, belopps-/filgränser och kända undantag finns i [SIE-underlaget](docs/SIE_STOD.md). Detta är inte certifiering eller ett fullständigt register-/arkivutbyte.
+
+## Bankavstämning (0.20.0)
+
+`src/bank-file.cjs` validerar CSV och `src/bank.cjs` kopplar kontoutdrag till befintliga bokföringsrader. `bank_statement`, `bank_event` och `bank_snapshot` ligger i befintliga `records` (schema 10). Originalfil med SHA-256, importinställningar, matchningar, orsaker och bevarade avstämningar följer säkerhetskopian. Återläsning kontrollerar originalets hash och omtolkade rader. Företagsidentiteten skyddas även efter bankimport.
+
+Import och matchning ändrar inte huvudbok eller reskontra. Periodöverlapp och dubbel användning av bokföringsrader stoppas. Slutförande kräver hanterade rader och överensstämmande ingående/utgående saldon. Ändrade underlag eller programversion markeras för ny granskning; äldre snapshots behålls. Ansvarig är lokalt angiven, inte autentiserad. Se [Bankavstämning](docs/BANKAVSTAMNING.md) för format, arbetsgång och begränsningar.
