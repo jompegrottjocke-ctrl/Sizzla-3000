@@ -1,15 +1,12 @@
-Sizzla 3000 0.18.0 för Windows 11 (x64): Underlagsarkiv i Dokument.
+Sizzla 3000 0.19.0 för Windows 11 (x64): SIE-import och export.
 
-- Dokument får två delar: Underlagsarkiv och befintlig Utskriftshistorik.
-- Importera PDF, JPEG och PNG upp till 10 MB per fil. Originalets bytes och SHA-256 bevaras i företagets databas; identiska filer återanvänds.
-- Sök i titel, filnamn och anteckning. Filtrera underlag som saknar koppling.
-- Koppla original till bokförda verifikationer, leverantörsfakturor, anläggningstillgångar och pågående bokslutsavstämningar. Genvägar finns i respektive vy.
-- Öppna original med datorns standardprogram i Windows-appen eller hämta det i webbläsaren. Spara originalfilen separat vid behov.
-- Ändra titel/anteckning och rätta kopplingar med orsak och historik. Originalfiler raderas eller ersätts inte i appen.
-- Bokslutsunderlag innehåller ett manifest över då aktiva dokumentkopplingar. Nya dokument-/kopplingsändringar kräver ny bokslutsgranskning; tidigare bevarade versioner ändras inte.
-- Original och historik ingår i säkerhetskopian. Schema 10 migrerar befintliga data och kompletta schema 4–9-säkerhetskopior. Importgränsen för databaskopior höjs till 256 MB.
-- Svenska, engelska, teman och stora textstorlekar stöds.
+- Ny del i Bokföring: SIE-import & export.
+- Exportera valt års konton, IB/UB/RES och bokförda verifikationer till SIE 4 i PC8/CP437, med kontrollsumma. Tillgängliga jämförelsebalanser för direkt föregående år följer med.
+- Importera en SIE 4-fil till ett tomt, öppet målår efter kontroll och uttryckligt godkännande av företag, år, konton, balanser och verifikationer.
+- Fel företag/år, obalans, kontrollsummefel, dubbletter och ändrade underlag ger stopp. Importen sparas atomiskt.
+- Nya lokala A-nummer tilldelas. Ursprungliga identiteter och hela originalfilen bevaras och kan hämtas från importhistoriken eller verifikationen.
+- Svenska och engelska. Schema 10 är oförändrat; importunderlag följer företagets säkerhetskopia.
 
-Arkivet tillför ingen OCR, myndighetsinlämning eller fullständig juridisk arkiveringsrutin. Företaget ansvarar för att rätt och fullständiga underlag bevaras. Externa filer som endast anges med sökväg kopieras inte automatiskt. Ta säkerhetskopia före uppdatering och använd inte äldre programversioner mot schema 10.
+Första stödet gäller SEK och konton utan objektdimensioner. SIE 1–3/5, kvantiteter, avvikande transaktionsdatum och RTRANS/BTRANS stöds ännu inte och stoppas. Ingen SIE-certifiering påstås. Reskontra, dokument, löner och övriga register överförs inte via detta flöde. Ta säkerhetskopia före import. Se docs/SIE_STOD.md för omfattning och källkontroll.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

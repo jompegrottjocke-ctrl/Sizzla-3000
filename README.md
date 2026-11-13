@@ -319,3 +319,11 @@ Koppla ett dokument till en bokförd verifikation, leverantörsfaktura, tillgån
 Original och kopplingshistorik ingår i den aktiva databasens vanliga säkerhetskopia. Säkerhetskopiera fortfarande varje företag och förvara kopior åtskilt. Filer som enbart nämns i externa sökvägar ingår inte automatiskt. Schema **10** lägger till arkivet; kompletta schema 4–9-kopior kan importeras och får tomt arkiv om kopian saknar det. Databasimport stöder högst **256 MB**. Använd inte äldre programversioner mot den uppgraderade databasen.
 
 Dokument- och kopplingsändringar gör bokslutsavstämningar inaktuella enligt samma konservativa kontroll som övriga affärsdata. Lägg till underlag före slutlig avstämning. En bevarad arbetsversion innehåller dåvarande aktiva kopplingar, dokument-ID och originalens kontrollsummor; den ändras inte av senare rättelser. Arkivet ersätter inte företagets ansvar för kompletta underlag, bevarandetider, läsbarhet och arkivrutiner.
+
+## SIE-import och export (0.19)
+
+**Bokföring → SIE-import & export** stöder SIE 4, PC8/CP437 och SEK. Exportera ett valt års konton, IB/UB/RES och bokförda verifikationer med kontrollsumma. Direkt föregående års jämförelsebalanser följer med när de finns. Utkast och övriga register ingår inte.
+
+Importera `.se`/`.si` (högst 5 MB) till ett tomt, öppet räkenskapsår. Ange ansvarig i Bokföring, välj målår och granska företag, konton, ingående balanser och verifikationer. Bekräfta organisationsnumret och godkänn importen. Nya A-nummer tilldelas; ursprunglig serie/nummer och originalfilen bevaras. Filer som redan importerats, ändrade underlag, fel företag/år och obalans stoppas. Importen bokför och låser posterna atomiskt. Ta säkerhetskopia före import; låsta poster raderas inte i efterhand.
+
+Importen skapar inte reskontra, kunder, löner, tillgångar, lager eller dokumentkopplingar. SIE 1–3/5, objektdimensioner, kvantiteter, avvikande rad-/verifikationsdatum och äldre rättelserader RTRANS/BTRANS stöds ännu inte. Sådana filer stoppas. Originalfilen och importhistoriken ingår i företagets backup. Ingen SIE-certifiering påstås. Se [omfattning, källor och verifiering](docs/SIE_STOD.md).

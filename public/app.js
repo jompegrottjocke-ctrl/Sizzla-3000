@@ -25,7 +25,7 @@ async function load() {
 }
 async function post(route, body) {
  const response = await fetch('/api/'+route,{method:'POST',headers:{'Content-Type':'application/json','X-Sizzla-Token':state.token},body:JSON.stringify(body)});
- if (!response.ok) {const data=await response.json().catch(()=>({error:'save'}));if(data.error==='dbChanged')databaseStale();throw new Error(data.error||'save');} return response.json();
+ if (!response.ok) {const data=await response.json().catch(()=>({error:'save'}));if(data.error==='dbChanged')databaseStale();const error=new Error(data.error||'save');error.details=data;throw error;} return response.json();
 }
 function navItem(key) { return `<button class="nav-item ${page===key?'active':''}" data-page="${key}"><span class="nav-icon" aria-hidden="true">${icons[key]}</span><span>${t(key)}</span>${(beta.includes(key)||['cloud','agent','versionSettings'].includes(key))?'<span class="beta-tag" aria-hidden="true">β</span>':''}</button>`; }
 function render() {
@@ -79,7 +79,7 @@ function bind() {
  document.querySelectorAll('[data-new]').forEach(el=>el.onclick=()=>openEditor(el.dataset.new));
  document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openEditor(el.dataset.edit,el.dataset.id));
  const input=document.querySelector('#search'); if(input) input.oninput=event=>{const pos=event.target.selectionStart;search=event.target.value;render();const next=document.querySelector('#search');next.focus();next.setSelectionRange(pos,pos);};
- bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
+ bindSie();bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
  const form=document.querySelector('#company-form'); if(form) form.onsubmit=async event=>{event.preventDefault(); const button=form.querySelector('button');button.disabled=true;try{await post('company',Object.fromEntries(new FormData(form)));await load();render();toast(t('saved'));}catch(error){button.disabled=false;toast(error.message==='bookCompanyIdentityLocked'?bt(error.message):salesWords[lang][error.message]||t('failed'));}};
 }
 function openEditor(kind,id) {

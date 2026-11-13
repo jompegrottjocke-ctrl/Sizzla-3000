@@ -29,10 +29,10 @@ const starterAccounts = [
 ];
 function validateLines(input, accounts, opening = false) {
   if (!Array.isArray(input) || input.length < 2 || input.length > 500) invalid('bookLines');
-  let debit = 0, credit = 0;
+  let debit = 0, credit = 0;const byCode=new Map(accounts.map(a=>[a.code,a]));
   const lines = input.map(line => {
     if (!line || typeof line !== 'object') invalid('bookLines');
-    const account = accounts.find(a => a.code === line.account);
+    const account = byCode.get(line.account);
     if (!account || !account.active || (opening && !['asset','liability'].includes(account.type))) invalid('bookAccount');
     const d = decimal(line.debit ?? '0','bookAmount',{max:100000000000});
     const c = decimal(line.credit ?? '0','bookAmount',{max:100000000000});
@@ -85,7 +85,7 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
     // Validate again inside the posting transaction; snapshots use the current account names.
     const lines=validateLines(data.lines.map(l=>({...l,debit:(l.debit/100).toFixed(2),credit:(l.credit/100).toFixed(2)})),accounts());
     const number=db.prepare("SELECT COALESCE(MAX(number),0)+1 AS next FROM ledger_vouchers WHERE year_id=? AND status='posted'").get(year.id).next;
-    const snapshot={date:data.date,description:data.description,reference:data.reference,lines,company:data.company,wagesPayableAccount:data.wagesPayableAccount||null,liabilityAccount:data.liabilityAccount||null,purchaseInvoiceId:data.purchaseInvoiceId||null,actor:operator(),programVersion,created:data.created||new Date().toISOString(),posted:new Date().toISOString()};
+    const snapshot={date:data.date,description:data.description,reference:data.reference,lines,company:data.company,wagesPayableAccount:data.wagesPayableAccount||null,liabilityAccount:data.liabilityAccount||null,purchaseInvoiceId:data.purchaseInvoiceId||null,importSource:data.importSource||null,actor:operator(),programVersion,created:data.created||new Date().toISOString(),posted:new Date().toISOString()};
     const existing=db.prepare('SELECT id FROM ledger_vouchers WHERE id=?').get(id);
     if(existing)db.prepare("UPDATE ledger_vouchers SET number=?,status='posted',revision=?,data=? WHERE id=?").run(number,revision,JSON.stringify(snapshot),id);
     else db.prepare("INSERT INTO ledger_vouchers VALUES(?,?,?,'posted',?,?,?,?,?,?)").run(id,year.id,number,revision,JSON.stringify(snapshot),corrects,null,sourceKind,sourceId);
@@ -104,6 +104,16 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
   }
   return {
     operator,requireOperator,
+    importSie(yearId,{opening,vouchers:incoming,accounts:incomingAccounts,batchId,filename,hash},company){
+      requireOperator();const year=yearById(yearId);checkDate(year,year.start);
+      if(year.openingLocked||year.opening.length||year.lockedThrough||vouchers().some(v=>v.yearId===yearId&&v.status!=='discarded'))throw new AccountingError('sieEmptyYear');
+      const knownAccounts=new Set(accounts().map(a=>a.code));for(const a of incomingAccounts)if(!knownAccounts.has(a.code)){knownAccounts.add(a.code);db.prepare('INSERT INTO ledger_accounts VALUES(?,?,?,1)').run(a.code,a.name,a.name);event('account',a.code,'saved',{source:'sie',batchId,name:a.name});}
+      const lines=opening.length?validateLines(opening.map(l=>({account:l.account,debit:(Math.max(0,l.amount)/100).toFixed(2),credit:(Math.max(0,-l.amount)/100).toFixed(2)})),accounts(),true):[];
+      saveYear({...year,opening:lines,openingLocked:true});event('year',year.id,'opening',{source:'sie',batchId,lines});const mappings=[];
+      for(let i=0;i<incoming.length;i++){const v=incoming[i],reference=`SIE ${filename.slice(0,100)} / ${v.series} ${v.number}`,importSource={batchId,filename,hash,series:v.series,number:v.number,registered:v.registered,sign:v.sign,rows:v.lines.map(l=>({...l}))};
+        const posted=createPosted(yearById(yearId),{date:v.date,description:v.description||`SIE ${v.series} ${v.number}`,reference,lines:v.lines.filter(l=>l.amount).map(l=>({account:l.account,debit:Math.max(0,l.amount),credit:Math.max(0,-l.amount),note:l.note})),company,importSource},{sourceKind:'sie',sourceId:batchId+':'+i});mappings.push({series:v.series,number:v.number,...posted});
+      }event('year',year.id,'sieImported',{batchId,filename,hash,mappings});return mappings;
+    },
     source:activeSource,
     postSource:(yearId,data,source)=>createPosted(yearById(yearId),data,source),
     reverseSource:(id,body,company)=>reversePosted(current(vouchers(),{id,revision:body.revision}),body,company),

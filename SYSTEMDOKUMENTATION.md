@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.18.0, databasschema 10. Uppdaterad 2026-11-13.
+Version 0.19.0, databasschema 10. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -188,3 +188,9 @@ En felaktig koppling avaktiveras med orsak och lokalt angiven ansvarig. Tidigare
 Bokslutets källfingeravtryck inkluderar originalens identitet/checksumma/metadata och kopplingshistorikens aktuella rader, utan att läsa hela BLOB:ar vid varje avstämning. Därmed kan även en orelaterad arkivändring kräva ny granskning. Bevarade bokslutsversioner innehåller `archiveManifest` med då aktiva kopplingar och originalens ID, filnamn, typ, storlek och hash. Originalbytes finns i samma företagsdatabas och säkerhetskopia, inte i JSON-underlaget. En fryst version ändras inte vid senare avaktivering av länkar.
 
 Schema 10 tillför nya `archive_`-tabeller/index/triggers. Kompletta schema 4–9-säkerhetskopior valideras mot motsvarande äldre struktur och migreras vid öppning. Schema 10-import verifierar också originalens filformat, längd och SHA-256. Importgränsen höjs till 256 MiB med begränsad JSON-förfrågan. Alla register/original/historik följer SQLite-säkerhetskopian, men externa filer som endast nämns med sökväg gör det inte. Arkivet är ingen fullständig arkivplan eller garanti för bokföringslagens alla bevarandekrav.
+
+## SIE 4 i 0.19
+
+`src/sie-format.cjs` och `src/sie-codec.cjs` hanterar ett begränsat SIE 4-flöde med PC8/CP437, strikt belopps-/datum-/postvalidering och CRC. `src/sie.cjs` hanterar förhandsgranskning, kontroll av företag/tomt målår, fingeravtryck, idempotent bekräftelse, originalfil och historik. `accounting.importSie` används inom importens gemensamma SQLite-transaktion och följer ordinarie bokföringsvalidering och årsskydd. Konton/IB/bokningar/importhistorik rullas tillbaka tillsammans vid fel.
+
+Varje bokförd post lagrar lokal ansvarig och ny registreringstid, separat från ursprungliga SIE-identiteter och signaturer i `importSource`. `records.kind=sie_import` innehåller filnamn, base64-original, SHA-256, mappning och historik. Original hämtas med aktuell sessionstoken och följer säkerhetskopian. Import av enbart IB låser också företagets organisationsnummer via befintlig identitetskontroll. Schema 10 är oförändrat. Omfattning, källa, belopps-/filgränser och kända undantag finns i [SIE-underlaget](docs/SIE_STOD.md). Detta är inte certifiering eller ett fullständigt register-/arkivutbyte.
