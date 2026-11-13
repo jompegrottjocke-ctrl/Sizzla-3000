@@ -30,14 +30,14 @@ function initSecurity(db,{dataDir,openDataDirectory}){
   if(route==='open-folder'){if(!openDataDirectory)throw new Error('desktopOnly');await openDataDirectory();return {ok:true};}
   if(route==='export'){if(typeof body.encrypted!=='boolean')throw new Error('securityInvalid');if(body.encrypted)password(body.password);const data=snapshot(db);return {download:body.encrypted?encrypt(data,body.password):data,extension:body.encrypted?'sizzla':'sqlite'};}
   if(route==='cancel-import'){fs.rmSync(path.join(dataDir,'pending-import.sqlite'),{force:true});return {ok:true};}
-  if(route==='import'){
-   if(body.confirm!==true||typeof body.file!=='string'||!body.file.length)throw new Error('backupInvalid');
+  if(route==='verify'||route==='import'){
+   if((route==='import'&&body.confirm!==true)||typeof body.file!=='string'||!body.file.length)throw new Error('backupInvalid');
    const data=decrypt(Buffer.from(body.file,'base64'),body.password);if(data.length>256*1024*1024)throw new Error('backupInvalid');
-   const dir=fs.mkdtempSync(path.join(dataDir,'.import-'));try{const file=path.join(dir,'check.sqlite');fs.writeFileSync(file,data,{mode:0o600});validate(file,db);fs.writeFileSync(path.join(dataDir,'before-import-'+Date.now()+'.sqlite'),snapshot(db),{mode:0o600});fs.renameSync(file,path.join(dataDir,'pending-import.sqlite'));}finally{fs.rmSync(dir,{recursive:true,force:true});}return {ok:true};
+   const dir=fs.mkdtempSync(path.join(dataDir,'.import-'));try{const file=path.join(dir,'check.sqlite');fs.writeFileSync(file,data,{mode:0o600});validate(file,db);if(route==='verify'){const check=new DatabaseSync(file,{readOnly:true});try{return {ok:true,company:JSON.parse(check.prepare('SELECT data FROM settings WHERE id=1').get()?.data||'{}').name||'',schema:check.prepare('PRAGMA user_version').get().user_version,bytes:data.length,at:new Date().toISOString()};}finally{check.close();}}fs.writeFileSync(path.join(dataDir,'before-import-'+Date.now()+'.sqlite'),snapshot(db),{mode:0o600});fs.renameSync(file,path.join(dataDir,'pending-import.sqlite'));}finally{fs.rmSync(dir,{recursive:true,force:true});}return {ok:true};
   }
   throw new Error('securityInvalid');
  }};
 }
 // Apply only before opening the live application connection. Keep a complete last-moment copy.
 function applyPending(dataDir){const pending=path.join(dataDir,'pending-import.sqlite');if(!fs.existsSync(pending))return;const file=path.join(dataDir,'sizzla.sqlite'),db=new DatabaseSync(file);try{validate(pending,db);fs.writeFileSync(path.join(dataDir,'before-restart-import-'+Date.now()+'.sqlite'),snapshot(db),{mode:0o600});db.exec('PRAGMA wal_checkpoint(TRUNCATE)');}finally{db.close();}fs.renameSync(pending,file);}
-module.exports={initSecurity,applyPending,encrypt,decrypt,snapshot};
+module.exports={initSecurity,applyPending,encrypt,decrypt,snapshot,validate};

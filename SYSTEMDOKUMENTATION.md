@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.20.0, databasschema 10. Uppdaterad 2026-11-13.
+Version 0.21.0, databasschema 10. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -200,3 +200,10 @@ Varje bokförd post lagrar lokal ansvarig och ny registreringstid, separat från
 `src/bank-file.cjs` validerar CSV och `src/bank.cjs` kopplar kontoutdrag till befintliga bokföringsrader. `bank_statement`, `bank_event` och `bank_snapshot` ligger i befintliga `records` (schema 10). Originalfil med SHA-256, importinställningar, matchningar, orsaker och bevarade avstämningar följer säkerhetskopian. Återläsning kontrollerar originalets hash och omtolkade rader. Företagsidentiteten skyddas även efter bankimport.
 
 Import och matchning ändrar inte huvudbok eller reskontra. Periodöverlapp och dubbel användning av bokföringsrader stoppas. Slutförande kräver hanterade rader och överensstämmande ingående/utgående saldon. Ändrade underlag eller programversion markeras för ny granskning; äldre snapshots behålls. Ansvarig är lokalt angiven, inte autentiserad. Se [Bankavstämning](docs/BANKAVSTAMNING.md) för format, arbetsgång och begränsningar.
+
+
+## Automatisk säkerhetskopiering (0.21.0)
+
+`src/auto-backup.cjs` hanterar kopior per företagsdatabas. Lokala inställningar/status i `automatic-backup.json` ingår inte i databasexport/import. Aktivering kräver val av katalog och godkännande av okrypterade kopior. Schemat kontrolleras vid start och varje minut för det aktiva företaget; normalt avslut och företagsbyte kan också ta kopia. Inaktiva företag kopieras vid nästa öppning om deras dagliga kopia då är försenad.
+
+Snapshot med `VACUUM INTO` inkluderar committad WAL-data. Temporär fil synkas och valideras före slutligt namn och rotation. SHA-256 registreras; senaste kopian kan kontrolleras igen. Rotation omfattar endast företagets egna automatiska filnamn i dess aktuella undermapp och påverkar inte säkerhetskopior före import. Gräns 256 MiB följer återställningsflödet. Ingen SQL-migrering behövs. Kontroll av uppladdad säkerhetskopia använder samma validering som import, utan att skapa förberedd import eller ersätta arbetsdata. Se [Säkerhetskopiering](docs/SAKERHETSKOPIERING.md) för drift, begränsningar och återställning.

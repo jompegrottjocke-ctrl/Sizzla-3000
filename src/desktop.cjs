@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell, dialog } = require('electron');
 const path = require('node:path');
+const {setupBackups}=require('./desktop-backup.cjs');
 const {setupArchive}=require('./desktop-archive.cjs');
 const {setupEmail}=require('./desktop-email.cjs');
 const {setupWhatsApp}=require('./desktop-whatsapp.cjs');
@@ -21,6 +22,7 @@ async function open() {
     setupWhatsApp(service);
     setupEmail(service);
     setupArchive(service);
+    setupBackups(service);
   }
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 1000, minHeight: 700,
     title: 'Sizzla 3000', backgroundColor: '#f4f6fa',
@@ -45,4 +47,4 @@ async function open() {
 }
 app.whenReady().then(()=>primary?open():undefined).catch(error => { dialog.showErrorBox('Sizzla 3000', error.message); app.quit(); });
 app.on('window-all-closed', () => app.quit());
-app.on('before-quit', () => { if (service) service.close(); });
+app.on('before-quit', () => { if (service) { const result=service.close();if(result?.error)dialog.showErrorBox('Sizzla 3000 – säkerhetskopiering','Den automatiska säkerhetskopieringen misslyckades. Kontrollera status och målkatalog under Säkerhet & säkerhetskopiering nästa gång du startar programmet.'); } });

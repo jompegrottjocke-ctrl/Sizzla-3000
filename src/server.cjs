@@ -4,6 +4,7 @@ const path = require('node:path');
 const { randomBytes, randomUUID } = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 const { ValidationError, text, decimal, invoice } = require('./domain.cjs');
+const {initAutoBackup,BackupError}=require('./auto-backup.cjs');
 const {initBank}=require('./bank.cjs');
 const {BankError}=require('./bank-file.cjs');
 const {initSie}=require('./sie.cjs');
@@ -28,7 +29,7 @@ const { initPurchases, PurchaseError } = require('./purchases.cjs');
 function openDatabase(dataDir,openDataDirectory){
   applyPending(dataDir);
   const db=new DatabaseSync(path.join(dataDir,'sizzla.sqlite'));
-  let hr, accounting, purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank;
+  let hr, accounting, purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic;
   try {
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
     CREATE TABLE IF NOT EXISTS records (kind TEXT NOT NULL, id TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(kind,id));
@@ -47,17 +48,18 @@ function openDatabase(dataDir,openDataDirectory){
   archive=initArchive(db,accounting);
   sie=initSie(db,accounting);
   bank=initBank(db,accounting);
+  automatic=initAutoBackup(db,{dataDir,openDirectory:openDataDirectory});
   imports=initFileImport(db,inventory);
   printing=initPrinting(db);
   security=initSecurity(db,{dataDir,openDataDirectory:openDataDirectory?()=>openDataDirectory(dataDir):undefined});
   } catch(error) { db.close(); throw error; }
-  return {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank};
+  return {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic};
 }
 function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirname, '..', '.local'), openDataDirectory, canSwitchDatabase=()=>true, onDatabaseChanged=()=>{} } = {}) {
   fs.mkdirSync(dataDir,{recursive:true,mode:0o700});
   const databases=initDatabases(dataDir);
   if(!databases.created&&(!fs.existsSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite'))||!fs.statSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite')).size))throw new DatabaseError('dbUnavailable');
-  let {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
+  let {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
   let token=randomBytes(32).toString('hex'),databaseSession=randomUUID();
   const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data) }));
   const get = (kind,id) => { const row = db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,id); return row ? { id, data: JSON.parse(row.data) } : null; };
@@ -69,6 +71,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     res.end(type.startsWith('application/json') ? JSON.stringify(value) : value);
   }
   let closed=false;
+  const backupTimer=setInterval(()=>automatic.due(),60000);backupTimer.unref();
   const server = http.createServer(async (req,res) => {
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
@@ -77,12 +80,13 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
+      if(req.method==='GET'&&url.pathname==='/api/security/auto/status'){if(req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});return send(res,200,automatic.status());}
       if(req.method==='GET'&&url.pathname==='/api/file-import/template'){const kind=url.searchParams.get('kind'),format=url.searchParams.get('format'),bytes=importTemplate(kind,format,url.searchParams.get('lang'));res.setHeader('Content-Disposition',`attachment; filename="Sizzla-${kind}-mall.${format}"`);return send(res,200,bytes,format==='xlsx'?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'text/csv; charset=utf-8');}
       if(req.method==='GET'&&url.pathname.startsWith('/api/prints')&&((req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)||(url.searchParams.has('databaseSession')&&url.searchParams.get('databaseSession')!==databaseSession)))return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname==='/api/prints')return send(res,200,printing.list(Object.fromEntries(url.searchParams)));
       const pdfMatch=url.pathname.match(/^\/api\/prints\/([a-f0-9-]{36})\/pdf$/);
       if(req.method==='GET'&&pdfMatch){const doc=printing.document(pdfMatch[1]);if(!doc.pdf)return send(res,404,{error:'printPdfFailed'});res.setHeader('Content-Disposition',`inline; filename="Sizzla-${doc.id}.pdf"`);return send(res,200,doc.pdf,'application/pdf');}
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(), security:security.status(), preferences:preferences(), assets:assets.state(), closing:closing.state(), agent:agent.state(), agency:agency.state(), archive:archive.summary(), sie:sie.state(), bank:bank.state(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state(),time:time.state() });
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(), security:{...security.status(),automatic:automatic.status()}, preferences:preferences(), assets:assets.state(), closing:closing.state(), agent:agent.state(), agency:agency.state(), archive:archive.summary(), sie:sie.state(), bank:bank.state(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state(),time:time.state() });
       if(req.method==='POST'&&req.headers.origin===`http://127.0.0.1:${server.address().port}`&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname==='/api/assets/report'&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname.startsWith('/api/archive')){
@@ -101,7 +105,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       const requestToken=token;
       let raw = '';
-      for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (url.pathname==='/api/security/import'?360*1024*1024:url.pathname==='/api/archive/upload'?15*1024*1024:['/api/sie/preview','/api/bank/read'].includes(url.pathname)?8*1024*1024:url.pathname.startsWith('/api/file-import/')?8*1024*1024:262144)) return send(res,413,{error:'size'}); }
+      for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (['/api/security/import','/api/security/verify'].includes(url.pathname)?360*1024*1024:url.pathname==='/api/archive/upload'?15*1024*1024:['/api/sie/preview','/api/bank/read'].includes(url.pathname)?8*1024*1024:url.pathname.startsWith('/api/file-import/')?8*1024*1024:262144)) return send(res,413,{error:'size'}); }
       if(requestToken!==token)return send(res,409,{error:'dbChanged'});
       let body;
       try { body = JSON.parse(raw); } catch { return send(res,400,{error:'json'}); }
@@ -114,11 +118,12 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
           if(security.status().importPending)throw new DatabaseError('dbImportPending');
           if(!canSwitchDatabase())throw new DatabaseError('dbPrintBusy');
           const result=databases.activate(body,dir=>{if(fs.existsSync(path.join(dir,'pending-import.sqlite')))throw new DatabaseError('dbImportPending');let candidate;try{candidate=openDatabase(dir,openDataDirectory);if(candidate.db.prepare('PRAGMA quick_check').get().quick_check!=='ok'||candidate.db.prepare('PRAGMA foreign_key_check').all().length)throw Error();for(const row of candidate.db.prepare('SELECT data FROM records UNION ALL SELECT data FROM settings UNION ALL SELECT data FROM preferences').all()){const value=JSON.parse(row.data);if(!value||typeof value!=='object'||Array.isArray(value))throw Error();}candidate.hr.state();candidate.accounting.state();candidate.purchases.state();candidate.inventory.state();candidate.sales.state();candidate.time.state();candidate.assets.state();candidate.closing.state();candidate.agent.state();candidate.agency.state();candidate.archive.summary();candidate.sie.state();candidate.bank.state();return candidate;}catch{candidate?.db.close();throw new DatabaseError('dbUnavailable');}});
-          if(!result.unchanged){const old=db;({db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank}=result.candidate);token=randomBytes(32).toString('hex');databaseSession=randomUUID();old.close();try{onDatabaseChanged();}catch(error){console.error(error);}}
+          if(!result.unchanged){const old=db,oldAutomatic=automatic;({db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic}=result.candidate);token=randomBytes(32).toString('hex');databaseSession=randomUUID();oldAutomatic.due('switch');old.close();automatic.due();try{onDatabaseChanged();}catch(error){console.error(error);}}
           return send(res,200,{ok:true});
         }
         throw new DatabaseError('dbMissing',404);
       }
+      if(url.pathname.startsWith('/api/security/auto/')){const route=url.pathname.slice('/api/security/auto/'.length);if(route==='configure')return send(res,200,automatic.configure(body));if(route==='run')return send(res,200,automatic.run());if(route==='verify')return send(res,200,automatic.verifyLast());if(route==='open')return send(res,200,await automatic.open());throw new BackupError('autoInvalid');}
       if(url.pathname.startsWith('/api/security/')){
         try{const result=await security.handle(url.pathname.slice('/api/security/'.length),body);
         if(result.download){res.setHeader('Content-Disposition',`attachment; filename="Sizzla-3000-${databases.state().entries.find(e=>e.active).name.normalize('NFKD').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,60)}-${new Date().toISOString().replace(/[:.]/g,'-')}.${result.extension}"`);return send(res,200,result.download,'application/octet-stream');}
@@ -186,7 +191,8 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));
       send(res,200,{id});
     } catch (error) {
-      if(error instanceof BankError)send(res,error.status,{error:error.message,...error.details});
+      if(error instanceof BackupError)send(res,error.status,{error:error.message,...error.details});
+      else if(error instanceof BankError)send(res,error.status,{error:error.message,...error.details});
       else if(error instanceof SieError)send(res,error.status,{error:error.message,...error.details});
       else if(error instanceof FileImportError)send(res,error.status,{error:error.message,...(error.details?{details:error.details}:{})});
       else if(error instanceof SyntaxError&&req.url.startsWith('/api/prints'))send(res,400,{error:'printInvalid'});
@@ -196,9 +202,9 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       else { console.error(error); send(res,500,{error:'internal'}); }
     }
   });
-  return { server,get db(){return db;},get printing(){return printing;},get archive(){return archive;},get sessionToken(){return token;},get databaseSession(){return databaseSession;},get dataDir(){return databases.directory(databases.activeId);}, get url() { return `http://127.0.0.1:${server.address().port}`; },
-    listen(port=0) { return new Promise((resolve,reject) => { server.once('error',reject); server.listen(port,'127.0.0.1',resolve); }); },
-    close() { if(closed)return;closed=true;server.closeAllConnections(); server.close(); db.close(); } };
+  return { server,get db(){return db;},get printing(){return printing;},get archive(){return archive;},get sessionToken(){return token;},get databaseSession(){return databaseSession;},get automatic(){return automatic;},get dataDir(){return databases.directory(databases.activeId);}, get url() { return `http://127.0.0.1:${server.address().port}`; },
+    listen(port=0) { return new Promise((resolve,reject) => { server.once('error',reject); server.listen(port,'127.0.0.1',()=>{automatic.due();resolve();}); }); },
+    close() { if(closed)return;closed=true;clearInterval(backupTimer);server.closeAllConnections(); server.close();const backup=automatic.due('exit');db.close();return backup; } };
 }
 if (require.main === module) {
   const app = createApp();

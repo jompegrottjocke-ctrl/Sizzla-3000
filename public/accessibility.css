@@ -5,3 +5,7 @@
 html[data-compact=true] aside{position:relative;width:100%;max-height:none}html[data-compact=true] nav{display:flex;flex-wrap:wrap;gap:4px}html[data-compact=true] .nav-label{width:100%}html[data-compact=true] .nav-item{width:auto}html[data-compact=true] .sidebar-foot,html[data-compact=true] .company-chip,html[data-compact=true] .brand{display:none}html[data-compact=true] .workspace{margin-left:0}html[data-compact=true] .form-grid,html[data-compact=true] .stats,html[data-compact=true] .steps{grid-template-columns:1fr}html[data-compact=true] main,html[data-compact=true] header{padding-left:16px;padding-right:16px}html[data-compact=true] .page-head{flex-wrap:wrap}
 
 html[data-compact=true] aside nav{max-height:180px;overflow-y:auto;flex-shrink:0}html[data-compact=true] aside{border-bottom:1px solid var(--line)}
+
+.auto-backup-actions{display:flex;flex-wrap:wrap;gap:12px}.auto-backup-actions button{white-space:normal}
+
+#automatic-backup-notice[hidden]{display:none}

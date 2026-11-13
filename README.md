@@ -331,3 +331,7 @@ Importen skapar inte reskontra, kunder, löner, tillgångar, lager eller dokumen
 ## Bankimport och avstämning (0.20.0)
 
 Under **Betalningar → Bank & avstämning** kan kontoutdrag i CSV importeras, granskas och matchas mot befintliga bokföringsrader. Saldoavvikelser och omatchade rader hindrar slutförd avstämning. Originalfil, historik och bevarade avstämningar följer företagets säkerhetskopia. Första stödet gäller SEK, med manuell granskning och utan bankanslutning eller automatisk bokföring. Se [arbetsgång och begränsningar](docs/BANKAVSTAMNING.md).
+
+## Automatisk säkerhetskopiering (0.21.0)
+
+Under **Säkerhet & säkerhetskopiering** kan varje företag få en egen målkatalog, daglig kopiering och kopiering vid avslut/företagsbyte. Funktionen är avstängd från början. Automatiska kopior är okrypterade och kräver godkännande; den manuella krypterade exporten finns kvar. Äldre automatiska kopior rensas först efter en ny kontrollerad kopia. Senaste kopian eller en valfri export kan kontrolleras utan import. Se [arbetsgång, lagring och begränsningar](docs/SAKERHETSKOPIERING.md).

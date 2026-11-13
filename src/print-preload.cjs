@@ -9,3 +9,5 @@ contextBridge.exposeInMainWorld('sizzlaWhatsApp',{open:(employeeId,token)=>ipcRe
 contextBridge.exposeInMainWorld('sizzlaEmail',{open:(employeeId,token)=>ipcRenderer.invoke('sizzla:employee-email',{employeeId,token})});
 
 contextBridge.exposeInMainWorld('sizzlaArchive',{open:(id,token)=>ipcRenderer.invoke('sizzla:archive-open',{id,token})});
+
+contextBridge.exposeInMainWorld('sizzlaBackup',{chooseFolder:token=>ipcRenderer.invoke('sizzla:backup-folder',{token})});
