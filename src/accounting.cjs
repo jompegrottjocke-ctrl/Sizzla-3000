@@ -206,4 +206,4 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
     }
   };
 }
-module.exports={initAccounting,AccountingError,validateLines,balances,accountType};
+module.exports={validDate,initAccounting,AccountingError,validateLines,balances,accountType};

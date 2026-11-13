@@ -289,3 +289,13 @@ Under **Inställningar → AI-agent** kan du spara planerad anslutning och model
 Serveradressen måste använda HTTPS utan användarnamn/lösenord, frågeparametrar eller fragment. Inga API-nycklar ska anges; nyckelfältet är spärrat i väntan på säker nyckellagring. Spara inställningar och Kontrollera anslutningsstöd fungerar lokalt. Kontrollen gör ingen nätverksanslutning och skickar inga uppgifter. Anslut agent och Starta uppgift är spärrade. Inga val ger en agent åtkomst till data ännu.
 
 Historiken visar de senaste 100 inställnings-/kontrollhändelserna med tid, eventuell lokalt angiven ansvarig och före-/efteruppgifter. Hela historiken behålls i databasen och ingår med inställningarna i säkerhetskopian. Ett framtida agentstöd ska visa mottagare och delade uppgifter och använda appens kontrollerade funktioner med uttrycklig granskning/godkännande av bokföring, löneutbetalningar och deklarationsinlämning.
+
+## Redovisningsbyrå (0.17)
+
+Fliken **Redovisningsbyrå** finns under Verksamhet. **Alla företag** läser en översikt från de lokala företagsdatabaserna utan att byta aktivt företag. Den visar registrerade räkenskapsår, bokförda verifikationer/utkast, senaste bokföringsdatum, periodlås, bokslutsberedning samt antal öppna, försenade och högprioriterade uppgifter. Expandera ett år för detaljer. Översiktens separata bokslutskolumn gäller det senast startade året; alla års status finns i årsdetaljerna. En databas som inte kan läsas markeras utan att ersättas eller dölja övriga företag. Uppdatera översikten för ny avläsning.
+
+**Öppna företag** använder samma bekräftelse och skydd som Databaser. Endast ett företag är aktivt. **Arbetslista** gäller detta företag: skapa uppgifter med ansvarig, område, prioritet, valfritt datum, räkenskapsår, beskrivning och underlagsreferens. Markera Pågår, Klar eller Avbruten med kommentar; avslutade uppgifter kan öppnas igen innan de redigeras. Filtrera på status/försenade och sök. CSV-export gäller det visade urvalet.
+
+Historiken behåller före-/efteruppgifter, statusorsak, tid och eventuell lokalt angiven operatör. Senaste 100 händelser visas och kan exporteras till JSON; alla händelser finns kvar i databasen. Uppgifter och historik ingår i företagets vanliga säkerhetskopia. Underlagsreferenser kopierar inte originalfiler.
+
+Datum och status anges manuellt. **Klar betyder inte att deklaration lämnats in eller betalning utförts.** Automatiska lagstadgade frister, myndighetsintegration, klientportal och identifierad fleranvändarattest ingår inte. Registrerade datum/antal visar inte i sig att bokföringen är fullständig; stäm av källunderlagen i respektive företag.

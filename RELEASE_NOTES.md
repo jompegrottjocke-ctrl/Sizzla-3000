@@ -1,13 +1,13 @@
-Sizzla 3000 0.16.1 för Windows 11 (x64): ny betaflik för AI-agent.
+Sizzla 3000 0.17.0 för Windows 11 (x64): Redovisningsbyrå blir en fungerande arbetsmodul.
 
-- AI-agent finns under Inställningar, bredvid Server & moln.
-- Spara planerad anslutning, modell och behörigheter separat för varje företag. Funktionen och alla behörigheter är avstängda från början.
-- Separata val för bokföring, försäljning, lager, personal/lön och förberedelse av utkast.
-- Historik visar ändrade inställningar med före-/efteruppgifter, tid och eventuell lokalt angiven ansvarig.
-- Anslutningskontrollen förklarar att agentstödet inte finns ännu. Ingen anslutning görs och inga företagsuppgifter skickas.
-- Anslut agent, Starta uppgift och API-nyckelfältet är spärrade tills stödet och säker nyckellagring är implementerade.
-- Svenska, engelska, befintliga teman och stora textstorlekar stöds. Schema 9 är oförändrat; inställningar och historik följer företagets säkerhetskopia.
+- Samlad skrivskyddad översikt över upp till tio företagsdatabaser utan att byta aktivt företag eller uppgradera inaktiva databaser.
+- Se räkenskapsår, bokförda verifikationer, utkast, senaste bokföringsdatum, periodlås och bokslutsberedning. Ändrat underlag efter bevarad bokslutsversion markeras.
+- Arbetslista per företag med ansvarig, manuellt förfallodatum, prioritet, område, eventuell årskoppling och underlagsreferens.
+- Skapa och ändra uppgifter, markera Pågår/Klar/Avbruten och öppna dem igen med kommentar. Äldre uppgifter och statusändringar bevaras i historiken.
+- Filtrera på status/försenade och sök i arbetslistan. Exportera urvalet till CSV och senaste historiken till JSON.
+- Öppna ett annat företag från översikten med befintliga skydd för osparade ändringar, pågående utskrift, väntande import och gamla skrivsessioner.
+- Svenska och engelska, befintliga teman och textstorlekar stöds. Schema 9 är oförändrat; uppgifter och historik ingår i företagets säkerhetskopia.
 
-Detta är förberedande gränssnitt och inställningar, inte en fungerande AI-integration. Den planerade agenten ska använda programmets kontrollerade funktioner och kräva användarens granskning och godkännande vid bokföring, löneutbetalningar och deklarationsinlämning.
+Datum och arbetsstatus är manuella. Klar betyder inte att myndighetsinlämning eller betalning har genomförts. Översikten visar registrerad data och är inte ett intyg om fullständig bokföring. Automatiska rättsliga frister, myndighetsintegration, extern klientportal och fleranvändarattest ingår inte.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets. Säkerhetskopiera före uppdatering.

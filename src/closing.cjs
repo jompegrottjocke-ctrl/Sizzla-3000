@@ -4,6 +4,12 @@ const {balances}=require('./accounting.cjs');
 class ClosingError extends Error{constructor(code,status=409){super(code);this.status=status;}}
 const fail=code=>{throw new ClosingError(code,400);};
 const areas=['bank','receivables','payables','vat','payroll','assets','inventory','accruals','equity'];
+function closingFingerprint(db){
+  const hash=createHash('sha256');hash.update(require('../package.json').version);
+  const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r=>r.name).filter(n=>n==='settings'||n==='records'||/^(ledger_(accounts|years|vouchers)$|purchase_|sales_|inventory_|employees$|payruns$|leaves$|time_)/.test(n)).filter(n=>!n.endsWith('_events'));
+  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime','ai_agent_config','ai_agent_event','agency_task','agency_event') ORDER BY kind,id").all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
+  return hash.digest('hex');
+}
 function initClosing(db,accounting){
  db.exec(`BEGIN IMMEDIATE;
  CREATE TABLE IF NOT EXISTS closing_cases(id TEXT PRIMARY KEY,year_id TEXT NOT NULL UNIQUE REFERENCES ledger_years(id),revision INTEGER NOT NULL,data TEXT NOT NULL);
@@ -24,12 +30,7 @@ function initClosing(db,accounting){
  const save=c=>{const {id,yearId,revision,...data}=c;db.prepare('UPDATE closing_cases SET revision=?,data=? WHERE id=?').run(revision+1,JSON.stringify(data),id);};
  // Conservative invalidation: any business-data change can affect a closing review.
  // Operator selection, print attempts and closing edits themselves do not invalidate it.
- const fingerprint=()=>{
-  const hash=createHash('sha256');hash.update(require('../package.json').version);
-  const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r=>r.name).filter(n=>n==='settings'||n==='records'||/^(ledger_(accounts|years|vouchers)$|purchase_|sales_|inventory_|employees$|payruns$|leaves$|time_)/.test(n)).filter(n=>!n.endsWith('_events'));
-  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime','ai_agent_config','ai_agent_event') ORDER BY kind,id").all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
-  return hash.digest('hex');
- };
+ const fingerprint=()=>closingFingerprint(db);
  const context=c=>{const a=accounting.state(),year=a.years.find(y=>y.id===c.yearId);if(!year)throw new ClosingError('closingMissing',404);const rows=balances(year,a.vouchers,a.accounts);return {year,balances:rows,posted:a.vouchers.filter(v=>v.yearId===year.id&&v.status==='posted'),drafts:a.vouchers.filter(v=>v.yearId===year.id&&v.status==='draft').length};};
  const current=body=>{const c=cases().find(c=>c.id===body.id);if(!c)throw new ClosingError('closingMissing',404);if(c.revision!==body.revision)throw new ClosingError('closingConflict');return c;};
  const assertHash=(body,hash)=>{if(body.fingerprint!==hash)throw new ClosingError('closingStale');};
@@ -77,4 +78,4 @@ function initClosing(db,accounting){
   }catch(e){db.exec('ROLLBACK');throw e;}
  }};
 }
-module.exports={initClosing,ClosingError,areas};
+module.exports={closingFingerprint,initClosing,ClosingError,areas};

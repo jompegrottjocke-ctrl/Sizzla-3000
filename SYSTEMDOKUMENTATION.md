@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.16.1, databasschema 9. Uppdaterad 2026-11-13.
+Version 0.17.0, databasschema 9. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -154,3 +154,15 @@ Konfigurationsuppdatering och händelse sparas atomiskt med revisionskontroll. A
 Kontroll av anslutningsstöd registrerar att transport inte är implementerad och returnerar alltid `available:false` och `connected:false`. Ingen företagsinformation överförs och inga bokföringsåtgärder utförs av agentfunktionen. Gränssnittet visar senaste 100 händelser, medan alla behålls i databasen. Ingen raderings-/ändringsfunktion för agenthistoriken exponeras. Schema 9 är oförändrat. Säkerhetskopior och databasbyte omfattar inställningar och historik. Dessa två förberedande register undantas från bokslutets källfingeravtryck eftersom de inte ändrar affärsdata.
 
 Planerade godkännandekrav är produktkrav för den framtida agentmotorn, inte implementerad åtkomstkontroll för en extern agent. Agentidentitet, säkra hemligheter, verklig transport, datadelning, verktygsbehörigheter, godkännandeflöden och körhistorik kräver separat implementation och verifiering innan anslutning eller automatisering kan användas.
+
+## Redovisningsbyrå 0.17
+
+`src/agency.cjs` och `public/agency.js` tillför företagsöversikt och arbetslista. Inaktiva företagsdatabaser öppnas med SQLite `readOnly:true`; inga initierings-/migrationsfunktioner anropas för dem. Aktiv databas läses via befintlig anslutning. Varje företags sammanställning läses i en egen lästransaktion. Detta är avläsningar per företag, inte ett gemensamt transaktionellt koncernbokslut. Ofullständig/otillgänglig databas ger en separat felstatus och ingen ersättningsdatabas skapas. Äldre schema 4–9 kan läsas om förväntade tabeller finns; en senare version avvisas i översikten. Väntande import flaggas.
+
+GET `/api/agency/overview` kräver aktuell lokal sessionstoken. Företagskatalogens validerade ID/sökvägar används; användaren kan inte ange en godtycklig fil. Symboliska länkar för databasfilen accepteras inte. Översikten returnerar företagsidentitet, år, verifikationsantal/senaste datum, periodlås, bokslutsstatus och aggregerade uppgiftsantal, inte andra företags personallistor eller verifikationsrader. En bevarad bokslutsversions källfingeravtryck jämförs med aktuell källa med samma funktion som Bokslut & skatt. Aktuellt programversionsbyte kan därför markera äldre avstämningar som inaktuella. Status ersätter inte kontroll av fullständig bokföring eller myndighetskvittens.
+
+`records.kind=agency_task` lagrar UUID, revision, titel, ansvarig, område, prioritet, valfritt datum/år, beskrivning, referens, status och tidsuppgifter i aktiv företagsdatabas. `agency_event` lagrar separata historikposter med före-/efteruppgifter, orsak, UTC-tid, eventuell självdeklarerad operatör och programversion. Uppdatering/statusbyte och historik sparas atomiskt med revisionskontroll. Tillåtna statusövergångar är Att göra → Pågår/Klar/Avbruten; Pågår → Att göra/Klar/Avbruten; Klar/Avbruten → Att göra. Statusbyte kräver kommentar. Avslutade uppgifter måste öppnas igen innan redigering. Inga raderings-/historikredigeringsfunktioner exponeras.
+
+Försenad avser manuellt datum före dagens kalenderdatum i Europe/Stockholm och status Att göra/Pågår. Frister beräknas inte automatiskt ur lagregler. Klar är arbetsstatus, inte bokföringspost, betalning, underskrift eller inlämning. Årskoppling valideras mot aktiv databas. Uppgiftsansvarig är ett namnfält, inte en verifierad användaridentitet. Historikens operatör är separat och kan vara okänd.
+
+Schema 9 är oförändrat. Arbetslistor och hela historiken följer företagets export/import. Listvy och JSON-historikexport omfattar senaste 100 händelser; CSV omfattar filtrerade uppgifter och skyddar celler mot formeltolkning. Dessa administrativa uppgifter undantas från bokslutets källfingeravtryck. Företagsbyte från byråvyn återanvänder befintlig aktivering, sessionsbyte och utskrifts-/importskydd. Ingen molnserver, klientportal, extern kommunikation eller fleranvändarattest tillförs.
