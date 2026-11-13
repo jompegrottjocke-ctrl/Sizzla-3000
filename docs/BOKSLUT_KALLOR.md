@@ -93,19 +93,19 @@ Slutsats: den äldre tjänstens avveckling är inte ett belägg för att blanket
 
 Sidan har hämtats som kanalreferens. Detaljerad teknisk granskning av aktuella filspecifikationer, fältkoder, teckenkodning, periodversioner, testförfarande och kvittens/signering återstår. Enbart denna sida är inte en formatvalidering av framtida Sizzla-export.
 
-## BFN: källkontroll återstår
+## BFN: uppladdat underlag och återstående källkontroll
 
-[BFN:s redovisningsregler](https://www.bfn.se/redovisningsregler/) kunde inte hämtas. Proxy nekade åtkomst med 403. Följande dokumentfamiljer behöver kontrolleras direkt hos BFN, i rätt konsoliderad version och med ändrings-/övergångsregler:
+[BFN:s webbplats](https://www.bfn.se/redovisningsregler/) kunde inte hämtas direkt (proxy 403). Användaren har därefter tillhandahållit fyra olika PDF-filer: tidigare och senare konsolideringar av K2 respektive Årsbokslut. Versions- och tillämpningsregler samt utvalda bokslutspunkter har nu kontrollerats i dessa filer. Se [analysen med sidreferenser](BFN_UPPLADDADE_REGLER.md) och [filmanifestet med SHA-256](BFN_UPPLADDADE_KALLOR.json). Följande avgränsningar kvarstår:
 
 | Dokumentfamilj att verifiera | Vad som ska kontrolleras |
 | --- | --- |
 | K1: BFNAR 2006:1, enskilda näringsidkare med förenklat årsbokslut | Gällande version, tillämpningsområde, värdering, förenklingar, dokumentuppställning och övergång. |
-| Årsbokslut: BFNAR 2017:3 | Vilket spår som gäller för aktuellt företag och hur förenklingar/tillämpningsval får användas. |
-| K2: BFNAR 2016:10, årsredovisning i mindre företag | Gällande version, behörighet och begränsningar för räkenskapsår som inleds 2026 och senare, samt historiska versioner. Att ett AB är mindre räcker inte som ensam behörighetskontroll. |
+| Årsbokslut: BFNAR 2017:3 | Två uppladdade versioner granskade i relevanta delar, inklusive BFNAR 2026:1. Kvar: fullständig detaljgranskning och bekräftelse av eventuella senare ändringar. |
+| K2: BFNAR 2016:10 | Två uppladdade versioner granskade i relevanta delar, inklusive BFNAR 2025:2 och punkterna 1.1–1.1C. Kvar: fullständig produktbedömning, detaljgranskning och bekräftelse av eventuella senare ändringar. |
 | K3: BFNAR 2012:1 | Tillämplighet, övergång, dokument- och värderingskrav. Frånvaro av eget K3-stöd ska identifieras i produktflödet. |
 | BFN:s regler/vägledning om bokföring | Rättelser, tidsfrister, låsning, systemdokumentation, behandlingshistorik och arkivering. |
 
-Numren ovan identifierar dokument att verifiera; de betyder inte att versionerna har lästs eller att alla uppräknade regler gäller alla företag. Ett allmänt BAS-konto eller en linjär beräkning i Sizzla är inte bevis för korrekt normtillämpning.
+För dokument som inte har tillhandahållits identifierar numren ovan fortfarande källor att verifiera. PDF-granskningen av K2/Årsbokslut avser utvalda tillämpnings-, övergångs- och bokslutspunkter, inte alla regler eller alla företag. Ett allmänt BAS-konto eller en linjär beräkning i Sizzla är inte bevis för korrekt normtillämpning.
 
 ## Tekniska iakttagelser i Sizzla 0.15.1
 
@@ -117,9 +117,9 @@ Numren ovan identifierar dokument att verifiera; de betyder inte att versionerna
 
 ## Nästa källkontroll
 
-1. Ge miljön läsåtkomst till BFN och kontrollera rätt versioner, ikraftträdanden, övergångar och behörighet.
+1. Komplettera med aktuell bokföringsvägledning och K1/K3 för valda spår; fortsätt detaljgranskningen av de uppladdade K2-/årsbokslutsversionerna. Direktåtkomst eller nya uppladdningar behövs för förnyad publiceringskontroll.
 2. Färdigställ årsaktuella regelkort för skattefallen och deklarationsrutorna; komplettera vid behov med tillämpliga lagar och myndighetsinstruktioner.
 3. Kontrollera valda inlämningsformat och Bolagsverkets eventuella digitala tekniska krav inför integration. Underskrift och fastställelseintyg måste hanteras enligt valt pappers-/elektroniskt flöde.
-4. Före lansering efter 2026-12-29: kontrollera källorna på nytt. Inga framtida format eller regelversioner är godkända genom denna dokumentkontroll.
+4. Före lansering efter 2026-12-29: kontrollera källorna på nytt. Inga framtida format eller ännu inte granskade regelversioner är godkända genom denna dokumentkontroll.
 
 Nätverksförslaget i [NETWORK_ACCESS_PROPOSAL.json](NETWORK_ACCESS_PROPOSAL.json) bevarar de åtta egna domäner som fanns vid läsningen av inställningarna och lägger till `bfn.se` samt `www.bfn.se`. Plattformens paket-/GitHub-preset ska bevaras. Förslaget är **inte sparat eller tillämpat i miljöinställningarna**; utkastet kunde inte redigeras. Läs alltid aktuella inställningar på nytt innan förslaget används så att senare tillagda domäner inte skrivs över.

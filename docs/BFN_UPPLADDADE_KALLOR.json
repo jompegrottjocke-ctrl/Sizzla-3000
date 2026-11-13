@@ -1,0 +1,60 @@
+{
+  "reviewedDate": "2026-11-13",
+  "webSourceVerified": false,
+  "pdfsIncludedInRepository": false,
+  "items": [
+    {
+      "id": "U1",
+      "fileName": "vl17-3-ab-kons2024.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2017:3",
+      "title": "Årsbokslut",
+      "updated": "2024-12-13",
+      "corrected": "2025-02-19",
+      "pages": 304,
+      "sizeBytes": 6242660,
+      "sha256": "f834492f15271b05822ad3793dced55763475c5695f5b7a7f048b45f0317e0c4",
+      "reviewScope": "selected_applicability_transition_and_closing_rules"
+    },
+    {
+      "id": "U2",
+      "fileName": "vl17-3-ab-kons2-2026.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2017:3",
+      "title": "Årsbokslut",
+      "updated": "2026-10-29",
+      "corrected": null,
+      "pages": 349,
+      "sizeBytes": 3959717,
+      "sha256": "794cebce1eac7b963f14e26c387356fefcad069da919c6a9a7789739f4b3feec",
+      "reviewScope": "selected_applicability_transition_and_closing_rules"
+    },
+    {
+      "id": "U3",
+      "fileName": "vl16-10-k2ar-kons2024.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2016:10",
+      "title": "Årsredovisning i mindre företag (K2)",
+      "updated": "2024-12-13",
+      "corrected": "2025-02-19",
+      "pages": 373,
+      "sizeBytes": 7946985,
+      "sha256": "6e613714ca95079061a9cc2eb4812d232d9cfc63982ad47a53ba26212d63f92f",
+      "reviewScope": "selected_applicability_transition_and_closing_rules",
+      "identicalUploadedCopies": 2
+    },
+    {
+      "id": "U4",
+      "fileName": "vl16-10-k2-kons2026.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2016:10",
+      "title": "Årsredovisning för mindre företag (K2)",
+      "updated": "2026-10-29",
+      "corrected": null,
+      "pages": 414,
+      "sizeBytes": 4873793,
+      "sha256": "8fe8e04668e5e6dd19bc289a69606370bdf1416ac275ab7c3d3781616e893131",
+      "reviewScope": "selected_applicability_transition_and_closing_rules"
+    }
+  ]
+}
