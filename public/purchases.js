@@ -144,7 +144,7 @@ function pInvoiceView(id){
  document.querySelectorAll('[data-payment-reverse]').forEach(b=>b.onclick=()=>{const p=cash.find(p=>p.id===b.dataset.paymentReverse);purchaseOpen('reversePayment',{id:p.id,revision:p.revision,invoiceId:i.id,date:today()<p.date?p.date:today()});});
  bind('purchase-print',()=>pPrintOpen('invoice',i.id));appendSourceHistory('#purchase-print',{kind:'purchase_invoice',id:i.id});
 }
-function pPrintOpen(type,id){sessionStorage.removeItem('sizzla-time-print');sessionStorage.removeItem('sizzla-sales-print');for(const key of ['sizzla-print','sizzla-hr-print','sizzla-book-print'])sessionStorage.removeItem(key);sessionStorage.setItem('sizzla-purchase-print',JSON.stringify({type,id}));window.open('/print','_blank');}
+function pPrintOpen(type,id){sessionStorage.removeItem('sizzla-analysis-print');sessionStorage.removeItem('sizzla-time-print');sessionStorage.removeItem('sizzla-sales-print');for(const key of ['sizzla-print','sizzla-hr-print','sizzla-book-print'])sessionStorage.removeItem(key);sessionStorage.setItem('sizzla-purchase-print',JSON.stringify({type,id}));window.open('/print','_blank');}
 function purchasePrint(){
  let ref;try{ref=JSON.parse(sessionStorage.getItem('sizzla-purchase-print'));}catch{return false;}if(!ref)return false;
  const order=ref.type==='order',doc=(order?pData().orders:pData().invoices).find(d=>d.id===ref.id);if(!doc)return false;

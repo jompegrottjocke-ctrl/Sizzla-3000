@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.10.3, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.11.0, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -32,6 +32,8 @@ Utfärdande av kundfaktura, kundbetalning och kvittning samt motsvarande verifik
 Vid byte öppnas måldatabasen först. Aktivt val sparas atomiskt i en separat JSON-fil, skrivsessionen byts och den tidigare anslutningen stängs. Gamla och ofullständiga skrivförfrågningar avvisas. Skrivbordsappen blockerar byte under pågående PDF-/utskriftsåtgärd och stänger gamla utskriftsfönster. Databasbytet är ingen bokföringsrättelse eller användaridentifiering. Databaslistan är inte en revisionslogg.
 
 Tid anges i hundradelstimmar och pris i heltalsören. Samma beräkningsfunktion används när tidsrader blir fakturarader. Godkännande är en uttrycklig lokal granskningsåtgärd, inte identifierad chefsattest. Överföring till ett fakturautkast kopplar hela tidsrader atomiskt utan bokföringspost. Bokföring skapas först vid fakturans utfärdande. Fakturautkast kan redigeras separat; det sparade tidsunderlaget ändras inte. Återtagning före utfärdande tar bort utkastet och frigör tidsrader i samma transaktion, medan underlaget och orsaken bevaras. Utfärdande identifieras via försäljningsmodulens koppling till utkast-ID och hindrar återtagning. Krediter/motbokning frigör inte automatiskt tid. Ingen löneöverföring eller kostnads-/projektresultatbokföring sker.
+
+Analysmodulen (`public/analysis-math.js`, `public/analysis.js`) läser inlästa uppgifter från aktiv databas. Resultatanalys använder bokförda verifikationers datum och inkluderar motbokningar, med kontoklassning enligt Bokföring och undantag för resultatöverföring 8999. Kund-/artikelstatistik bygger på utfärdade dokument efter fakturadatum och nettoförsäljning; aktuell reskontra använder aktuella saldon, inte historiska saldon vid rapportens slutdatum. Rapporten anger datakälla, urval och inläsningstid. Artikel-ID och SKU-kopia bevaras på nya valda artikelrader, medan äldre/manuella rader redovisas separat utan gissad registerkoppling. CSV är arbetsmaterial. PDF-kopian bevaras i utskriftshistoriken; återöppning av analysen räknar om aktuella uppgifter och ersätter inte den sparade PDF-kopian.
 
 ## Rättelser och befintlig historik
 

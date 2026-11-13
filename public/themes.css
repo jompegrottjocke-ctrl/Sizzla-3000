@@ -1,0 +1,28 @@
+@media screen{
+:root[data-theme=contrast]{color-scheme:light;color:#111820;background:#e7edf2;--green:#075c45;--line:#758594;--muted:#3c4a59;--theme-panel:#fff;--theme-tint:#e6edf4;--theme-accent:#075c45;--theme-text:#111820;--theme-nav:#0f2738;--theme-selected:#d6eae2}
+:root[data-theme=blue]{color-scheme:light;color:#172d49;background:#eaf1fa;--green:#205a9a;--line:#b4c8df;--muted:#435e7a;--theme-panel:#fff;--theme-tint:#e4eefb;--theme-accent:#205a9a;--theme-text:#172d49;--theme-nav:#143557;--theme-selected:#d6e7ff}
+:root[data-theme=warm]{color-scheme:light;color:#352b24;background:#f5efe6;--green:#89502d;--line:#cdbda8;--muted:#655545;--theme-panel:#fffdf8;--theme-tint:#f1e5d4;--theme-accent:#89502d;--theme-text:#352b24;--theme-nav:#483426;--theme-selected:#f5dfbf}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.panel,.stat-card,.hr-stats>div,.editor,.dialog-foot,.step){background:var(--theme-panel);color:var(--theme-text);border-color:var(--line)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(h1,h2,h3,td,td strong,.totals strong,.totals .grand,.field,.hr-check,.breadcrumb strong){color:var(--theme-text)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(header,th,.company-chip,.icon-button){background:var(--theme-tint);color:var(--theme-text)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.stat-card,.analysis-products,.analysis-months){border-top:4px solid var(--theme-accent)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.stat-card:nth-child(2),.hr-stats>div:nth-child(2)){border-top:4px solid #8b5913}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.stat-card:nth-child(3),.hr-stats>div:nth-child(3)){border-top:4px solid #5268a4}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.stat-card:nth-child(4),.hr-stats>div:nth-child(4)){border-top:4px solid #6e4f83}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) .panel-head{background:var(--theme-tint);color:var(--theme-text)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(input,select,textarea,.language select,.secondary){background:var(--theme-panel);color:var(--theme-text);border-color:var(--line)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.text-button,.hr-balances strong){color:var(--theme-accent)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.muted,.page-head p,.nav-label,.sidebar-foot,.brand b,.brand small,.breadcrumb,.local-pill,.eyebrow,.stat-card>div>span){color:var(--muted)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) aside{background:var(--theme-panel);border-color:var(--line)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) .nav-item{color:var(--theme-text)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.nav-item.active,.hr-tabs button[aria-selected=true]){background:var(--theme-selected);color:var(--theme-accent);box-shadow:inset 3px 0 var(--theme-accent)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.nav-item:hover,.hr-tabs button:hover,.text-button:hover){background:var(--theme-tint)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) .primary{background:var(--theme-accent);color:#fff}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) :is(.brand-mark,.brand){color:var(--theme-text)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) .brand-mark{background:var(--theme-nav);color:#fff}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) .notice{background:var(--theme-tint);color:var(--theme-text);border-color:var(--line)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) .setup-banner{background:var(--theme-tint);border-color:var(--line)}
+:is([data-theme=contrast],[data-theme=blue],[data-theme=warm]) .hr-tabs button{color:var(--muted)}
+:root[data-theme=contrast] :is(button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible){outline:3px solid #111;outline-offset:3px}
+:root[data-theme=contrast] :is(td,th,input,select,textarea,.panel,.editor){border-color:#667889}
+}

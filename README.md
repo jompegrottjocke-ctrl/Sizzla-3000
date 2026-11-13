@@ -18,17 +18,18 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Löneutkast → godkänd/låst → markerad utbetald. Godkännande kräver personnummer, företagsuppgifter och uttryckligen kontrollerade skatte-/avgiftsbelopp med beräkningsunderlag. Dubbel lön för samma person och löneperiod avvisas. Ändrade personal-/företagsuppgifter kräver att utkastet uppdateras före godkännande. Skatt och arbetsgivaravgift beräknas inte automatiskt.
 - Lönebesked för en person eller hela körningen. Betalningsunderlag som generell CSV (inte ett bankanpassat filformat). Ingen banköverföring utförs. Godkända körningar kan makuleras med orsak; utbetalda körningar kan inte makuleras eller rättas i denna version.
 - AGI-kontrollunderlag per **utbetalningsmånad**, på skärm och CSV. Detta är inte en AGI-inlämningsfil. Automatisk skattetabell, regelstyrd sjuk-/semesterlön, rättelser av utbetald lön och ett verifierat AGI-format återstår. Personalfliken är därmed användbar, men fullständig svensk lönehantering är ännu inte färdig.
-- Ljust, mörkt och systemstyrt utseende. Språk och utseende sparas i SQLite och följer med över omstart. Utskrifter använder ljust papper även i mörkt läge.
+- Fem utseenden: Ljust, Mörkt, Ljust – hög kontrast, Blått och Varmt, samt Följ systemet. De tre nya ljusa alternativen har tydligare text, färgade rubrikytor och avgränsade sammanställningar. Språk och utseende sparas i SQLite och följer med över omstart. Utskrifter använder ljust papper även i mörkt läge.
 - Bokföring: redigerbar startkontoplan, räkenskapsår, ingående balanser, verifikationsutkast, låst bokföring med löpnummer, motbokningar, periodlåsning och ändringshistorik.
 - Saldobalans, huvudbok, resultat- och balansrapport med datumurval, utskrift och CSV-export av bokförda rader. Original och motbokningar ingår båda i rapporterna.
 - Granskad bokföring av godkända lönekörningar och redan registrerad löneutbetalning. Varje underlag kan bokföras en gång per typ; rättelser sker med nya verifikationer.
+- Analys med månadsdiagram, periodjämförelse, kontospecifikation, kund-/artikelförsäljning, aktuell reskontra och öppningsbara underlag. CSV och PDF-historik ingår.
 - Resultatöverföring till valt eget-kapital-konto och avslut av år med valfri överföring av balanser till ett tomt efterföljande år.
 - Inköp: leverantörsregister, inköpsorder, delleveranser, leverantörsfakturor och kreditfakturor med aktuell reskontra.
 - Granskning mot originalbelopp, momsavdrag, bokföring, delbetalningar, återbetalningar och rättelser. Historiska underlag bevaras.
 - **Säkerhet & säkerhetskopiering**: komplett databasexport, krypterade säkerhetskopior, import med förhandskontroll och möjlighet att öppna databasens katalog.
 - Tid & projekt: kundkopplade och interna projekt, tidsbudget, manuella tidsrader, granskning/låsning och spårbar makulering. Överför godkända debiterbara rader till fakturautkast utan dubbelöverföring.
 - Textstorlek 100–200 % och fet text sparas mellan starter.
-- Bokslut/skatt, analys, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
+- Bokslut/skatt, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
 
 Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring och lönehantering är inte färdigt. Bankintegration, automatisk säkerhetskopiering och komplett verifierade regelverk återstår. Se [Systemdokumentation och kvarstående krav](SYSTEMDOKUMENTATION.md) för uppbyggnad, spårbarhet och kända luckor, inklusive avsaknad av identifierad användare vid rättelser.
 
@@ -48,6 +49,18 @@ Säkerhetsinformationen beskriver krav för den framtida serverdelen: krypterad 
 6. För att lägga till ett företag från en säkerhetskopia: skapa en ny databas, aktivera den och importera kopian under Säkerhet & säkerhetskopiering. Starta sedan om appen. Kontrollera aktivt företag före import.
 
 Databaslistan och aktivt val finns i `databases.json` i den ursprungliga datakatalogen. Första databasens `sizzla.sqlite` ligger kvar där; nya företag ligger i `databases/<id>/`. Listan ingår inte i en enskild databasexport. För en manuell kopia av **hela arbetsplatsen**, stäng appen och kopiera hela den ursprungliga datakatalogen med `databases.json`, underkataloger och eventuella WAL/SHM-filer. Externa originalunderlag måste fortfarande kopieras separat. Redigera inte databaslistan eller flytta databasfiler medan programmet körs. Radering, sammanslagning, delade nätverksdatabaser och samtidig användning från flera programinstanser ingår inte. Använd inte 0.8 eller äldre för att hantera en arbetsplats med flera databaser.
+
+## Arbetsflöde för Analys
+
+1. Öppna **Analys** i verksamhetsmenyn. Välj räkenskapsår och datum inom året, sedan **Visa analys**. Jämförelse kan göras med valfria datum (högst 550 dagar); **Föregående år** fyller i motsvarande datum ett år tidigare med hantering av skottdag. Jämförelse aktiveras som förval bara när räkenskapsår täcker perioden. Saknad täckning och olika periodlängder anges tydligt. Belopp normaliseras inte till lika långa perioder.
+2. **Resultat** visar intäkter, kostnader, resultat före resultatöverföring och resultat/intäkter i procent, med månadsdiagram och exakta tabellbelopp. Bara bokförda verifikationer efter bokföringsdatum används, inklusive original och motbokningar i respektive period. Utkast, IB och konto 8999 ingår inte. Kontoklassningen följer Bokföring: 3xxx och 80xx–83xx är intäkter, övriga 4xxx–8xxx kostnader. Kostnader visas med positiva normalbelopp. Procentuell förändring beräknas bara när jämförelsebeloppet är positivt; resultatandel visas bara vid positiva intäkter.
+3. **Konton** visar debet, kredit och periodbelopp per resultatkonto, med jämförelsebelopp och differens. **Underlag** på en månad eller ett konto öppnar de berörda verifikationerna; från listan kan du öppna hela verifikationen i Bokföring. Kontots källista inkluderar jämförelseperiodens verifikationer om jämförelse används.
+4. **Kunder** och **Artiklar** använder utfärdade kundfakturor/krediter efter fakturadatum, exklusive moms, inte bokföringsdatum. Krediter minskar belopp och antal i sin egen period. Utfärdade dokument ligger kvar även om deras bokning motbokats. Listorna sorteras efter nettoförsäljning och kan öppna fakturaunderlagen. De behöver därför inte stämma mot bokförd intäkt för samma datumurval.
+5. Nya fakturarader som väljs från artikelregistret behåller artikel-ID och artikelnumrets kopia genom sparande, utfärdande och kreditering. Äldre/manuella rader matchas inte genom namn utan redovisas separat efter beskrivning och enhet. Olika enheter får separata rader även för samma artikel. Befintliga utfärdade fakturor ändras inte retroaktivt. Försäljningsvärde är inte vinst eller lagervärdering.
+6. **Aktuell reskontra** visar kund-/leverantörssaldon, förfallna fakturor, kvarstående krediter och dokument utan aktiv bokföring. Den följer senast inlästa uppgifter och påverkas inte av periodvalet. Leverantörslistan inkluderar godkända ännu ej bokförda dokument. Kreditbelopp visas negativt och ingen historisk åldersanalys per valt datum görs.
+7. **Uppdatera uppgifter** läser aktuell databas igen. Varje vy visar underlagens inläsningstid och beräkningsgrund. CSV-exporten gäller den valda analysvyn och anger datum och datakälla; det är inte en säkerhetskopia, SIE-fil eller deklaration. Utskrift/PDF bevaras genom befintlig utskriftshistorik; **Öppna underlag** återgår till en aktuell analys med rapportens filter, medan PDF-kopian är oföränderlig.
+
+Analysen läser endast den aktiva företagsdatabasen. Den ändrar inga verifikationer eller fakturabelopp och skapar inte budget, prognos, bankavstämning eller koncernanalys. Schemat är fortsatt 8. Utseende väljs överst under **Utseende** och sparas per databas; utskrifter använder ljust papper även med färgteman.
 
 ## Arbetsflöde för Tid & projekt
 
@@ -89,7 +102,7 @@ Flödet gäller vanliga svenska fakturor i **SEK enligt fakturametoden**. Andra 
 
 Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Fakturautkast och utfärdade kundfakturor drar inte lager; registrera utleverans manuellt med referens. Leverantörsfakturor/krediter ändrar inte antal. Reservationer, flera lager, lagerflyttar, batch-/serienummer, FIFO/medelpris och automatisk koppling till kundorder ingår inte i denna version.
 
-Version 0.10 använder **schema 8**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6/7-kopior från 0.5–0.9-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+Version 0.11 använder fortsatt **schema 8**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6/7-kopior från 0.5–0.9-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 
 ## Utskriftshistorik under Dokument
 
@@ -177,7 +190,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 - **Text & läsbarhet** i samma flik ger 100, 125, 150, 175 och 200 % storlek för hela gränssnittet samt valbar fet text. Standard är 100 % och normal text. Menyer och formulär anpassas vid förstoring; breda tabeller kan rullas i sidled. Pappersutskrifter behåller normal skala.
 - Programlås och upplåsningshistorik är bortkopplade i 0.5.4. Låsknapp, Ctrl + L, inaktivitetsmätning och Windowskoppling för låsning ingår inte. Äldre låsinställningar och historik ligger kvar orörda för kompatibilitet med säkerhetskopior, men kan inte aktivera ett lås, heller inte efter import. Använd Win + L för att låsa Windows.
 - Databasen är inte krypterad i applikationen. Använd Windowskontots åtkomstskydd och exempelvis BitLocker för skydd på disk.
-- Versionerna 0.2–0.10 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 8. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+- Versionerna 0.2–0.11 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 8. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 - API:t lyssnar endast på loopback och tillåter endast rätt Host-header. Skrivningar kräver samma origin och en sessionsspecifik token. Rendererprocessen saknar Node-åtkomst och kör med sandbox och context isolation.
 - Det finns ännu ingen fjärrinloggning eller fleranvändarhantering. Exponera inte den lokala tjänsten på nätverket.
 
@@ -204,3 +217,5 @@ Fakturering och kundbetalningar ligger i `src/sales.cjs` och `public/sales.js`. 
 Databaslistan hanteras i `src/databases.cjs` och `public/databases.js`. Servern öppnar ett nytt sammanhang före byte, sparar aktivt val och byter sessionsidentifierare. Native utskrift blockeras under bytet och använder aktuell session; databasformatet är nu schema 8.
 
 Tid och projekt finns i `src/time.cjs` och `public/time.js`. Schema 8 tillför projekt, tidsrader, låsta fakturaunderlag och händelser. Vid databasbyte laddas även tidsmodulen om; äldre kompletta säkerhetskopior får tomma tidstabeller utan att kund-, bokförings- eller PDF-data ersätts.
+
+Analysens rena beräkningar finns i `public/analysis-math.js` och gränssnittet i `public/analysis.js`. Samma beräkningar verifieras i Node-tester. Färgteman ligger i `public/themes.css`; tillåtna temaval valideras i det lokala API:t och sparas i databasens befintliga preferenser.

@@ -1,5 +1,5 @@
 const {randomUUID}=require('node:crypto');
-const KINDS=['invoice','payroll','voucher','report','purchase_order','purchase_invoice','inventory_report','inventory_count','sales_invoice','time_report'];
+const KINDS=['invoice','payroll','voucher','report','purchase_order','purchase_invoice','inventory_report','inventory_count','sales_invoice','time_report','analysis_report'];
 class PrintError extends Error{}
 const field=(value,max=200)=>{if(typeof value!=='string'||value.length>max)throw new PrintError('printInvalid');return value;};
 function initPrinting(db){
@@ -14,7 +14,7 @@ function initPrinting(db){
  db.prepare("UPDATE print_attempts SET status='unknown' WHERE status IN ('preparing','dialog')").run();
  function create(meta,pdf,allowMissing=false){
   if(!meta||!KINDS.includes(meta.kind)||!meta.source||meta.source.kind!==meta.kind)throw new PrintError('printInvalid');
-  const source={kind:meta.kind};for(const key of ['id','employeeId','type','yearId','report','from','to','account'])if(meta.source[key]!==undefined&&meta.source[key]!==null)source[key]=field(meta.source[key]);
+  const source={kind:meta.kind};for(const key of ['id','employeeId','type','yearId','report','from','to','account','compareFrom','compareTo'])if(meta.source[key]!==undefined&&meta.source[key]!==null)source[key]=field(meta.source[key]);
   if(!source.id&&!(meta.kind==='report'&&source.yearId))throw new PrintError('printInvalid');
   if(!(allowMissing&&pdf===null)&&(!(pdf instanceof Uint8Array)||pdf.length>20*1024*1024||Buffer.from(pdf).subarray(0,5).toString()!=='%PDF-'))throw new PrintError('printPdfFailed');
   const id=randomUUID();db.prepare('INSERT INTO print_documents VALUES(?,?,?,?,?,?,?,?)').run(id,new Date().toISOString(),meta.kind,field(meta.title),field(meta.number,100),field(meta.recipient,1000),JSON.stringify(source),pdf);return id;

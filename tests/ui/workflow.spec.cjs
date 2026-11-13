@@ -26,6 +26,7 @@ test('company → customer → article → invoice draft, language and beta tabs
  await expect(page.locator('#totals .grand')).toContainText('2 500,00'.replace(' ','\u00a0'));
  await page.getByRole('button',{name:'Spara',exact:true}).click();
  await expect(page.getByRole('dialog')).toHaveCount(0);
+ const stored=await page.request.get('/api/state').then(r=>r.json());expect(stored.invoices[0].lines[0].articleId).toBe(stored.articles.find(a=>a.name==='Konsulttimme').id);
  await expect(page.locator('tbody')).toContainText('Kund & Partner <AB>');
  await page.reload();
  await page.locator('nav').getByRole('button',{name:'Fakturering'}).click();
@@ -38,11 +39,11 @@ test('company → customer → article → invoice draft, language and beta tabs
  await page.getByRole('button',{name:'Avbryt'}).click();
  await page.getByLabel('Sök…').fill('finnsinte');await expect(page.getByText('Inga träffar')).toBeVisible();
  await page.getByLabel('Språk',{exact:true}).selectOption('en');
- await page.locator('nav').getByRole('button',{name:'Analysis',exact:true}).click();
+ await page.locator('nav').getByRole('button',{name:'Fixed assets',exact:true}).click();
  await expect(page.getByRole('heading',{name:'beta comes later'})).toBeVisible();
  await page.reload();
  await expect(page.locator('html')).toHaveAttribute('lang','en');
- await page.locator('nav').getByRole('button',{name:'Analysis',exact:true}).click();
+ await page.locator('nav').getByRole('button',{name:'Fixed assets',exact:true}).click();
  await page.getByLabel('Language',{exact:true}).selectOption('sv');
  await expect(page.getByRole('heading',{name:'beta kommer senare'})).toBeVisible();
  await page.locator('nav').getByRole('button',{name:'Översikt',exact:true}).click();
