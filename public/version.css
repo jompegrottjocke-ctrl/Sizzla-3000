@@ -1,0 +1,2 @@
+.version-details{display:flex;flex-wrap:wrap;gap:24px 60px}.version-details dt{color:var(--muted);margin-bottom:8px}.version-details dd{margin:0;font-weight:600;font-size:18px}.version-release-link{display:inline-flex;align-items:center;text-decoration:none}#version-result{line-height:1.7}#version-result:empty{display:none}
+#version-support{width:100%;min-height:150px;resize:vertical;font:inherit;line-height:1.7;color:inherit;background:transparent;border:1px solid var(--line);border-radius:6px;padding:12px}

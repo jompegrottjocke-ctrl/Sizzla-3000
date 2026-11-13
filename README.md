@@ -299,3 +299,11 @@ Fliken **Redovisningsbyrå** finns under Verksamhet. **Alla företag** läser en
 Historiken behåller före-/efteruppgifter, statusorsak, tid och eventuell lokalt angiven operatör. Senaste 100 händelser visas och kan exporteras till JSON; alla händelser finns kvar i databasen. Uppgifter och historik ingår i företagets vanliga säkerhetskopia. Underlagsreferenser kopierar inte originalfiler.
 
 Datum och status anges manuellt. **Klar betyder inte att deklaration lämnats in eller betalning utförts.** Automatiska lagstadgade frister, myndighetsintegration, klientportal och identifierad fleranvändarattest ingår inte. Registrerade datum/antal visar inte i sig att bokföringen är fullständig; stäm av källunderlagen i respektive företag.
+
+## Licens & version (0.17.1)
+
+Under **Inställningar → Licens & version** visas installerad version från programmets paketinformation, utgåva och målplattform Windows 11 (64-bitars). Sidofältets och sidfotens versionsnummer hämtas från samma källa.
+
+Licenshantering är ännu inte aktiverad: nyckelfält, aktivering och licensvillkorsknapp är spärrade. Inga licensuppgifter lagras eller skickas. **Sök efter uppdateringar** är en förhandsvisning och förklarar att ingen kontroll gjorts; statusen för senaste kontroll förblir Inte kontrollerat. Ingen nedladdning eller installation startas. En separat länk öppnar GitHubs versionssida för manuell hämtning.
+
+**Support & felsökning** visar version, utgåva, körmiljö, arkitektur och databasformat. Kopieringsknappen kopierar bara den synliga tekniska texten till urklipp. Företags-/personuppgifter, filsökvägar, sessionstoken och licensnycklar ingår inte. Om automatisk kopiering inte fungerar kan texten markeras och kopieras manuellt. Ingen information skickas automatiskt till support.

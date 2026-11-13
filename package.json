@@ -1,6 +1,6 @@
 {
   "name": "sizzla-3000",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "private": true,
   "description": "Sizzla 3000 – lokal företagsadministration",
   "main": "src/desktop.cjs",

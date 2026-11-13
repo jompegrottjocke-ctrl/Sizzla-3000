@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.17.0, databasschema 9. Uppdaterad 2026-11-13.
+Version 0.17.1, databasschema 9. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -166,3 +166,11 @@ GET `/api/agency/overview` kräver aktuell lokal sessionstoken. Företagskatalog
 Försenad avser manuellt datum före dagens kalenderdatum i Europe/Stockholm och status Att göra/Pågår. Frister beräknas inte automatiskt ur lagregler. Klar är arbetsstatus, inte bokföringspost, betalning, underskrift eller inlämning. Årskoppling valideras mot aktiv databas. Uppgiftsansvarig är ett namnfält, inte en verifierad användaridentitet. Historikens operatör är separat och kan vara okänd.
 
 Schema 9 är oförändrat. Arbetslistor och hela historiken följer företagets export/import. Listvy och JSON-historikexport omfattar senaste 100 händelser; CSV omfattar filtrerade uppgifter och skyddar celler mot formeltolkning. Dessa administrativa uppgifter undantas från bokslutets källfingeravtryck. Företagsbyte från byråvyn återanvänder befintlig aktivering, sessionsbyte och utskrifts-/importskydd. Ingen molnserver, klientportal, extern kommunikation eller fleranvändarattest tillförs.
+
+## Licens & version 0.17.1
+
+`public/version.js` visar verklig paketversion från `/api/state.application`, tillsammans med utgåva, målplattform och lokal supportinformation. Servern lämnar även `process.platform`, `process.arch` och databasens `PRAGMA user_version`. Ingen installationsdag, licensägare, giltighetstid eller senast lyckad uppdateringskontroll konstrueras. Versionen i sidofält/sidfot använder samma paketversion.
+
+Licensgränssnittet är en förhandsvisning med spärrat nyckelfält och spärrade aktiverings-/villkorsknappar. Ingen licens lagras eller valideras. Uppdateringsknappen ändrar endast lokal meddelandetext: ingen nätverksförfrågan görs och Inte kontrollerat ändras inte till en påstått utförd kontroll. GitHub-länken öppnar manuellt versionssidan i webbläsaren via befintlig hantering av HTTPS-länkar.
+
+Supporttexten innehåller endast produktnamn, version, utgåva, körmiljö, arkitektur, schema och lokalt driftläge. Urklippsåtkomst sker på uttryckligt knapptryck; vid fel markeras den skrivskyddade texten för manuell kopiering. Inga företagsuppgifter, personuppgifter, filsökvägar, nycklar eller sessionstoken ingår. Inga nya databasposter eller tabeller införs; schema 9 är oförändrat. Verklig licensvalidering, autentiserad uppdateringskälla, signaturkontroll och uppdateringsinstallation kräver framtida implementation.
