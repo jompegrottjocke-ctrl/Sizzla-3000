@@ -4,6 +4,7 @@ const path = require('node:path');
 const { randomBytes, randomUUID } = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 const { ValidationError, text, decimal, invoice } = require('./domain.cjs');
+const {initTrade,TradeError}=require('./trade.cjs');
 const {initAutoBackup,BackupError}=require('./auto-backup.cjs');
 const {initBank}=require('./bank.cjs');
 const {BankError}=require('./bank-file.cjs');
@@ -29,7 +30,7 @@ const { initPurchases, PurchaseError } = require('./purchases.cjs');
 function openDatabase(dataDir,openDataDirectory){
   applyPending(dataDir);
   const db=new DatabaseSync(path.join(dataDir,'sizzla.sqlite'));
-  let hr, accounting, purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic;
+  let hr, accounting, purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade;
   try {
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
     CREATE TABLE IF NOT EXISTS records (kind TEXT NOT NULL, id TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(kind,id));
@@ -39,7 +40,8 @@ function openDatabase(dataDir,openDataDirectory){
   accounting=initAccounting(db,{beforeReverse:(v,b)=>{assets?.beforeReverse(v,b);purchases?.beforeReverse(v);sales?.beforeReverse(v);},afterReverse:(v,r,reason)=>{assets?.afterReverse(v,r,reason);purchases?.afterReverse(v,r,reason);sales?.afterReverse(v,r,reason);}});
   purchases=initPurchases(db,accounting,{prepareOrderLines:lines=>inventory.prepareOrderLines(lines),assertOrderLines:lines=>inventory.assertOrderLines(lines),receive:(o,r)=>inventory.receive(o,r),reverseReceipt:(r,reason)=>inventory.reverseReceipt(r,reason)});
   inventory=initInventory(db);
-  sales=initSales(db,accounting);
+  sales=initSales(db,accounting,{prepareDraft:(id,draft,computed)=>trade.assertIssue(id,draft,computed)});
+  trade=initTrade(db,accounting,inventory);
   time=initTime(db);
   assets=initAssets(db,accounting);
   closing=initClosing(db,accounting);
@@ -53,13 +55,13 @@ function openDatabase(dataDir,openDataDirectory){
   printing=initPrinting(db);
   security=initSecurity(db,{dataDir,openDataDirectory:openDataDirectory?()=>openDataDirectory(dataDir):undefined});
   } catch(error) { db.close(); throw error; }
-  return {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic};
+  return {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade};
 }
 function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirname, '..', '.local'), openDataDirectory, canSwitchDatabase=()=>true, onDatabaseChanged=()=>{} } = {}) {
   fs.mkdirSync(dataDir,{recursive:true,mode:0o700});
   const databases=initDatabases(dataDir);
   if(!databases.created&&(!fs.existsSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite'))||!fs.statSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite')).size))throw new DatabaseError('dbUnavailable');
-  let {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
+  let {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
   let token=randomBytes(32).toString('hex'),databaseSession=randomUUID();
   const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data) }));
   const get = (kind,id) => { const row = db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,id); return row ? { id, data: JSON.parse(row.data) } : null; };
@@ -76,7 +78,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && ['/','/app.js','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/app.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
@@ -86,7 +88,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(req.method==='GET'&&url.pathname==='/api/prints')return send(res,200,printing.list(Object.fromEntries(url.searchParams)));
       const pdfMatch=url.pathname.match(/^\/api\/prints\/([a-f0-9-]{36})\/pdf$/);
       if(req.method==='GET'&&pdfMatch){const doc=printing.document(pdfMatch[1]);if(!doc.pdf)return send(res,404,{error:'printPdfFailed'});res.setHeader('Content-Disposition',`inline; filename="Sizzla-${doc.id}.pdf"`);return send(res,200,doc.pdf,'application/pdf');}
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(), security:{...security.status(),automatic:automatic.status()}, preferences:preferences(), assets:assets.state(), closing:closing.state(), agent:agent.state(), agency:agency.state(), archive:archive.summary(), sie:sie.state(), bank:bank.state(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state(),time:time.state() });
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(), security:{...security.status(),automatic:automatic.status()}, preferences:preferences(), assets:assets.state(), closing:closing.state(), agent:agent.state(), agency:agency.state(), archive:archive.summary(), sie:sie.state(), bank:bank.state(),trade:trade.state(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state(),time:time.state() });
       if(req.method==='POST'&&req.headers.origin===`http://127.0.0.1:${server.address().port}`&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname==='/api/assets/report'&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname.startsWith('/api/archive')){
@@ -117,12 +119,13 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if(route==='activate'){
           if(security.status().importPending)throw new DatabaseError('dbImportPending');
           if(!canSwitchDatabase())throw new DatabaseError('dbPrintBusy');
-          const result=databases.activate(body,dir=>{if(fs.existsSync(path.join(dir,'pending-import.sqlite')))throw new DatabaseError('dbImportPending');let candidate;try{candidate=openDatabase(dir,openDataDirectory);if(candidate.db.prepare('PRAGMA quick_check').get().quick_check!=='ok'||candidate.db.prepare('PRAGMA foreign_key_check').all().length)throw Error();for(const row of candidate.db.prepare('SELECT data FROM records UNION ALL SELECT data FROM settings UNION ALL SELECT data FROM preferences').all()){const value=JSON.parse(row.data);if(!value||typeof value!=='object'||Array.isArray(value))throw Error();}candidate.hr.state();candidate.accounting.state();candidate.purchases.state();candidate.inventory.state();candidate.sales.state();candidate.time.state();candidate.assets.state();candidate.closing.state();candidate.agent.state();candidate.agency.state();candidate.archive.summary();candidate.sie.state();candidate.bank.state();return candidate;}catch{candidate?.db.close();throw new DatabaseError('dbUnavailable');}});
-          if(!result.unchanged){const old=db,oldAutomatic=automatic;({db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic}=result.candidate);token=randomBytes(32).toString('hex');databaseSession=randomUUID();oldAutomatic.due('switch');old.close();automatic.due();try{onDatabaseChanged();}catch(error){console.error(error);}}
+          const result=databases.activate(body,dir=>{if(fs.existsSync(path.join(dir,'pending-import.sqlite')))throw new DatabaseError('dbImportPending');let candidate;try{candidate=openDatabase(dir,openDataDirectory);if(candidate.db.prepare('PRAGMA quick_check').get().quick_check!=='ok'||candidate.db.prepare('PRAGMA foreign_key_check').all().length)throw Error();for(const row of candidate.db.prepare('SELECT data FROM records UNION ALL SELECT data FROM settings UNION ALL SELECT data FROM preferences').all()){const value=JSON.parse(row.data);if(!value||typeof value!=='object'||Array.isArray(value))throw Error();}candidate.hr.state();candidate.accounting.state();candidate.purchases.state();candidate.inventory.state();candidate.sales.state();candidate.time.state();candidate.assets.state();candidate.closing.state();candidate.agent.state();candidate.agency.state();candidate.archive.summary();candidate.sie.state();candidate.bank.state();candidate.trade.state();return candidate;}catch{candidate?.db.close();throw new DatabaseError('dbUnavailable');}});
+          if(!result.unchanged){const old=db,oldAutomatic=automatic;({db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade}=result.candidate);token=randomBytes(32).toString('hex');databaseSession=randomUUID();oldAutomatic.due('switch');old.close();automatic.due();try{onDatabaseChanged();}catch(error){console.error(error);}}
           return send(res,200,{ok:true});
         }
         throw new DatabaseError('dbMissing',404);
       }
+      if(url.pathname.startsWith('/api/trade/'))return send(res,200,trade.handle(url.pathname.slice('/api/trade/'.length),body,settings()));
       if(url.pathname.startsWith('/api/security/auto/')){const route=url.pathname.slice('/api/security/auto/'.length);if(route==='configure')return send(res,200,automatic.configure(body));if(route==='run')return send(res,200,automatic.run());if(route==='verify')return send(res,200,automatic.verifyLast());if(route==='open')return send(res,200,await automatic.open());throw new BackupError('autoInvalid');}
       if(url.pathname.startsWith('/api/security/')){
         try{const result=await security.handle(url.pathname.slice('/api/security/'.length),body);
@@ -164,7 +167,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         data.vatNumber=data.vatNumber.replace(/[ -]/g,'').toUpperCase();
         if(data.vatNumber&&(!/^SE\d{10}01$/.test(data.vatNumber)||data.vatNumber.slice(2,12)!==data.org.replace('-','')))throw new SalesError('saleVatNumber',400);
         if (data.org && !/^\d{6}-?\d{4}$/.test(data.org)) throw new ValidationError('org');
-        if((accounting.hasPosted()||assets.hasActive()||db.prepare("SELECT 1 FROM records WHERE kind IN ('sie_import','bank_statement') LIMIT 1").get())&&data.org.replace('-','')!==(settings().org||'').replace('-',''))throw new AccountingError('bookCompanyIdentityLocked');
+        if((accounting.hasPosted()||assets.hasActive()||db.prepare("SELECT 1 FROM records WHERE kind IN ('sie_import','bank_statement') OR (kind IN ('trade_quote','trade_order') AND json_extract(data,'$.number') IS NOT NULL) LIMIT 1").get())&&data.org.replace('-','')!==(settings().org||'').replace('-',''))throw new AccountingError('bookCompanyIdentityLocked');
         if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) throw new ValidationError('email');
         db.prepare('INSERT INTO settings VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify(data));
         return send(res,200,{ok:true});
@@ -183,6 +186,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if(body.id&&sales.isIssuedDraft(body.id))throw new SalesError('saleLocked');
         if (!settings().name) throw new ValidationError('company');
         data = { ...invoice(body,get('customer',String(body.customerId))), company:settings(), status:'draft', updated:new Date().toISOString() };
+        if(body.id)data=trade.protectDraft(body.id,data,get('invoice',body.id)?.data,body);
         for(const line of data.lines)if(line.articleId&&!get('article',line.articleId))throw new ValidationError('articleId');
       } else return send(res,404,{error:'route'});
       const id = body.id === undefined ? randomUUID() : text(body.id,'id');
@@ -191,7 +195,8 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));
       send(res,200,{id});
     } catch (error) {
-      if(error instanceof BackupError)send(res,error.status,{error:error.message,...error.details});
+      if(error instanceof TradeError)send(res,error.status,{error:error.message});
+      else if(error instanceof BackupError)send(res,error.status,{error:error.message,...error.details});
       else if(error instanceof BankError)send(res,error.status,{error:error.message,...error.details});
       else if(error instanceof SieError)send(res,error.status,{error:error.message,...error.details});
       else if(error instanceof FileImportError)send(res,error.status,{error:error.message,...(error.details?{details:error.details}:{})});

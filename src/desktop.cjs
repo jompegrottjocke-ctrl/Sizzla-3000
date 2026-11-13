@@ -37,7 +37,7 @@ async function open() {
     if (new URL(url).origin !== origin) event.preventDefault();
   });
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (url === origin + '/print') return { action: 'allow', overrideBrowserWindowOptions: {width:1100,height:850,show:true,
+    if (new URL(url).origin === origin && new URL(url).pathname === '/print') return { action: 'allow', overrideBrowserWindowOptions: {width:1100,height:850,show:true,
       webPreferences: { preload:path.join(__dirname,'print-preload.cjs'),nodeIntegration: false, contextIsolation: true, sandbox: true }
     } };
     if (url.startsWith('https://')) shell.openExternal(url);

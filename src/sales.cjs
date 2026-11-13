@@ -5,7 +5,7 @@ const bad=code=>{throw new SalesError(code,400);};
 const today=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Stockholm'});
 function saleDate(value){if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||!Number.isFinite(Date.parse(value))||new Date(value).toISOString().slice(0,10)!==value||value<'1900-01-01'||value>today())bad('saleDate');return value;}
 const proportional=(amount,quantity,total)=>Number((BigInt(amount)*BigInt(quantity)+BigInt(total)/2n)/BigInt(total));
-function initSales(db,accounting){
+function initSales(db,accounting,{prepareDraft=(id,draft,computed)=>computed}={}){
  db.exec(`CREATE TABLE IF NOT EXISTS sales_numbering(id INTEGER PRIMARY KEY CHECK(id=1),next_number INTEGER NOT NULL CHECK(next_number>0));
  INSERT OR IGNORE INTO sales_numbering VALUES(1,1);
  CREATE TABLE IF NOT EXISTS sales_documents(id TEXT PRIMARY KEY,number INTEGER NOT NULL UNIQUE,type TEXT NOT NULL CHECK(type IN ('invoice','credit')),draft_id TEXT UNIQUE,original_id TEXT REFERENCES sales_documents(id),revision INTEGER NOT NULL,data TEXT NOT NULL);
@@ -69,7 +69,7 @@ function initSales(db,accounting){
    const row=db.prepare("SELECT data FROM records WHERE kind='invoice' AND id=?").get(body.draftId);if(!row)throw new SalesError('saleMissing');const draft=JSON.parse(row.data);
    if(draft.updated!==body.draftUpdated)throw new SalesError('saleConflict');const customerRow=db.prepare("SELECT data FROM records WHERE kind='customer' AND id=?").get(draft.customerId);if(!customerRow)bad('saleCustomer');const customer=JSON.parse(customerRow.data);
    if(JSON.stringify(draft.company)!==JSON.stringify(company)||JSON.stringify(draft.customer)!==JSON.stringify(customer))throw new SalesError('saleStale');
-   const computed=invoice({...draft,lines:draft.lines.map(l=>({...l,quantity:(l.quantity/100).toFixed(2),price:(l.price/100).toFixed(2)}))},{id:draft.customerId,data:customer});if(computed.total!==draft.total||computed.tax!==draft.tax||computed.net!==draft.net||computed.total<=0||draft.currency!=='SEK')bad('saleAmount');saleDate(computed.date);
+   let computed=invoice({...draft,lines:draft.lines.map(l=>({...l,quantity:(l.quantity/100).toFixed(2),price:(l.price/100).toFixed(2)}))},{id:draft.customerId,data:customer});computed=prepareDraft(body.draftId,draft,computed);if(computed.total!==draft.total||computed.tax!==draft.tax||computed.net!==draft.net||computed.total<=0||draft.currency!=='SEK')bad('saleAmount');saleDate(computed.date);
    const zeroReason=text(body.zeroReason??'','saleZeroReason',false,500),paymentInstructions=text(body.paymentInstructions??'','salePaymentInfo',false,500),performanceDate=saleDate(body.performanceDate||computed.date);if(performanceDate>computed.date)bad('saleDate');checkCompany(company,customer,computed.lines,zeroReason,paymentInstructions);
    const id=randomUUID(),number=nextNumber(),data={...computed,company,zeroReason,paymentInstructions,performanceDate,issuedAt:new Date().toISOString()};db.prepare("INSERT INTO sales_documents VALUES(?,?,'invoice',?,NULL,1,?)").run(id,number,body.draftId,JSON.stringify(data));
    const voucher=book({...data,id,number,type:'invoice'},body,company);db.prepare('UPDATE sales_numbering SET next_number=next_number+1 WHERE id=1').run();event('document',id,'issued',{number,voucherId:voucher.id});result={id,number,voucherId:voucher.id};

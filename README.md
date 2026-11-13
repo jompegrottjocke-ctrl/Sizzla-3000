@@ -335,3 +335,7 @@ Under **Betalningar → Bank & avstämning** kan kontoutdrag i CSV importeras, g
 ## Automatisk säkerhetskopiering (0.21.0)
 
 Under **Säkerhet & säkerhetskopiering** kan varje företag få en egen målkatalog, daglig kopiering och kopiering vid avslut/företagsbyte. Funktionen är avstängd från början. Automatiska kopior är okrypterade och kräver godkännande; den manuella krypterade exporten finns kvar. Äldre automatiska kopior rensas först efter en ny kontrollerad kopia. Senaste kopian eller en valfri export kan kontrolleras utan import. Se [arbetsgång, lagring och begränsningar](docs/SAKERHETSKOPIERING.md).
+
+## Offerter och kundorder (0.22.0)
+
+Under **Fakturering → Offerter / Kundorder** finns offert → accepterad order → delleverans → fakturautkast. Lagerförda leveranser gör spårbara lageruttag, och valda leveranser kan inte användas igen i ett annat aktivt fakturaunderlag. Rader och kund skyddas i utkastet; utfärdande och bokföring sker i det befintliga fakturaflödet. Offert, orderbekräftelse och följesedel kan sparas som PDF med utskriftshistorik. Se [arbetsgång och begränsningar](docs/OFFERTER_KUNDORDER.md).

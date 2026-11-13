@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.21.0, databasschema 10. Uppdaterad 2026-11-13.
+Version 0.22.0, databasschema 10. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -207,3 +207,14 @@ Import och matchning ändrar inte huvudbok eller reskontra. Periodöverlapp och 
 `src/auto-backup.cjs` hanterar kopior per företagsdatabas. Lokala inställningar/status i `automatic-backup.json` ingår inte i databasexport/import. Aktivering kräver val av katalog och godkännande av okrypterade kopior. Schemat kontrolleras vid start och varje minut för det aktiva företaget; normalt avslut och företagsbyte kan också ta kopia. Inaktiva företag kopieras vid nästa öppning om deras dagliga kopia då är försenad.
 
 Snapshot med `VACUUM INTO` inkluderar committad WAL-data. Temporär fil synkas och valideras före slutligt namn och rotation. SHA-256 registreras; senaste kopian kan kontrolleras igen. Rotation omfattar endast företagets egna automatiska filnamn i dess aktuella undermapp och påverkar inte säkerhetskopior före import. Gräns 256 MiB följer återställningsflödet. Ingen SQL-migrering behövs. Kontroll av uppladdad säkerhetskopia använder samma validering som import, utan att skapa förberedd import eller ersätta arbetsdata. Se [Säkerhetskopiering](docs/SAKERHETSKOPIERING.md) för drift, begränsningar och återställning.
+
+
+## Offerter, kundorder och leveranser (0.22.0)
+
+`src/trade.cjs` sparar offerter, kundorder, leveranser, fakturaunderlag, nummerserier och händelser i befintliga `records` (`trade_*`), separat per företagsdatabas. Schema 10 är oförändrat. Utfärdad offert och bekräftad order låses genom applikationens tillståndskontroller; de är inte bokföringsverifikationer. Löpande OF/KO/UL/FU-serier förbrukas atomiskt och återanvänds inte vid avbrott. Ansvarig är lokalt angiven, inte autentiserad.
+
+Kundaccept kopplar en offert till en bekräftad order en gång. Registrerad leverans för lagerförd artikel skapar `inventory_movements` med `source_kind=trade_delivery` i samma transaktion. Återtagning skapar motsatt rörelse (`trade_delivery_reverse`) och bevarar original. Negativa saldon och tidigare inventeringar kontrolleras av lagermodulen. Ingen reservation eller automatisk lagerbokföring görs.
+
+Valda hela leveranser knyts till ett fakturaunderlag och ett utkast. Ett öppet utkast per order förhindrar senare underlag innan utfärdande eller återtagning. Kumulativ proportionering av ursprungsradens belopp och moms i heltalsören gör att delfakturorna summerar till ordern. `sales.cjs` kontrollerar de kopplade beloppen vid utfärdande; rader/kund skyddas också vid utkastredigering. Datum, förfallodatum och anteckning kan ändras. `tradeSource` följer med till den låsta kundfakturan. Bokföring skapas först genom vanligt utfärdande, inte vid offert, order, leverans eller överföring.
+
+FU-återtagning före utfärdande tar bort utkastet och frigör leveranser atomiskt med orsak. Utfärdad faktura, kredit och bokföringsmotbokning frigör inte orderantal automatiskt. Dokumenten och händelserna följer säkerhetskopian. Utskriftshistoriken stöder `sales_quote`, `customer_order` och `delivery_note`. Se [Offerter och kundorder](docs/OFFERTER_KUNDORDER.md) för arbetsgång och begränsningar.

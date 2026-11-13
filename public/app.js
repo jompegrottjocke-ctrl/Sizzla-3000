@@ -79,7 +79,7 @@ function bind() {
  document.querySelectorAll('[data-new]').forEach(el=>el.onclick=()=>openEditor(el.dataset.new));
  document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openEditor(el.dataset.edit,el.dataset.id));
  const input=document.querySelector('#search'); if(input) input.oninput=event=>{const pos=event.target.selectionStart;search=event.target.value;render();const next=document.querySelector('#search');next.focus();next.setSelectionRange(pos,pos);};
- bindBank();bindSie();bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
+ bindTrade();bindBank();bindSie();bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
  const form=document.querySelector('#company-form'); if(form) form.onsubmit=async event=>{event.preventDefault(); const button=form.querySelector('button');button.disabled=true;try{await post('company',Object.fromEntries(new FormData(form)));await load();render();toast(t('saved'));}catch(error){button.disabled=false;toast(error.message==='bookCompanyIdentityLocked'?bt(error.message):salesWords[lang][error.message]||t('failed'));}};
 }
 function openEditor(kind,id) {
@@ -97,6 +97,7 @@ function openEditor(kind,id) {
  editor={kind,record};renderEditor();
 }
 function captureEditor() {
+ if(editor?.kind==='trade')return captureTrade();
  if(editor?.kind==='asset')return captureAssets();
  if(editor?.kind==='fileImport')return captureFileImport();
  if(editor?.kind==='time')return captureTime();
@@ -111,6 +112,7 @@ function captureEditor() {
  editor.record={...editor.record,...data};
 }
 function renderEditor() {
+ if(editor.kind==='trade')return renderTradeEditor();
  if(editor.kind==='asset')return renderAssetEditor();
  if(editor.kind==='fileImport')return renderFileImport();
  if(editor.kind==='time')return renderTimeEditor();
@@ -137,15 +139,18 @@ function renderEditor() {
   form.oninput=totals;totals();
   if(r.id)attachIssueButton(r.id);
   if(r.id)appendSourceHistory('#print',{kind:'invoice',id:r.id});
+  if(r.tradeSource)lockTradeInvoiceEditor(r);
   if(r.id) document.querySelector('#print').onclick=()=>{sessionStorage.removeItem('sizzla-assets-print');sessionStorage.removeItem('sizzla-analysis-print');sessionStorage.removeItem('sizzla-time-print');sessionStorage.removeItem('sizzla-sales-print');sessionStorage.removeItem('sizzla-purchase-print');sessionStorage.removeItem('sizzla-book-print');sessionStorage.removeItem('sizzla-hr-print');sessionStorage.setItem('sizzla-print',r.id);window.open('/print','_blank');};
  }
 }
 function totals() {
  captureEditor();let net=0,tax=0;
  for(const line of editor.record.lines) {const cents=Math.round(Number(line.price)*100);const quantity=Math.round(Number(line.quantity)*100);const subtotal=Math.round(cents*quantity/100);net+=subtotal;tax+=Math.round(subtotal*Number(line.vat)/100);}
+ if(editor.record.tradeSource){net=editor.record.lines.reduce((s,l)=>s+l.net,0);tax=editor.record.lines.reduce((s,l)=>s+l.tax,0);}
  document.querySelector('#totals').innerHTML=`<div class="totals"><div><span>${t('net')}</span><strong>${money(net)}</strong></div><div><span>${t('tax')}</span><strong>${money(tax)}</strong></div><div class="grand"><span>${t('total')}</span><strong>${money(net+tax)}</strong></div></div>`;
 }
 function printView() {
+ if(tradePrint())return;
  if(closingPrint())return;
  if(assetsPrint())return;
  if(analysisPrint())return;
@@ -158,6 +163,7 @@ function printView() {
  const row=state.invoices.find(i=>i.id===sessionStorage.getItem('sizzla-print'));
  if(!row){document.querySelector('#app').textContent=t('empty');return;}
  document.querySelector('#app').innerHTML=`<article class="print-sheet"><div class="print-actions"><button class="primary" id="print-now">${t('print')}</button></div><div class="print-head"><div><h1>${esc(row.company.name)}</h1><p>${esc(row.company.org)}</p><p>${esc(row.company.address)}<br>${esc(row.company.postal)} ${esc(row.company.city)}</p></div><div><h2>${t('draftWatermark')}</h2><p>${t('draftId')}: ${esc(row.id.slice(0,8))}</p><p>${t('date')}: ${row.date}<br>${t('due')}: ${row.due}</p></div></div><h3>${esc(row.customer.name)}</h3><p>${esc(row.customer.address)}<br>${esc(row.customer.postal)} ${esc(row.customer.city)}</p><table><thead><tr>${['description','quantity','price','vat','net'].map(k=>`<th>${t(k)}</th>`).join('')}</tr></thead><tbody>${row.lines.map(l=>`<tr><td>${esc(l.description)}</td><td>${number(l.quantity)}</td><td>${money(l.price)}</td><td>${l.vat} %</td><td>${money(l.net)}</td></tr>`).join('')}</tbody></table><div class="totals"><div>${t('net')} <strong>${money(row.net)}</strong></div><div>${t('tax')} <strong>${money(row.tax)}</strong></div><div class="grand">${t('total')} <strong>${money(row.total)}</strong></div></div><p class="print-note">${esc(row.note)}</p><p class="muted">${t('draftNotice')}</p></article>`;
+ tradeInvoicePrintSource(row);
  document.querySelector('#print-now').onclick=()=>window.print();
 }
 load().then(()=>{if(location.pathname==='/print'){printView();setupPrintPreview();}else render();}).catch(error=>{if(error.message==='dbChanged')return;document.querySelector('#app').innerHTML=`<div class="fatal">${t('loadFailed')}</div>`;});
