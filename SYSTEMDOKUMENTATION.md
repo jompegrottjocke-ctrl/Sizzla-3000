@@ -128,3 +128,5 @@ Modulen stödjer inte skattemässiga överavskrivningar, nedskrivningar, uppskri
 ## Kravarbete för Bokslut & skatt
 
 [Kravunderlaget](docs/BOKSLUT_KRAV.md) och [källförteckningen](docs/BOKSLUT_KALLOR.md) beskriver gemensamma krav, separata AB-/EF-spår, identifierade luckor och acceptansprov inför nästa modul. Lansering är planerad efter 2026-12-29; aktuell kanal och regelversion måste verifieras före lansering. Användarens tidigare och senare K2-/årsbokslutsfiler har granskats i relevanta delar; se [BFN-analysen](docs/BFN_UPPLADDADE_REGLER.md). Bokföring och Gränsvärden har också granskats i utvalda delar; Fusion har endast omfattningsbedömts. Se [kompletteringen](docs/BFN_BOKFORING_GRANSVARDEN.md). Övriga valda regelspår samt fullständig detaljgranskning och senare publiceringskontroll återstår. Direktåtkomsten till BFN är fortfarande blockerad. Dokumenten innebär ingen ny boksluts-/skattefunktion eller verifiering av fullständig regelefterlevnad.
+
+[K1-underlaget för enskild firma](docs/BFN_K1_ENSKILD_FIRMA.md) beskriver utvalda krav från den uppladdade vägledningen uppdaterad 2025-03-24. Detta är en käll- och kravkomplettering, inte implementerat K1-stöd.

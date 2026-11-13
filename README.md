@@ -265,3 +265,5 @@ Se [kravlista och gap-analys](docs/BOKSLUT_KRAV.md) samt [kontrollerade källor 
 Användarens uppladdade tidigare och senare K2-/årsbokslutsvägledningar har nu kompletterat underlaget. Se [BFN-analys och versionsvillkor](docs/BFN_UPPLADDADE_REGLER.md). Granskningen gäller utvalda regler och är inte en färdig regelmotor.
 
 Kompletterande krav från uppladdad Bokföring och Gränsvärden samt avgränsning av Fusion finns i [BFN-kompletteringen](docs/BFN_BOKFORING_GRANSVARDEN.md). Detta är dokumentation inför utveckling, inte nya implementerade funktioner.
+
+[K1-underlaget för enskild firma](docs/BFN_K1_ENSKILD_FIRMA.md) beskriver utvalda krav från den uppladdade vägledningen uppdaterad 2025-03-24. Detta är en käll- och kravkomplettering, inte implementerat K1-stöd.

@@ -95,11 +95,11 @@ Sidan har hämtats som kanalreferens. Detaljerad teknisk granskning av aktuella 
 
 ## BFN: uppladdat underlag och återstående källkontroll
 
-[BFN:s webbplats](https://www.bfn.se/redovisningsregler/) kunde inte hämtas direkt (proxy 403). Användaren har därefter tillhandahållit sju olika PDF-filer: tidigare och senare konsolideringar av K2 respektive Årsbokslut samt Bokföring, Gränsvärden och Fusion. Versions- och tillämpningsregler samt utvalda bokslutspunkter har nu kontrollerats i dessa filer. Se [analysen med sidreferenser](BFN_UPPLADDADE_REGLER.md) och [filmanifestet med SHA-256](BFN_UPPLADDADE_KALLOR.json). Följande avgränsningar kvarstår:
+[BFN:s webbplats](https://www.bfn.se/redovisningsregler/) kunde inte hämtas direkt (proxy 403). Användaren har därefter tillhandahållit åtta olika PDF-filer: tidigare och senare konsolideringar av K2 respektive Årsbokslut samt Bokföring, Gränsvärden, Fusion och K1 för enskild firma. Versions- och tillämpningsregler samt utvalda bokslutspunkter har nu kontrollerats i dessa filer. Se [analysen med sidreferenser](BFN_UPPLADDADE_REGLER.md) och [filmanifestet med SHA-256](BFN_UPPLADDADE_KALLOR.json). Följande avgränsningar kvarstår:
 
 | Dokumentfamilj att verifiera | Vad som ska kontrolleras |
 | --- | --- |
-| K1: BFNAR 2006:1, enskilda näringsidkare med förenklat årsbokslut | Gällande version, tillämpningsområde, värdering, förenklingar, dokumentuppställning och övergång. |
+| K1: BFNAR 2006:1, enskilda näringsidkare med förenklat årsbokslut | U8 granskad i utvalda delar, inklusive BFNAR 2025:1 och bilaga 2. Se [K1-analysen](BFN_K1_ENSKILD_FIRMA.md); fullständig detaljgranskning och senare publiceringskontroll återstår. |
 | Årsbokslut: BFNAR 2017:3 | Två uppladdade versioner granskade i relevanta delar, inklusive BFNAR 2026:1. Kvar: fullständig detaljgranskning och bekräftelse av eventuella senare ändringar. |
 | K2: BFNAR 2016:10 | Två uppladdade versioner granskade i relevanta delar, inklusive BFNAR 2025:2 och punkterna 1.1–1.1C. Kvar: fullständig produktbedömning, detaljgranskning och bekräftelse av eventuella senare ändringar. |
 | K3: BFNAR 2012:1 | Tillämplighet, övergång, dokument- och värderingskrav. Frånvaro av eget K3-stöd ska identifieras i produktflödet. |
@@ -119,7 +119,7 @@ För dokument som inte har tillhandahållits identifierar numren ovan fortfarand
 
 ## Nästa källkontroll
 
-1. Komplettera med K1/K3 för valda spår; detaljgranska Bokföring och Gränsvärden enligt [kompletteringen](BFN_BOKFORING_GRANSVARDEN.md); fortsätt detaljgranskningen av de uppladdade K2-/årsbokslutsversionerna. Direktåtkomst eller nya uppladdningar behövs för förnyad publiceringskontroll.
+1. Komplettera med K3 om det spåret ska stödjas; fortsätt detaljgranska K1 enligt U8; detaljgranska Bokföring och Gränsvärden enligt [kompletteringen](BFN_BOKFORING_GRANSVARDEN.md); fortsätt detaljgranskningen av de uppladdade K2-/årsbokslutsversionerna. Direktåtkomst eller nya uppladdningar behövs för förnyad publiceringskontroll.
 2. Färdigställ årsaktuella regelkort för skattefallen och deklarationsrutorna; komplettera vid behov med tillämpliga lagar och myndighetsinstruktioner.
 3. Kontrollera valda inlämningsformat och Bolagsverkets eventuella digitala tekniska krav inför integration. Underskrift och fastställelseintyg måste hanteras enligt valt pappers-/elektroniskt flöde.
 4. Före lansering efter 2026-12-29: kontrollera källorna på nytt. Inga framtida format eller ännu inte granskade regelversioner är godkända genom denna dokumentkontroll.

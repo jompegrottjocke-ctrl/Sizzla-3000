@@ -94,6 +94,19 @@
       "sizeBytes": 2545935,
       "sha256": "59531aeb32bc48e5eb0626c91867c52706ed1cb747680085eab2ca4486cbc816",
       "reviewScope": "scope_and_transition_triage_only"
+    },
+    {
+      "id": "U8",
+      "fileName": "BFNARVL 2006_1 Enskilda näringsidkare som upprättar förenklat årsbokslut kons 2025_03_24.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2006:1",
+      "title": "Enskilda näringsidkare som upprättar förenklat årsbokslut",
+      "updated": "2025-03-24",
+      "corrected": null,
+      "pages": 82,
+      "sizeBytes": 1086250,
+      "sha256": "ac15f640c2839293f8362f7d673231a8fb2f356af4c814025cb21ae20fee06eb",
+      "reviewScope": "selected_applicability_transition_closing_valuation_rules_and_visual_appendix_2"
     }
   ]
 }
