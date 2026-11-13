@@ -1,5 +1,5 @@
 const {whatsappPhone}=require('../public/whatsapp-phone.js');
-function whatsappHandler(service,{app,shell,platform=process.platform}){
+function whatsappHandler(service,{shell,platform=process.platform}){
  return async(event,{employeeId,token}={})=>{
   const url=new URL(event.senderFrame.url);
   if(url.origin!==service.url||url.pathname!=='/'||event.senderFrame!==event.sender.mainFrame)throw Error('whatsappAccess');
@@ -13,15 +13,10 @@ function whatsappHandler(service,{app,shell,platform=process.platform}){
   if(!phone)return {status:'invalid'};
   if(platform!=='win32')return {status:'required'};
   const target='whatsapp://send?phone='+phone;
-  try{const info=await app.getApplicationInfoForProtocol(target);if(!info?.path)return {status:'required'};}catch{return {status:'required'};}
-  // The protocol lookup is asynchronous: never open a stale company's contact.
-  if(token!==service.sessionToken)throw Error('dbChanged');
-  const currentPrefs=JSON.parse(service.db.prepare('SELECT data FROM preferences WHERE id=1').get()?.data||'{}');
-  if(currentPrefs.whatsappEnabled===false)return {status:'disabled'};
-  const current=service.db.prepare('SELECT data FROM employees WHERE id=?').get(employeeId);
-  if(!current||whatsappPhone(JSON.parse(current.data).phone)!==phone)return {status:'invalid'};
-  try{await shell.openExternal(target);return {status:'opened'};}catch{return {status:'failed'};}
+  // Windows can launch Store apps even when protocol metadata has no executable path.
+  // Dispatch only after validating the active company, preference and profile above.
+  try{await shell.openExternal(target);return {status:'opened'};}catch{return {status:'required'};}
  };
 }
-function setupWhatsApp(service){const {app,shell,ipcMain}=require('electron');ipcMain.handle('sizzla:whatsapp',whatsappHandler(service,{app,shell}));}
+function setupWhatsApp(service){const {shell,ipcMain}=require('electron');ipcMain.handle('sizzla:whatsapp',whatsappHandler(service,{shell}));}
 module.exports={whatsappHandler,setupWhatsApp};

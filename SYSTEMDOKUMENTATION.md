@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.13.0, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.13.1, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -89,6 +89,6 @@ Personal visar en av/på-knapp överst. Funktionen är på tills användaren st�
 
 En ikon vid den anställdas namn öppnar ett nummer från den aktuella personalprofilen via Windows registrerade whatsapp:-protokoll. Svenska mobilnummer med 07 normaliseras till +46; andra nummer kräver +landskod eller 00-landskod. Mellanslag, bindestreck, parenteser och punkter tillåts som formatering. Nummer som inte kan normaliseras ger avaktiverad ikon med hjälptext. Syntaktisk kontroll verifierar inte att numret har ett WhatsApp-konto.
 
-Öppningen använder en begränsad Electron-brygga som tar anställd-ID och aktuell databastoken; gränssnittet får inte ange en valfri extern URL. Ursprung, huvudfönster, aktiv databas, av/på-val och aktuellt nummer kontrolleras i huvudprocessen, även efter asynkron protokollkontroll. Inga meddelanden fylls i eller skickas. Vid klick lämnas telefonnumret till den lokalt registrerade WhatsApp-appen. Sizzla skickar inga uppgifter till WhatsApp i bakgrunden.
+Öppningen använder en begränsad Electron-brygga som tar anställd-ID och aktuell databastoken; gränssnittet får inte ange en valfri extern URL. Ursprung, huvudfönster, aktiv databas, av/på-val och aktuellt nummer kontrolleras i huvudprocessen, före öppningen. Windows får öppna protokollet direkt, utan krav på att appens installationssökväg kan läsas (Microsoft Store-appar kan sakna sådan metadata). Inga meddelanden fylls i eller skickas. Vid klick lämnas telefonnumret till den lokalt registrerade WhatsApp-appen. Sizzla skickar inga uppgifter till WhatsApp i bakgrunden.
 
-Windowsappen kräver installerad och registrerad WhatsApp Desktop; saknad registrering ger meddelandet ”WhatsApp Desktop behövs för denna funktion.” Inloggning och chattens tillgänglighet hanteras av WhatsApp. Webbläsarversionen öppnar inte webbchatten utan visar samma krav på skrivbordsappen.
+Windowsappen kräver installerad och registrerad WhatsApp Desktop; misslyckad öppning ger meddelandet ”WhatsApp Desktop behövs för denna funktion.” Inloggning och chattens tillgänglighet hanteras av WhatsApp. Webbläsarversionen öppnar inte webbchatten utan visar samma krav på skrivbordsappen.
