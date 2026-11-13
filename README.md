@@ -257,3 +257,7 @@ Utrangering bokför bort kvarvarande bokfört värde. Vid försäljning ska för
 Registerrapporten kan visas per bokföringsdatum, exporteras till CSV och sparas som PDF i utskriftshistoriken. Den utgår från nu registrerade aktiva/avyttrade tillgångar, inte frysta historiska registerversioner. Före ingående avskrivningsdatum saknas äldre värden. Stäm av mot huvudboken och spara rapportens PDF för perioden.
 
 Metoden är redovisningsmässig linjär avskrivning i SEK. Skattemässiga avskrivningar, nedskrivningar, komponenthantering och automatiska K2/K3-bedömningar ingår inte.
+
+## Planering av Bokslut & skatt
+
+Se [kravlista och gap-analys](docs/BOKSLUT_KRAV.md) samt [kontrollerade källor och kvarstående verifiering](docs/BOKSLUT_KALLOR.md). Kraven skiljer mellan aktiebolag och enskild näringsverksamhet och tar hänsyn till planerad lansering efter 2026-12-29. BFN-regelversioner och aktuella tekniska inlämningsformat behöver verifieras innan regelberoende funktioner färdigställs.

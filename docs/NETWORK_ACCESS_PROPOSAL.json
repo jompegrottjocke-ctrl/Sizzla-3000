@@ -1,0 +1,19 @@
+{
+  "config": {
+    "network": {
+      "type": "restricted",
+      "allowed_domains": [
+        "skatteverket.se",
+        "support.spiris.se",
+        "support.vismaspcs.se",
+        "www.forsakringskassan.se",
+        "www.riksdagen.se",
+        "www.skatteverket.se",
+        "www.spiris.se",
+        "www.vismaspcs.se",
+        "bfn.se",
+        "www.bfn.se"
+      ]
+    }
+  }
+}
