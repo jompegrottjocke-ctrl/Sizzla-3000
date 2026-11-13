@@ -38,7 +38,7 @@ test('supplier and order snapshots, partial receipts, receipt corrections and mi
  assert.equal((await latest('orders',o.id)).deliveryStatus,'partial');
  await run('suppliers',{...vendor,id:s.id,revision:1,name:'Nytt leverantörsnamn',active:false});
  const restored=await ctx.restart();assert.equal(restored.purchases.suppliers[0].active,false);assert.equal(restored.purchases.orders[0].supplier.name,vendor.name);
- assert.equal(restored.purchases.receipts.find(r=>r.id===first.id).active,false);assert.equal(ctx.app.db.prepare('PRAGMA user_version').get().user_version,9);
+ assert.equal(restored.purchases.receipts.find(r=>r.id===first.id).active,false);assert.equal(ctx.app.db.prepare('PRAGMA user_version').get().user_version,10);
 }));
 test('invoice approval, duplicate protection, partial payments, credit allocation and reversals reconcile to the ledger',()=>fixture(async ctx=>{
  const {run,post,latest,yearId,state}=ctx;const s=await run('suppliers',vendor);
@@ -100,7 +100,7 @@ test('schema 3 upgrade retains existing ledger, salary, customer and preference 
  old.prepare('INSERT INTO ledger_vouchers VALUES(?,?,?,?,?,?,?,?,?,?)').run('legacy-voucher','legacy-year',1,'posted',1,JSON.stringify(voucher),null,null,null,null);old.close();
  const app=createApp({dataDir});await app.listen();
  try{
-  const s=await fetch(app.url+'/api/state').then(r=>r.json());assert.equal(app.db.prepare('PRAGMA user_version').get().user_version,9);
+  const s=await fetch(app.url+'/api/state').then(r=>r.json());assert.equal(app.db.prepare('PRAGMA user_version').get().user_version,10);
   assert.equal(s.customers[0].name,'Befintlig kund');assert.equal(s.employees[0].salary,3000000);assert.equal(s.payruns[0].status,'paid');
   assert.equal(s.accounting.accounts.find(a=>a.code==='1930').name,'Mitt bankkonto');assert.deepEqual(s.accounting.vouchers[0].lines,voucher.lines);
   assert.deepEqual(s.preferences,{theme:'dark',language:'en'});assert.deepEqual(s.purchases.invoices,[]);assert.equal(s.accounting.years[0].openingLocked,true);

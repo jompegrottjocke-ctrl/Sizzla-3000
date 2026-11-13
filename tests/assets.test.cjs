@@ -15,7 +15,7 @@ test('sequential rounded depreciation posts once, protects sources, preserves ed
  await c.op(id,'depreciate',{date:'2026-03-01'});await c.op(id,'depreciate');a=await c.item(id);assert.equal(a.bookValue,0);assert.equal(a.accumulated,10000);
  const s=await c.restart();assert.equal(s.assets.items[0].bookValue,0);assert.equal(s.assets.operations.filter(o=>o.status==='reversed').length,1);assert.ok(s.assets.events.length>=6);
  const jan=await fetch(c.app.url+'/api/assets/report?date=2026-01-31').then(r=>r.json());assert.equal(jan.items[0].bookValue,6667);const feb=await fetch(c.app.url+'/api/assets/report?date=2026-02-28').then(r=>r.json());assert.equal(feb.items[0].bookValue,3333);
- const bytes=snapshot(c.app.db);await c.run('security/import',{file:bytes.toString('base64'),confirm:true});const restored=await c.restart();assert.equal(restored.assets.operations.length,4);assert.equal(c.app.db.prepare('PRAGMA user_version').get().user_version,9);
+ const bytes=snapshot(c.app.db);await c.run('security/import',{file:bytes.toString('base64'),confirm:true});const restored=await c.restart();assert.equal(restored.assets.operations.length,4);assert.equal(c.app.db.prepare('PRAGMA user_version').get().user_version,10);
 }));
 test('sale derecognition reconciles existing revenue, rejects excess allocation, reverses atomically and enforces dates',()=>fixture(async c=>{
  const id=await asset(c,{months:2,cost:'1000'});await c.op(id,'depreciate');const sale=await c.journal('2026-02-15',[{account:'1510',debit:'750'},{account:'3001',credit:'750'}]);

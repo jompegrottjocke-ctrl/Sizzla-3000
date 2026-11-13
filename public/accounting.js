@@ -118,7 +118,7 @@ function bookView(id){
  const postButton=document.querySelector('#book-post');if(postButton)postButton.onclick=()=>{if(confirm(bt('postConfirm')))action('post');};
  const reverse=document.querySelector('#book-reverse');if(reverse)reverse.onclick=()=>bookOpen('reverse',{id:v.id,revision:v.revision});
  const assetOp=state.assets.operations.find(o=>o.id===v.sourceId||o.voucherId===v.corrects||o.voucherId===v.id||o.reversalId===v.id);if(assetOp){const sourceButton=document.createElement('button');sourceButton.className='secondary';sourceButton.textContent=t('assets');sourceButton.onclick=()=>{page='assets';render();assetsView(assetOp.assetId);};root.querySelector('.dialog-foot>div').append(sourceButton);}
- document.querySelector('#book-print').onclick=()=>bookPrintOpen({type:'voucher',id:v.id});appendSourceHistory('#book-print',{kind:'voucher',id:v.id});
+ document.querySelector('#book-print').onclick=()=>bookPrintOpen({type:'voucher',id:v.id});appendSourceHistory('#book-print',{kind:'voucher',id:v.id});if(v.status==='posted')appendArchive('#book-print',{kind:'voucher',id:v.id});
 }
 function bookPrintOpen(ref){sessionStorage.removeItem('sizzla-assets-print');sessionStorage.removeItem('sizzla-analysis-print');sessionStorage.removeItem('sizzla-time-print');sessionStorage.removeItem('sizzla-sales-print');sessionStorage.removeItem('sizzla-purchase-print');sessionStorage.removeItem('sizzla-print');sessionStorage.removeItem('sizzla-hr-print');sessionStorage.setItem('sizzla-book-print',JSON.stringify(ref));window.open('/print','_blank');}
 function bookPrint(){let ref;try{ref=JSON.parse(sessionStorage.getItem('sizzla-book-print'));}catch{return false;}if(!ref)return false;let body,title;

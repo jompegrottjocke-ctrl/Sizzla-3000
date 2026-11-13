@@ -1,13 +1,14 @@
 const {randomUUID,createHash}=require('node:crypto');
 const {text,decimal}=require('./domain.cjs');
+const {archiveManifest}=require('./archive.cjs');
 const {balances}=require('./accounting.cjs');
 class ClosingError extends Error{constructor(code,status=409){super(code);this.status=status;}}
 const fail=code=>{throw new ClosingError(code,400);};
 const areas=['bank','receivables','payables','vat','payroll','assets','inventory','accruals','equity'];
 function closingFingerprint(db){
   const hash=createHash('sha256');hash.update(require('../package.json').version);
-  const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r=>r.name).filter(n=>n==='settings'||n==='records'||/^(ledger_(accounts|years|vouchers)$|purchase_|sales_|inventory_|employees$|payruns$|leaves$|time_)/.test(n)).filter(n=>!n.endsWith('_events'));
-  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime','ai_agent_config','ai_agent_event','agency_task','agency_event') ORDER BY kind,id").all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
+  const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r=>r.name).filter(n=>n==='settings'||n==='records'||/^(archive_(documents|metadata|links)$|ledger_(accounts|years|vouchers)$|purchase_|sales_|inventory_|employees$|payruns$|leaves$|time_)/.test(n)).filter(n=>!n.endsWith('_events'));
+  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime','ai_agent_config','ai_agent_event','agency_task','agency_event') ORDER BY kind,id").all():name==='archive_documents'?db.prepare('SELECT id,created,filename,mime,hash,size FROM archive_documents ORDER BY rowid').all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
   return hash.digest('hex');
 }
 function initClosing(db,accounting){
@@ -21,8 +22,8 @@ function initClosing(db,accounting){
  CREATE TRIGGER IF NOT EXISTS closing_events_delete BEFORE DELETE ON closing_events BEGIN SELECT RAISE(ABORT,'Closing history cannot be deleted'); END;
  CREATE TRIGGER IF NOT EXISTS closing_ledger_events_update BEFORE UPDATE ON ledger_events BEGIN SELECT RAISE(ABORT,'Ledger history is immutable'); END;
  CREATE TRIGGER IF NOT EXISTS closing_ledger_events_delete BEFORE DELETE ON ledger_events BEGIN SELECT RAISE(ABORT,'Ledger history cannot be deleted'); END;
- PRAGMA user_version=9;
- COMMIT;`);
+
+ COMMIT;`);if(db.prepare('PRAGMA user_version').get().user_version<9)db.exec('PRAGMA user_version=9');
  const cases=()=>db.prepare('SELECT * FROM closing_cases ORDER BY rowid DESC').all().map(r=>({...JSON.parse(r.data),id:r.id,yearId:r.year_id,revision:r.revision}));
  const versions=()=>db.prepare('SELECT * FROM closing_versions ORDER BY rowid DESC').all().map(r=>({...JSON.parse(r.data),id:r.id,caseId:r.case_id,number:r.number}));
  const events=()=>db.prepare('SELECT * FROM closing_events ORDER BY id DESC').all().map(r=>({...r,data:JSON.parse(r.data)}));
@@ -69,7 +70,7 @@ function initClosing(db,accounting){
     const comp=assertCompany();if(comp.org.replace('-','')!==c.companyIdentity)fail('bookCompanyChanged');
     const ctx=context(c);if(ctx.drafts)throw new ClosingError('bookPendingDrafts');if(!areas.every(k=>c.checks[k]?.fingerprint===hash))throw new ClosingError('closingIncomplete');
     const number=(db.prepare('SELECT MAX(number) AS n FROM closing_versions WHERE case_id=?').get(c.id).n||0)+1,id=randomUUID();
-    const data={kind:'closing_working_papers',notice:'Avstämt arbetsunderlag – inte årsredovisning, årsbokslut enligt fastställd mall eller deklaration.',company:comp,year:ctx.year,profile:c.profile,method:c.method,ruleReference:c.ruleReference,eligibility:c.eligibility,checks:c.checks,balances:ctx.balances,vouchers:ctx.posted,fingerprint:hash,created:new Date().toISOString(),actor,programVersion:require('../package.json').version};
+    const data={archiveManifest:archiveManifest(db),kind:'closing_working_papers',notice:'Avstämt arbetsunderlag – inte årsredovisning, årsbokslut enligt fastställd mall eller deklaration.',company:comp,year:ctx.year,profile:c.profile,method:c.method,ruleReference:c.ruleReference,eligibility:c.eligibility,checks:c.checks,balances:ctx.balances,vouchers:ctx.posted,fingerprint:hash,created:new Date().toISOString(),actor,programVersion:require('../package.json').version};
     db.prepare('INSERT INTO closing_versions VALUES(?,?,?,?)').run(id,c.id,number,JSON.stringify(data));save({...c,status:'frozen',lastFrozenHash:hash});event(c.id,'frozen',{versionId:id,number,fingerprint:hash});result={id:c.id,versionId:id};
    }else if(route==='/api/closing/reopen'){
     const c=current(body);if(c.status!=='frozen')throw new ClosingError('closingConflict');const reason=text(body.reason,'bookReason',true,1000);save({...c,status:'draft',checks:{},reopenReason:reason});event(c.id,'reopened',{reason});result={id:c.id};

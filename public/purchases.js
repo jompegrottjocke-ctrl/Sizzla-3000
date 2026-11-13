@@ -142,7 +142,7 @@ function pInvoiceView(id){
  bind('purchase-credit',()=>purchaseOpen('invoice',{supplierId:i.supplierId,type:'credit',originalId:i.id,lines:i.lines.map(pInputLine),documentTotal:'',reference:'',note:`${pt('original')}: ${i.invoiceNo}`}));
  bind('purchase-copy',()=>purchaseOpen('invoice',{supplierId:i.supplierId,type:i.type,originalId:i.originalId,orderId:i.orderId,lines:i.lines.map(pInputLine),documentTotal:'',rounding:number(i.rounding),reference:''}));
  document.querySelectorAll('[data-payment-reverse]').forEach(b=>b.onclick=()=>{const p=cash.find(p=>p.id===b.dataset.paymentReverse);purchaseOpen('reversePayment',{id:p.id,revision:p.revision,invoiceId:i.id,date:today()<p.date?p.date:today()});});
- bind('purchase-print',()=>pPrintOpen('invoice',i.id));appendSourceHistory('#purchase-print',{kind:'purchase_invoice',id:i.id});
+ bind('purchase-print',()=>pPrintOpen('invoice',i.id));appendSourceHistory('#purchase-print',{kind:'purchase_invoice',id:i.id});appendArchive('#purchase-print',{kind:'purchaseInvoice',id:i.id});
 }
 function pPrintOpen(type,id){sessionStorage.removeItem('sizzla-assets-print');sessionStorage.removeItem('sizzla-analysis-print');sessionStorage.removeItem('sizzla-time-print');sessionStorage.removeItem('sizzla-sales-print');for(const key of ['sizzla-print','sizzla-hr-print','sizzla-book-print'])sessionStorage.removeItem(key);sessionStorage.setItem('sizzla-purchase-print',JSON.stringify({type,id}));window.open('/print','_blank');}
 function purchasePrint(){

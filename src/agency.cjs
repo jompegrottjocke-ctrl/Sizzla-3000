@@ -28,7 +28,7 @@ function initAgency(db,accounting){
 function overview(databases,activeDb){const date=today();return {at:new Date().toISOString(),today:date,revision:databases.state().revision,entries:databases.state().entries.map(entry=>{let db,owned=false;try{
  const dir=databases.directory(entry.id),file=path.join(dir,'sizzla.sqlite');if(!fs.existsSync(file)||!fs.lstatSync(file).isFile()||fs.lstatSync(file).isSymbolicLink())throw Error();
  db=entry.active?activeDb:new DatabaseSync(file,{readOnly:true});owned=!entry.active;db.exec('BEGIN');
- const version=db.prepare('PRAGMA user_version').get().user_version;if(version<4||version>9)throw Error();
+ const version=db.prepare('PRAGMA user_version').get().user_version;if(version<4||version>10)throw Error();
  const exists=name=>!!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(name);
  const company=JSON.parse(db.prepare('SELECT data FROM settings WHERE id=1').get()?.data||'{}');
  const tasks=db.prepare("SELECT data FROM records WHERE kind='agency_task'").all().map(r=>JSON.parse(r.data)),pending=tasks.filter(t=>['open','inProgress'].includes(t.status));

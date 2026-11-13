@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell, dialog } = require('electron');
 const path = require('node:path');
+const {setupArchive}=require('./desktop-archive.cjs');
 const {setupEmail}=require('./desktop-email.cjs');
 const {setupWhatsApp}=require('./desktop-whatsapp.cjs');
 const {setupPrinting}=require('./desktop-printing.cjs');
@@ -19,6 +20,7 @@ async function open() {
     printController=setupPrinting(service);
     setupWhatsApp(service);
     setupEmail(service);
+    setupArchive(service);
   }
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 1000, minHeight: 700,
     title: 'Sizzla 3000', backgroundColor: '#f4f6fa',

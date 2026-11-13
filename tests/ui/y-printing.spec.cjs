@@ -14,7 +14,7 @@ test('documents history filters, paging, immutable-copy details and source navig
  for(let i=0;i<30;i++)await prints.attempt(id,'print',async()=>({}));
  const payroll=prints.create({kind:'payroll',title:'Lönebesked oktober',number:'L-1',recipient:'Testperson',source:{kind:'payroll',id:'test-run'}},Buffer.from('%PDF-1.7\nPayroll UI fixture\n%%EOF'));
  await prints.attempt(payroll,'print',async()=>({cancelled:true}));db.close();
- await page.locator('nav').getByRole('button',{name:'Dokument',exact:true}).click();await expect(page.getByRole('heading',{name:'Utskriftshistorik',exact:true})).toBeVisible();await expect(page.locator('#history-results tbody tr')).toHaveCount(25);
+ await page.locator('nav').getByRole('button',{name:'Dokument',exact:true}).click();await page.locator('[data-document-tab=history]').click();await expect(page.getByRole('heading',{name:'Utskriftshistorik',exact:true})).toBeVisible();await expect(page.locator('#history-results tbody tr')).toHaveCount(25);
  await page.getByRole('button',{name:'Nästa',exact:true}).click();await expect(page.locator('#history-results tbody tr')).toHaveCount(6);
  await page.getByLabel('Dokumenttyp',{exact:true}).selectOption('payroll');await expect(page.locator('#history-results tbody tr')).toHaveCount(1);await expect(page.locator('#history-results')).toContainText('Testperson');
  await page.getByLabel('Status',{exact:true}).selectOption('submitted');await expect(page.locator('#history-results')).toContainText('Inga utskrifter i urvalet.');

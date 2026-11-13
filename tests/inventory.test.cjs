@@ -24,7 +24,7 @@ test('stock setup, hundredths, immutable corrections, historical negatives, arti
  assert.equal((await ctx.post('articles',{...article,sku:'stock-1'})).body.error,'invSku');
  const c=await ctx.run('customers',{name:'Kund'});await ctx.run('invoices',{customerId:c.id,date:'2026-11-12',due:'2026-12-12',lines:[{description:article.name,quantity:'2',price:'100',vat:25}]});assert.equal((await ctx.item(id)).quantity,1025);
  const backup=snapshot(ctx.app.db);await ctx.run('inventory/movements',{articleId:id,kind:'out',quantity:'1',date:'2026-11-12',reference:'REF',reason:'Efter backup',stockRevision:(await ctx.item(id)).stockRevision,settingsRevision:(await ctx.item(id)).revision});
- await ctx.run('security/import',{file:backup.toString('base64'),confirm:true});const restored=await ctx.restart();assert.equal(restored.inventory.items.find(a=>a.id===id).quantity,1025);assert.equal(restored.inventory.movements.length,3);assert.equal(ctx.app.db.prepare('PRAGMA user_version').get().user_version,9);
+ await ctx.run('security/import',{file:backup.toString('base64'),confirm:true});const restored=await ctx.restart();assert.equal(restored.inventory.items.find(a=>a.id===id).quantity,1025);assert.equal(restored.inventory.movements.length,3);assert.equal(ctx.app.db.prepare('PRAGMA user_version').get().user_version,10);
 }));
 test('linked partial receipts update stock atomically; consumed receipts cannot be reversed and unlinked lines never replay',()=>fixture(async ctx=>{
  const id=await tracked(ctx),supplier=await ctx.run('purchases/suppliers',{name:'Leverantör',terms:30,active:true});

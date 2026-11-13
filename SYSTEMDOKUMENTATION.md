@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.17.1, databasschema 9. Uppdaterad 2026-11-13.
+Version 0.18.0, databasschema 10. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -47,9 +47,9 @@ Historiken är **inte en fullständig behandlingshistorik**. Från 0.16 krävs l
 
 ## Bevarande och återställning
 
-Exportera varje företagsdatabas regelbundet, även före uppdatering. Export/import gäller bara aktiv databas. Databaslistan ingår inte i databasexporten; en manuell kopia av hela arbetsplatsen kräver stängd app och hela den ursprungliga datakatalogen med listan och alla underkataloger. Exporten omfattar register, bokföring, historik, inställningar och sparade PDF-kopior. Refererade originalfakturor, bankunderlag och andra filer utanför databasen ingår inte och måste bevaras separat med tydliga referenser. CSV är ett urval, inte en fullständig säkerhetskopia eller SIE-fil.
+Exportera varje företagsdatabas regelbundet, även före uppdatering. Export/import gäller bara aktiv databas. Databaslistan ingår inte i databasexporten; en manuell kopia av hela arbetsplatsen kräver stängd app och hela den ursprungliga datakatalogen med listan och alla underkataloger. Exporten omfattar register, bokföring, historik, inställningar, importerade originalunderlag och sparade PDF-kopior. Refererade originalfakturor, bankunderlag och andra filer utanför databasen ingår inte och måste bevaras separat med tydliga referenser. CSV är ett urval, inte en fullständig säkerhetskopia eller SIE-fil.
 
-Krypterad export använder AES-256-GCM och scrypt. Själva arbetsdatabasen är inte applikationskrypterad. Skydda dator och kopior med åtkomstskydd och lämpligt diskskydd. Programlås ingår inte. Import av komplett kopia ersätter hela databasen vid nästa start; räddningskopior bevaras lokalt. Importgränsen är 64 MB inklusive PDF-kopior.
+Krypterad export använder AES-256-GCM och scrypt. Själva arbetsdatabasen är inte applikationskrypterad. Skydda dator och kopior med åtkomstskydd och lämpligt diskskydd. Programlås ingår inte. Import av komplett kopia ersätter hela databasen vid nästa start; räddningskopior bevaras lokalt. Importgränsen är 256 MB inklusive original och PDF-kopior.
 
 Företaget behöver fastställa och prova rutiner för läsbarhet, återställning, förvaring och lagstadgad bevarandetid enligt 7 kap. bokföringslagen. Det finns ingen automatisk arkivtjänst, schemalagd säkerhetskopiering eller garanti om långsiktig läsbarhet. Bevara relevanta programversioner, systemdokumentation och egna rutiner tillsammans med räkenskapsinformationen. Äldre program ska inte öppna en uppgraderad arbetsdatabas.
 
@@ -174,3 +174,17 @@ Schema 9 är oförändrat. Arbetslistor och hela historiken följer företagets 
 Licensgränssnittet är en förhandsvisning med spärrat nyckelfält och spärrade aktiverings-/villkorsknappar. Ingen licens lagras eller valideras. Uppdateringsknappen ändrar endast lokal meddelandetext: ingen nätverksförfrågan görs och Inte kontrollerat ändras inte till en påstått utförd kontroll. GitHub-länken öppnar manuellt versionssidan i webbläsaren via befintlig hantering av HTTPS-länkar.
 
 Supporttexten innehåller endast produktnamn, version, utgåva, körmiljö, arkitektur, schema och lokalt driftläge. Urklippsåtkomst sker på uttryckligt knapptryck; vid fel markeras den skrivskyddade texten för manuell kopiering. Inga företagsuppgifter, personuppgifter, filsökvägar, nycklar eller sessionstoken ingår. Inga nya databasposter eller tabeller införs; schema 9 är oförändrat. Verklig licensvalidering, autentiserad uppdateringskälla, signaturkontroll och uppdateringsinstallation kräver framtida implementation.
+
+## Underlagsarkiv 0.18 / schema 10
+
+`src/archive.cjs` och `public/archive.js` tillför importerade original, separat från utskriftshistorikens genererade PDF-kopior. `archive_documents` innehåller UUID, UTC-importtid, originalfilnamn, MIME-typ, unik SHA-256, storlek och BLOB. SQL-triggers hindrar uppdatering/radering. `archive_metadata` håller revisionsstyrd titel och anteckning. `archive_links` håller måltyp/ID, eventuellt avstämningsområde, aktivstatus, revision och kopia av målets etikett/revision vid koppling. `archive_events` bevarar historik med eventuell lokal operatör och programversion och skyddas mot ändring/radering. Inga raderingsfunktioner exponeras för original eller historik. SQL-skydden ersätter inte skydd mot någon med full kontroll över databasfilen.
+
+Import tillåter PDF/JPEG/PNG på högst 10 MiB. Filändelse, grundläggande filsignatur/-struktur, bilddimensioner och storleksgräns kontrolleras; filerna omkodas inte. Det är inte full formatvalidering, OCR eller antivirus. SHA-256 förhindrar dubbla original; en återimport återanvänder original och ursprunglig titel i stället för att skriva över. Import och eventuell koppling sker atomiskt. En ogiltig eller inaktuell målpost rullar tillbaka importen. Mål kan vara bokförd verifikation, befintlig leverantörsfaktura, tillgång eller område i pågående bokslutsärende. Målets revision verifieras i transaktionen. Kopplingen ändrar inte bokförda verifikationer.
+
+En felaktig koppling avaktiveras med orsak och lokalt angiven ansvarig. Tidigare mål/etikett bevaras; målidentitet får inte skrivas om och länkrader får inte raderas. Titlar/anteckningar har revisionskontroll och före-/efterhistorik. Original kan ha flera aktiva kopplingar. Alla läs-/fil-/skrivförfrågningar kräver aktuell sessionstoken. Företagsbyte laddar rätt arkiv och avvisar gamla skrivsessioner. Asynkron filinläsning/nedladdning kontrollerar också att klientens företagssession inte bytts.
+
+`src/desktop-archive.cjs` öppnar en validerad arkivpost efter kontroll av huvudfönstrets ursprung och aktuell token. En lokal temporär kopia får UUID-baserat namn och fast PDF/JPG/PNG-ändelse, och öppnas med `shell.openPath`. Ingen användarangiven sökväg eller exekverbar fil används. Temporärkataloger städas vid avslut så långt OS-filspärrar tillåter. Originalet i databasen påverkas inte av redigering i standardprogrammet. I webbläsaren hämtas originalet via autentiserad lokal begäran och Blob-nedladdning. Originalets hash kontrolleras före utlämning. Kopior öppnade i externa program ligger utanför appens sessions- och utskriftskontroll.
+
+Bokslutets källfingeravtryck inkluderar originalens identitet/checksumma/metadata och kopplingshistorikens aktuella rader, utan att läsa hela BLOB:ar vid varje avstämning. Därmed kan även en orelaterad arkivändring kräva ny granskning. Bevarade bokslutsversioner innehåller `archiveManifest` med då aktiva kopplingar och originalens ID, filnamn, typ, storlek och hash. Originalbytes finns i samma företagsdatabas och säkerhetskopia, inte i JSON-underlaget. En fryst version ändras inte vid senare avaktivering av länkar.
+
+Schema 10 tillför nya `archive_`-tabeller/index/triggers. Kompletta schema 4–9-säkerhetskopior valideras mot motsvarande äldre struktur och migreras vid öppning. Schema 10-import verifierar också originalens filformat, längd och SHA-256. Importgränsen höjs till 256 MiB med begränsad JSON-förfrågan. Alla register/original/historik följer SQLite-säkerhetskopian, men externa filer som endast nämns med sökväg gör det inte. Arkivet är ingen fullständig arkivplan eller garanti för bokföringslagens alla bevarandekrav.
