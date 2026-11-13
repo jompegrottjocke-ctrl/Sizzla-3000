@@ -32,6 +32,12 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 
 Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring och lönehantering är inte färdigt. Bankintegration, automatisk säkerhetskopiering och komplett verifierade regelverk återstår. Se [Systemdokumentation och kvarstående krav](SYSTEMDOKUMENTATION.md) för uppbyggnad, spårbarhet och kända luckor, inklusive avsaknad av identifierad användare vid rättelser.
 
+## Server & moln (beta)
+
+Under Inställningar, direkt efter Databaser, finns **Server & moln** med förhandsvisning av användningsläge, HTTPS-adress, användarnamn och serverdatabas. Lokal användning är förvalt och är alltid det verkliga driftläget i denna version. Fälten sparas inte och inga anslutningar eller inloggningsförsök görs. Lösenordsfält, Anslut, Koppla från och Spara anslutning är avstängda. Testa anslutning förklarar betastatusen utan att kontakta adressen. Återställ förhandsvisning rensar formuläret.
+
+Säkerhetsinformationen beskriver krav för den framtida serverdelen: krypterad kommunikation med HTTPS/TLS, kontroll av serverns certifikat samt inloggning/behörigheter. Den anger uttryckligen att ingen krypterad serveranslutning är aktiv. Serverdelen utvecklas senare; fliken ändrar inte säkerhetskraven på den lokala databasen eller säkerhetskopiorna.
+
 ## Flera företag under Databaser
 
 1. Öppna **Inställningar → Databaser**. Den befintliga databasen finns kvar som **Företag 1**, på sin tidigare plats. Inga gamla uppgifter flyttas eller ersätts.

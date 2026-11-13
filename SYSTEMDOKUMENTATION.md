@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.10.0, databasschema 8. Upprättad 2026-11-12.
+Version 0.10.3, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -58,6 +58,8 @@ Företaget behöver fastställa och prova rutiner för läsbarhet, återställni
 - Verifiera arkivering och återläsning över tid, avstämning av huvudbok/reskontra samt stödet mot aktuell normgivning från Bokföringsnämnden. Automatiska tester av belopp och låsning är inte en sådan fullständig granskning.
 
 ## Framtida molndrift och personuppgifter
+
+Fliken Server & moln är en ren betaförhandsvisning. Adress, användarnamn och serverdatabas finns bara tillfälligt i gränssnittets minne. Ingen konfiguration sparas och inget anslutnings-/inloggningsanrop görs; lösenordsfält och anslutningsknappar är avstängda. Säkerhetstexterna anger planerade krav på HTTPS/TLS, certifikatkontroll och behörigheter, och bekräftar inte någon aktuell krypterad anslutning. Det faktiska driftläget förblir lokalt.
 
 Den lokala versionen skickar inte företagets register till en Sizzla-server. Om en framtida tjänst behandlar personuppgifter för kundföretagets räkning behöver personuppgiftsansvarig och personuppgiftsbiträde identifieras och ett personuppgiftsbiträdesavtal enligt artikel 28 GDPR finnas på plats. Även underbiträden, instruktioner, säkerhet, incidenthantering, återlämning/radering och eventuella överföringar behöver hanteras. Krypterad transport ersätter inte avtalet eller dessa rutiner. Server- och molndrift ingår ännu inte.
 
