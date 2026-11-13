@@ -15,7 +15,7 @@ async function fixture(fn){
  const state=async()=>{const s=await fetch(app.url+'/api/state').then(r=>r.json());token=s.token;return s;};await state();
  const post=async(route,body)=>{const r=await fetch(app.url+'/api/'+route,{method:'POST',headers:{'Content-Type':'application/json','X-Sizzla-Token':token,Origin:app.url},body:JSON.stringify(body)});return {status:r.status,body:await r.json()};};
  const restart=async()=>{app.close();app=createApp({dataDir});await app.listen();return state();};
- try{await post('company',{name:'Bokföring test AB',org:'559123-4567'});await fn({state,post,restart,get app(){return app;}});}finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
+ try{await post('accounting/operator',{name:'Testansvarig'});await post('company',{name:'Bokföring test AB',org:'559123-4567'});await fn({state,post,restart,get app(){return app;}});;for(const voucher of (await state()).accounting.vouchers.filter(v=>v.corrects))assert.equal(voucher.actor?.name,'Testansvarig');}finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
 }
 test('posting, immutability, correction, locking, reports, result transfer and next-year opening balances',()=>fixture(async ctx=>{
  const {post,state}=ctx;

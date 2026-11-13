@@ -1,6 +1,6 @@
 # Kravunderlag: Bokslut & skatt
 
-Upprättat 2026-11-13. Granskad programgrund: Sizzla 3000 0.15.1, commit 3147922. Detta dokument är ett genomförandeunderlag och en gap-analys, inte ett intyg om regelefterlevnad. Appens beteende har inte ändrats genom dokumentet.
+Upprättat 2026-11-13. Granskad programgrund: Sizzla 3000 0.15.1, commit 3147922. Detta dokument är ett genomförandeunderlag och en gap-analys, inte ett intyg om regelefterlevnad. Dokumentet beskriver ursprungliga luckor i 0.15.1; genomförandestatus för 0.16 framgår nedan.
 
 ## 1. Beslut och avgränsning
 
@@ -111,3 +111,9 @@ Dessa prov ska implementeras tillsammans med respektive funktion; detta dokument
 [BFN-analysen](BFN_UPPLADDADE_REGLER.md) kompletterar särskilt G01, G04, G06, G09, G12, AB01–AB02 och EF01–EF02. Den innehåller tillämpningsmatriser för BFNAR 2025:2 respektive 2026:1, K2:s utökade behörighetskrav, tidigare/nya periodiseringsgränser, rättelsepresentation och skillnader mellan årsredovisning och vanligt årsbokslut. Där angivna färdigvillkor och provfall ska ingå i genomförandet. Regelanalysen innebär ingen ny appfunktion eller ändring i tidigare bokföring.
 
 K1-spåret kompletteras av [U8: enskild firma](BFN_K1_ENSKILD_FIRMA.md), med krav på samlad verksamhetsbedömning, årsberoende prisbasbelopp, separat K1-mall och provfall för kontantmetodens årsskifte.
+
+## 10. Första genomförande i 0.16
+
+Gemensam bokslutsberedning har implementerats: ärenden, manuellt dokumenterade regelval, nio avstämningsområden mot huvudbok, konservativ inaktualitetskontroll, bevarade arbetsversioner, återöppning med orsak samt JSON/PDF-underlag. Lokalt angiven ansvarig bevaras vid nya bokföringshändelser och krävs vid motbokning/kreditbokning och bokslutsgranskning. Programversions- och kontoplansändringar får metadata. Detta minskar luckorna i G04/G06/G09 men fullständiga slutdokument, beräkningsregler, källarkiv och verifierad behandling enligt samtliga krav återstår.
+
+Operatörsuppgiften är självdeklarerad, inte autentiserad. Äldre okända aktörer lämnas okända. Regelprofil och behörighet bedöms manuellt, och kontantmetodens bokslutsflöde stöds ännu inte. Avstämt arbetsunderlag får inte markeras som färdig årsredovisning, föreskrivet årsbokslut eller deklaration. Se aktuell [systemdokumentation](../SYSTEMDOKUMENTATION.md).

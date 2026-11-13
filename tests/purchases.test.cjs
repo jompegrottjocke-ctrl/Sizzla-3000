@@ -17,7 +17,7 @@ async function fixture(fn){
  const latest=async(kind,id)=>(await state()).purchases[kind].find(r=>r.id===id);
  const run=async(route,body)=>{const r=await post('purchases/'+route,body);assert.equal(r.status,200,JSON.stringify(r.body));return r.body;};
  const restart=async()=>{app.close();app=createApp({dataDir});await app.listen();return state();};
- try{await post('company',{name:'Inköp AB',org:'559123-4567'});const y=await post('accounting/years',{name:'2026',start:'2026-01-01',end:'2026-12-31'});await fn({run,post,state,latest,restart,yearId:y.body.id,get app(){return app;}});}finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
+ try{await post('accounting/operator',{name:'Testansvarig'});await post('company',{name:'Inköp AB',org:'559123-4567'});const y=await post('accounting/years',{name:'2026',start:'2026-01-01',end:'2026-12-31'});await fn({run,post,state,latest,restart,yearId:y.body.id,get app(){return app;}});;for(const voucher of (await state()).accounting.vouchers.filter(v=>v.corrects))assert.equal(voucher.actor?.name,'Testansvarig');}finally{app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
 }
 const vendor={name:'Leverantör Test AB',org:'556000-0001',terms:30,email:'inkop@example.se'};
 const goods=[{description:'Varor',quantity:'10',price:'100',vat:25,deductible:'50',expenseAccount:'4000'}];
@@ -38,7 +38,7 @@ test('supplier and order snapshots, partial receipts, receipt corrections and mi
  assert.equal((await latest('orders',o.id)).deliveryStatus,'partial');
  await run('suppliers',{...vendor,id:s.id,revision:1,name:'Nytt leverantörsnamn',active:false});
  const restored=await ctx.restart();assert.equal(restored.purchases.suppliers[0].active,false);assert.equal(restored.purchases.orders[0].supplier.name,vendor.name);
- assert.equal(restored.purchases.receipts.find(r=>r.id===first.id).active,false);assert.equal(ctx.app.db.prepare('PRAGMA user_version').get().user_version,8);
+ assert.equal(restored.purchases.receipts.find(r=>r.id===first.id).active,false);assert.equal(ctx.app.db.prepare('PRAGMA user_version').get().user_version,9);
 }));
 test('invoice approval, duplicate protection, partial payments, credit allocation and reversals reconcile to the ledger',()=>fixture(async ctx=>{
  const {run,post,latest,yearId,state}=ctx;const s=await run('suppliers',vendor);
@@ -100,7 +100,7 @@ test('schema 3 upgrade retains existing ledger, salary, customer and preference 
  old.prepare('INSERT INTO ledger_vouchers VALUES(?,?,?,?,?,?,?,?,?,?)').run('legacy-voucher','legacy-year',1,'posted',1,JSON.stringify(voucher),null,null,null,null);old.close();
  const app=createApp({dataDir});await app.listen();
  try{
-  const s=await fetch(app.url+'/api/state').then(r=>r.json());assert.equal(app.db.prepare('PRAGMA user_version').get().user_version,8);
+  const s=await fetch(app.url+'/api/state').then(r=>r.json());assert.equal(app.db.prepare('PRAGMA user_version').get().user_version,9);
   assert.equal(s.customers[0].name,'Befintlig kund');assert.equal(s.employees[0].salary,3000000);assert.equal(s.payruns[0].status,'paid');
   assert.equal(s.accounting.accounts.find(a=>a.code==='1930').name,'Mitt bankkonto');assert.deepEqual(s.accounting.vouchers[0].lines,voucher.lines);
   assert.deepEqual(s.preferences,{theme:'dark',language:'en'});assert.deepEqual(s.purchases.invoices,[]);assert.equal(s.accounting.years[0].openingLocked,true);

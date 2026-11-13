@@ -62,7 +62,16 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
   const accounts = () => db.prepare('SELECT * FROM ledger_accounts ORDER BY code').all().map(a=>({code:a.code,name:a.name,nameEn:a.name_en,active:!!a.active,type:accountType(a.code)}));
   const years = () => db.prepare('SELECT * FROM ledger_years ORDER BY start DESC').all().map(y=>({...JSON.parse(y.data),id:y.id,start:y.start,end:y.end,revision:y.revision}));
   const vouchers = () => db.prepare('SELECT * FROM ledger_vouchers ORDER BY rowid DESC').all().map(v=>({...JSON.parse(v.data),id:v.id,yearId:v.year_id,number:v.number,status:v.status,revision:v.revision,corrects:v.corrects,reversedBy:v.reversed_by,sourceKind:v.source_kind,sourceId:v.source_id}));
-  const event = (entity,id,action,data={}) => db.prepare('INSERT INTO ledger_events(at,entity,entity_id,action,data) VALUES(?,?,?,?,?)').run(new Date().toISOString(),entity,id,action,JSON.stringify(data));
+  // A local declared operator is attribution, not authentication. Never backfill historical actors.
+  const operator = () => JSON.parse(db.prepare("SELECT data FROM records WHERE kind='accounting_operator' AND id='active'").get()?.data || 'null');
+  const requireOperator = () => {const actor=operator();if(!actor)throw new AccountingError('bookActorRequired',400);return actor;};
+  const programVersion = require('../package.json').version;
+  const event = (entity,id,action,data={}) => db.prepare('INSERT INTO ledger_events(at,entity,entity_id,action,data) VALUES(?,?,?,?,?)').run(new Date().toISOString(),entity,id,action,JSON.stringify({details:data,actor:operator(),programVersion}));
+  const previousVersion=db.prepare("SELECT data FROM records WHERE kind='accounting_runtime' AND id='version'").get();
+  if(!previousVersion || JSON.parse(previousVersion.data).version!==programVersion){
+    db.exec('BEGIN IMMEDIATE');try{event('system','version','version',{previous:previousVersion?JSON.parse(previousVersion.data).version:null,current:programVersion,effectiveAt:new Date().toISOString()});db.prepare("INSERT INTO records VALUES('accounting_runtime','version',?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data").run(JSON.stringify({version:programVersion}));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}
+  }
+
   const yearById = id => { const y=years().find(y=>y.id===id);if(!y)throw new AccountingError('bookMissing',404);return y; };
   const current = (items,body) => { const row=items.find(v=>v.id===body.id);if(!row)throw new AccountingError('bookMissing',404);if(row.revision!==body.revision)throw new AccountingError('bookConflict');return row; };
   const checkDate = (year,date) => { validDate(date);if(year.closed)throw new AccountingError('bookYearClosed');if(date<year.start||date>year.end)invalid('bookOutsideYear');if(year.lockedThrough&&date<=year.lockedThrough)throw new AccountingError('bookPeriodLocked'); };
@@ -71,11 +80,12 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
   function createPosted(year,data,{id=randomUUID(),revision=1,corrects=null,sourceKind=null,sourceId=null}={}) {
     if(!data.company?.name||!/^\d{6}-?\d{4}$/.test(data.company.org||''))throw new AccountingError('bookCompanyChanged');
     checkDate(year,data.date);
+    if(corrects||(sourceKind&&db.prepare('SELECT 1 FROM ledger_vouchers WHERE source_kind=? AND source_id=? AND reversed_by IS NOT NULL').get(sourceKind,sourceId)))requireOperator();
     if(sourceKind&&activeSource(sourceKind,sourceId))throw new AccountingError('bookSourcePosted');
     // Validate again inside the posting transaction; snapshots use the current account names.
     const lines=validateLines(data.lines.map(l=>({...l,debit:(l.debit/100).toFixed(2),credit:(l.credit/100).toFixed(2)})),accounts());
     const number=db.prepare("SELECT COALESCE(MAX(number),0)+1 AS next FROM ledger_vouchers WHERE year_id=? AND status='posted'").get(year.id).next;
-    const snapshot={date:data.date,description:data.description,reference:data.reference,lines,company:data.company,wagesPayableAccount:data.wagesPayableAccount||null,liabilityAccount:data.liabilityAccount||null,purchaseInvoiceId:data.purchaseInvoiceId||null,created:data.created||new Date().toISOString(),posted:new Date().toISOString()};
+    const snapshot={date:data.date,description:data.description,reference:data.reference,lines,company:data.company,wagesPayableAccount:data.wagesPayableAccount||null,liabilityAccount:data.liabilityAccount||null,purchaseInvoiceId:data.purchaseInvoiceId||null,actor:operator(),programVersion,created:data.created||new Date().toISOString(),posted:new Date().toISOString()};
     const existing=db.prepare('SELECT id FROM ledger_vouchers WHERE id=?').get(id);
     if(existing)db.prepare("UPDATE ledger_vouchers SET number=?,status='posted',revision=?,data=? WHERE id=?").run(number,revision,JSON.stringify(snapshot),id);
     else db.prepare("INSERT INTO ledger_vouchers VALUES(?,?,?,'posted',?,?,?,?,?,?)").run(id,year.id,number,revision,JSON.stringify(snapshot),corrects,null,sourceKind,sourceId);
@@ -86,29 +96,36 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
     if(validDate(body.date)<v.date)invalid('bookReversalDate');
     if(v.sourceKind==='payroll'&&activeSource('payrollPayment',v.sourceId))throw new AccountingError('bookReversePaymentFirst');
     beforeReverse(v,body);
+    requireOperator();
     const reason=text(body.reason,'bookReason'),y=yearById(body.yearId);
     const result=createPosted(y,{date:body.date,description:reason,reference:`A${v.number} / ${yearById(v.yearId).name}`,lines:v.lines.map(l=>({...l,debit:l.credit,credit:l.debit})),company},{corrects:v.id});
     db.prepare('UPDATE ledger_vouchers SET reversed_by=?,revision=revision+1 WHERE id=?').run(result.id,v.id);event('voucher',v.id,'reversed',{reversal:result.id,reason});
     afterReverse(v,result,reason);return result;
   }
   return {
+    operator,requireOperator,
     source:activeSource,
     postSource:(yearId,data,source)=>createPosted(yearById(yearId),data,source),
     reverseSource:(id,body,company)=>reversePosted(current(vouchers(),{id,revision:body.revision}),body,company),
     account:code=>accounts().find(a=>a.code===code&&a.active),
     payrollHasPosting:id=>!!activeSource('payroll',id),
     hasPosted:()=>!!db.prepare("SELECT 1 FROM ledger_vouchers WHERE status='posted' LIMIT 1").get(),
-    state:()=>({accounts:accounts(),years:years(),vouchers:vouchers(),events:db.prepare('SELECT id,at,entity,entity_id AS entityId,action FROM ledger_events ORDER BY id DESC').all()}),
+    state:()=>({accounts:accounts(),years:years(),vouchers:vouchers(),operator:operator(),events:db.prepare('SELECT id,at,entity,entity_id AS entityId,action,data FROM ledger_events ORDER BY id DESC').all().map(e=>{const data=JSON.parse(e.data);return {...e,data,actor:data.actor||null,programVersion:data.programVersion||null};})}),
     handle(route,body,company) {
       db.exec('BEGIN IMMEDIATE');
       try {
         let result;
-        if(route==='/api/accounting/accounts') {
+        if(route==='/api/accounting/operator') {
+          const name=text(body.name,'bookActorRequired',true,100),old=operator();
+          const actor=old?.name===name?old:{id:randomUUID(),name};
+          db.prepare("INSERT INTO records VALUES('accounting_operator','active',?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data").run(JSON.stringify(actor));event('operator',actor.id,'selected',{previous:old,selected:actor});result=actor;
+        } else if(route==='/api/accounting/accounts') {
           const code=text(body.code,'bookAccount');if(!/^[1-8]\d{3}$/.test(code))invalid('bookAccount');
           const name=text(body.name,'name'),nameEn=text(body.nameEn||body.name,'nameEn'),active=body.active!==false;
           if(!active&&years().filter(y=>!y.closed).some(y=>balances(y,vouchers(),accounts()).some(a=>a.code===code&&a.balance!==0)))throw new AccountingError('bookAccountBalance');
+          const before=accounts().find(a=>a.code===code)||null;
           db.prepare('INSERT INTO ledger_accounts VALUES(?,?,?,?) ON CONFLICT(code) DO UPDATE SET name=excluded.name,name_en=excluded.name_en,active=excluded.active').run(code,name,nameEn,+active);
-          event('account',code,'saved',{name,nameEn,active});result={code};
+          event('account',code,'saved',{before,name,nameEn,active,effectiveAt:new Date().toISOString()});result={code};
         } else if(route==='/api/accounting/years') {
           const start=validDate(body.start),end=validDate(body.end);
           if(end<start||end>lastFiscalDay(start))invalid('bookYearDates');

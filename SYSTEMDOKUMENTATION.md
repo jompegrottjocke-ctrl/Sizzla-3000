@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.15.1, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.16.0, databasschema 9. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -43,7 +43,7 @@ Bokförda verifikationsdata skyddas mot ändring och radering i appen och med SQ
 
 `ledger_events` bevarar tidpunkt, objekt, åtgärd och JSON-data för bland annat utkast, bokföring, rättelser, konton och årshantering. Bokföringsvyn visar tidpunkt, objekt och åtgärd; den visar inte hela loggens JSON-innehåll. `sales_events` kompletterar med kundfakturornas och regleringarnas händelser. `time_events` registrerar projektändringar, tidsregistrering, godkännande, makulering och överföring/återtagning av fakturaunderlag. Inte heller denna historik identifierar operatören. Betalningsrättelse från Bokföring uppdaterar berörd reskontra i samma transaktion. Tidpunkter lagras som UTC; gränssnittet visar lokal tid. Historiken bygger på datorns klocka.
 
-Historiken är **inte en fullständig behandlingshistorik**. Ingen identifierad operatör sparas vid rättelser och ingen inloggning finns. Det saknas också en sammanhållen användarvy/export av alla historikdetaljer och all registerändring. Lokala SQL-skydd skyddar inte mot någon med full kontroll över databasfilen. Dessa begränsningar måste åtgärdas och verifieras innan stöd för full efterlevnad kan beskrivas som färdigt.
+Historiken är **inte en fullständig behandlingshistorik**. Från 0.16 krävs lokalt angiven ansvarig vid motbokning och kreditbokning. Namn/ID sparas i nya verifikationer och nya bokföringshändelsers JSON-data. Uppgiften är självdeklarerad, inte autentiserad; äldre uppgifter kompletteras inte i efterhand. Bokföringshistoriken visas med ansvarig/programversion och kan exporteras med detaljer. Alla registerändringar och beräkningsregler är ännu inte fullständigt dokumenterade. Lokala SQL-skydd skyddar inte mot någon med full kontroll över databasfilen. Dessa begränsningar måste åtgärdas och verifieras innan stöd för full efterlevnad kan beskrivas som färdigt.
 
 ## Bevarande och återställning
 
@@ -130,3 +130,17 @@ Modulen stödjer inte skattemässiga överavskrivningar, nedskrivningar, uppskri
 [Kravunderlaget](docs/BOKSLUT_KRAV.md) och [källförteckningen](docs/BOKSLUT_KALLOR.md) beskriver gemensamma krav, separata AB-/EF-spår, identifierade luckor och acceptansprov inför nästa modul. Lansering är planerad efter 2026-12-29; aktuell kanal och regelversion måste verifieras före lansering. Användarens tidigare och senare K2-/årsbokslutsfiler har granskats i relevanta delar; se [BFN-analysen](docs/BFN_UPPLADDADE_REGLER.md). Bokföring och Gränsvärden har också granskats i utvalda delar; Fusion har endast omfattningsbedömts. Se [kompletteringen](docs/BFN_BOKFORING_GRANSVARDEN.md). Övriga valda regelspår samt fullständig detaljgranskning och senare publiceringskontroll återstår. Direktåtkomsten till BFN är fortfarande blockerad. Dokumenten innebär ingen ny boksluts-/skattefunktion eller verifiering av fullständig regelefterlevnad.
 
 [K1-underlaget för enskild firma](docs/BFN_K1_ENSKILD_FIRMA.md) beskriver utvalda krav från den uppladdade vägledningen uppdaterad 2025-03-24. Detta är en käll- och kravkomplettering, inte implementerat K1-stöd.
+
+## Bokslutsberedning 0.16 / schema 9
+
+`src/closing.cjs` lagrar ärenden (`closing_cases`), versionsbundna arbetsunderlag (`closing_versions`) och händelser (`closing_events`) per företagsdatabas. Versioner och bokslutshistorik skyddas mot uppdatering/radering med SQL-triggers. Även `ledger_events` får sådant skydd. Dessa skydd förhindrar inte ändring av någon med full kontroll över databasfilen.
+
+Avstämningar lagrar kontourval, huvudbokssaldo i heltalsören, jämförelsebelopp, differens, underlagsreferens, kommentar, ansvarig, UTC-tid och källfingeravtryck. Noll differens krävs för avstämd post. Ej tillämpligt kräver motivering; systemet bevisar inte fullständigt kontourval eller att motiveringen är sakligt riktig. Huvudbokssaldot använder ingående balans och bokförda verifikationer för valt år, inklusive original och motbokningar. Detta är ingen automatisk historisk reskontraavstämning.
+
+SHA-256-fingeravtrycket inkluderar programversion och beräknas konservativt över företagsinställningar och affärsdata (inklusive bokföring, register, reskontra och relevanta modultabeller). Även andra års/registerändringar kan därför kräva ny avstämning. Val av operatör, utskriftsförsök och bokslutsärendets egna ändringar ingår inte. Uppdatering/rättelse av ett underlag efter granskning avvisar en gammal begäran och markerar avstämningarna inaktuella.
+
+Bevarad version innehåller företagskopia, år, avsedd regelprofil och manuell tillämpningsbedömning, saldobalans, årets bokförda verifikationer, avstämningar, ansvarig, tid, programversion och källfingeravtryck. Den är arbetsunderlag, inte föreskrivet slutdokument eller verifierad deklaration. Frysning stänger inte räkenskapsåret. Återöppning kräver orsak och rensar aktuella avstämningar; äldre versioner ändras inte. Ändrat regelval i ett pågående ärende loggas och kräver ny granskning.
+
+JSON-export innehåller den valda versionen och ärendehistoriken. Utskrift läser den bevarade versionen, med egen typ `closing_report` i PDF-/utskriftshistoriken. Originalfiler som endast anges med referens kopieras inte. Vanlig säkerhetskopia tar med nya tabeller; schema 4–8 tillåts vid import med motsvarande äldre strukturkontroll, och nya tabeller skapas vid öppning.
+
+Ansvarig person lagras som lokal aktiv profil i `records` med namn och UUID. Samma namn behåller aktivt ID; namnbyte skapar nytt ID. Profilen används av gemensam bokföringskod även när inköp, försäljning, lön eller anläggningar initierar en motbokning. Appens tidigare lösenordslås återinförs inte. Uppgiften är ingen autentisering. Programversionsbyte loggas när databasen öppnas med versionen, och kontoplansändring loggar före-/efteruppgifter och registreringstid. Detta ersätter inte fullständig versionsbunden dokumentation av alla beräkningsregler.

@@ -31,7 +31,7 @@ Ett affärssystem för Windows 11, med svenska som standardspråk och valbar eng
 - Textstorlek 100–200 % och fet text sparas mellan starter.
 - Bokslut/skatt, anläggningsregister, koncern och byrå har flikar med **beta kommer senare** (engelska: beta comes later).
 
-Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring och lönehantering är inte färdigt. Bankintegration, automatisk säkerhetskopiering och komplett verifierade regelverk återstår. Se [Systemdokumentation och kvarstående krav](SYSTEMDOKUMENTATION.md) för uppbyggnad, spårbarhet och kända luckor, inklusive avsaknad av identifierad användare vid rättelser.
+Det här är en utvecklingsversion. Fullständigt stöd för skarp bokföring och lönehantering är inte färdigt. Bankintegration, automatisk säkerhetskopiering och komplett verifierade regelverk återstår. Se [Systemdokumentation och kvarstående krav](SYSTEMDOKUMENTATION.md) för uppbyggnad, spårbarhet och kända luckor, inklusive begränsningarna i lokal självdeklarerad ansvarig och behandlingshistorik.
 
 ## Server & moln (beta)
 
@@ -112,7 +112,7 @@ Version 0.11 använder fortsatt **schema 8**. Befintliga uppgifter och PDF-histo
 - Status skiljer mellan förberedelse, öppnad dialog, skickad till utskriftssystemet, sparad PDF, avbrutet och misslyckat. Native utskriftsdialogens callback avgör status; fysiskt papper kan inte bekräftas. Efter avbrott/omstart med ett oavslutat försök visas **Okänt resultat**, aldrig en antagen lyckad utskrift. Fel vid PDF-generering registreras med förklaring och utan PDF-knappar.
 - Historiken registrerar appens utskriftsknappar och Ctrl + P i utskriftsvyn. Utskrift direkt från en PDF-visares egna kontroller eller externa program registreras inte. Utvecklingsläget i vanlig webbläsare har kvar utskriftsförhandsvisning men kan inte skapa automatiska PDF-kopior eller tillförlitlig historik; detta anges i vyn.
 - PDF-kopior och historik lagras i SQLite och ingår i databasexport/import. En PDF får vara högst 20 MB. Databasen växer när kopior sparas; gränsen på 64 MB för import via appen gäller fortfarande för hela säkerhetskopian. Ta regelbundna säkerhetskopior. Historiken kan inte återskapa utskrifter gjorda före uppdateringen och har ingen funktion för radering eller separat åtkomstkontroll för löner.
-- Utskriftshistoriken infördes i version 0.6 med schema 5; nuvarande version använder schema 8. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
+- Utskriftshistoriken infördes i version 0.6 med schema 5; nuvarande version använder schema 9. Uppgradering och import av kompletta schema 4-kopior från 0.5-serien bevarar tidigare företags-, personal-, kund-, inköps- och bokföringsdata. Kör inte äldre programversioner mot den uppgraderade databasen.
 
 ## Arbetsflöde för Bokföring
 
@@ -190,7 +190,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 - **Utseende & läsbarhet** har en egen flik under Inställningar. Där väljer du färgtema, textstorlek (100, 125, 150, 175 eller 200 %) för hela gränssnittet samt valbar fet text. Välj **Spara** för att spara alla tre valen tillsammans. Standard är Följ systemet, 100 % och normal text. Sparade val behålls vid uppdatering. Menyer och formulär anpassas vid förstoring; breda tabeller kan rullas i sidled. Pappersutskrifter behåller normal skala.
 - Programlås och upplåsningshistorik är bortkopplade i 0.5.4. Låsknapp, Ctrl + L, inaktivitetsmätning och Windowskoppling för låsning ingår inte. Äldre låsinställningar och historik ligger kvar orörda för kompatibilitet med säkerhetskopior, men kan inte aktivera ett lås, heller inte efter import. Använd Win + L för att låsa Windows.
 - Databasen är inte krypterad i applikationen. Använd Windowskontots åtkomstskydd och exempelvis BitLocker för skydd på disk.
-- Versionerna 0.2–0.11 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 8. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
+- Versionerna 0.2–0.11 utökar databasen utan att ersätta befintliga kunder, artiklar, inställningar, fakturautkast, personal eller bokföring. Aktuell databas använder schema 9. Ta en säkerhetskopia före uppdatering. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 - API:t lyssnar endast på loopback och tillåter endast rätt Host-header. Skrivningar kräver samma origin och en sessionsspecifik token. Rendererprocessen saknar Node-åtkomst och kör med sandbox och context isolation.
 - Det finns ännu ingen fjärrinloggning eller fleranvändarhantering. Exponera inte den lokala tjänsten på nätverket.
 
@@ -214,7 +214,7 @@ Lagermodulen ligger i `src/inventory.cjs` och `public/inventory.js`. Inköpsmodu
 
 Fakturering och kundbetalningar ligger i `src/sales.cjs` och `public/sales.js`. Utfärdande, regleringar och bokföringskopplingar använder gemensamma SQLite-transaktioner. Schema 7 bevarar befintliga data, lager och PDF-historik.
 
-Databaslistan hanteras i `src/databases.cjs` och `public/databases.js`. Servern öppnar ett nytt sammanhang före byte, sparar aktivt val och byter sessionsidentifierare. Native utskrift blockeras under bytet och använder aktuell session; databasformatet är nu schema 8.
+Databaslistan hanteras i `src/databases.cjs` och `public/databases.js`. Servern öppnar ett nytt sammanhang före byte, sparar aktivt val och byter sessionsidentifierare. Native utskrift blockeras under bytet och använder aktuell session; databasformatet är nu schema 9.
 
 Tid och projekt finns i `src/time.cjs` och `public/time.js`. Schema 8 tillför projekt, tidsrader, låsta fakturaunderlag och händelser. Vid databasbyte laddas även tidsmodulen om; äldre kompletta säkerhetskopior får tomma tidstabeller utan att kund-, bokförings- eller PDF-data ersätts.
 
@@ -267,3 +267,17 @@ Användarens uppladdade tidigare och senare K2-/årsbokslutsvägledningar har nu
 Kompletterande krav från uppladdad Bokföring och Gränsvärden samt avgränsning av Fusion finns i [BFN-kompletteringen](docs/BFN_BOKFORING_GRANSVARDEN.md). Detta är dokumentation inför utveckling, inte nya implementerade funktioner.
 
 [K1-underlaget för enskild firma](docs/BFN_K1_ENSKILD_FIRMA.md) beskriver utvalda krav från den uppladdade vägledningen uppdaterad 2025-03-24. Detta är en käll- och kravkomplettering, inte implementerat K1-stöd.
+
+## Bokslutsberedning (0.16)
+
+Under **Bokslut & skatt** väljer du ansvarig person och skapar ett ärende för ett räkenskapsår. Ange avsedd regelprofil, version och motiverad tillämpningsbedömning. Första flödet stöder faktureringsmetoden; kontantmetodens årsskifteshantering återstår.
+
+Stäm av bank/kassa, kundfordringar, leverantörsskulder, moms, löner, anläggningar, lager, periodiseringar/övriga skulder samt eget kapital/resultat. Välj konton, ange jämförelsebelopp med huvudbokens tecken (debet positivt/kredit negativt), underlagsreferens och kommentar. Skillnad hindrar godkänd avstämning. Ej tillämpligt kräver motivering. Företaget ansvarar för fullständigt kontourval och verkliga underlag.
+
+Ändringar i företagsdata gör avstämningarna inaktuella, även när ändringen inte säkert påverkar det valda året. Uppdatera och stäm av igen. Regelval kan ändras i pågående ärende med orsak och ny granskning. När alla områden är aktuella och årets verifikationsutkast hanterade kan en avstämd version bevaras. Ny granskning rensar aktuella godkännanden men behåller äldre versioner. JSON-exporten innehåller bevarade saldon, verifikationer, avstämningar och ärendehistorik; utskriften använder den bevarade versionen och ansluter till PDF-/utskriftshistoriken.
+
+**Arbetsunderlaget ersätter inte årsredovisning, föreskrivet årsbokslut eller deklaration.** Automatiska K1/K2-bedömningar, skatteberäkningar och myndighetsfiler återstår. Underlagsreferenser är hänvisningar; originalfiler måste bevaras separat och ingår inte automatiskt i databaskopian.
+
+Ansvarig vid bokföring anges i Bokföring eller Bokslut & skatt och sparas per databas. Det är ett självdeklarerat namn med lokalt ID, inte en verifierad inloggning. Motbokningar, kreditbokningar och bokslutsgranskning kräver ansvarig. Nya bokföringshändelser bevarar uppgiften; äldre poster med okänd ansvarig lämnas oförändrade. Ändringshistoriken kan exporteras till JSON, och journalens CSV samt verifikationsunderlaget visar nya uppgifter om ansvarig och registreringstid.
+
+Schema **9** lägger till bokslutsärenden, bevarade versioner och skyddad historik. Kompletta äldre schema 4–8-säkerhetskopior migreras vid återstart. Ta säkerhetskopia före uppdatering.

@@ -7,6 +7,7 @@ test('accounting: opening balance, balanced journal, immutable posting, reversal
  await page.getByLabel('Namn').fill('Sizzla Bokföring AB');await page.getByLabel('Organisationsnummer').fill('559123-4567');
  await page.getByRole('button',{name:'Spara',exact:true}).click();await expect(page.getByRole('status')).toContainText('Sparat');
  await page.locator('nav').getByRole('button',{name:'Bokföring',exact:true}).click();
+ await page.locator('#operator-form input').fill('Anna UI');await page.locator('#operator-form button').click();await expect(page.locator('#operator-form input')).toHaveValue('Anna UI');
  await page.locator('.book-year-bar').getByRole('button',{name:'Nytt räkenskapsår'}).click();
  await page.getByLabel('Namn på räkenskapsår').fill('2026');await page.getByLabel('Från och med').fill('2026-01-01');await page.getByLabel('Till och med').fill('2026-12-31');
  await page.getByRole('dialog').getByRole('button',{name:'Spara',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);

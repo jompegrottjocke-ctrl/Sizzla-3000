@@ -3,7 +3,7 @@ const printWords={
  en:{printHistory:'Print history',printIntro:'Saved PDF copies and print attempts, newest first.',printOtherDocuments:'Other document management: beta comes later.',printAll:'All',printSearch:'Search document or recipient',printType:'Document type',printStatus:'Status',printFrom:'From date',printTo:'To date',printTime:'Time',printNumber:'Document number',printRecipient:'Recipient',printAction:'Action',printDetails:'View details',printViewPdf:'View PDF',printSavePdf:'Save PDF',printAgain:'Print again',printOpenSource:'Open source record',printSourceHistory:'History for this record',printClearSource:'Show all records',printPrevious:'Previous',printNext:'Next',printEmpty:'No prints match these filters.',printFailed:'The print action failed. Try again.',printMissing:'The source record no longer exists. The saved PDF is still available.',printSnapshotTime:'PDF copy created',printSnapshot:'The PDF preserves the content at the time of printing and does not change when the source is edited.',printNotice:'Submitted to the print system does not confirm physical output. This history records the app’s print buttons. Printing directly from a PDF viewer is not recorded here.',printDesktop:'Automatic PDF copies and print history require the desktop app. Browser prints are not recorded.',printBusy:'Wait for the current print action to finish.',printInvalid:'Invalid print source.',printPdfFailed:'Could not create the PDF copy.',printPersonal:'Payroll documents contain personal data. Select Payslips to view them separately.',asset_report:'Fixed asset register',analysis_report:'Analysis report',time_report:'Time report / billing record',invoice:'Invoice draft',payroll:'Payslips',voucher:'Journal voucher',report:'Accounting report',inventory_report:'Stock report',sales_invoice:'Customer invoice / credit',inventory_count:'Stocktake',purchase_order:'Purchase order',purchase_invoice:'Supplier invoice',preparing:'Preparing print',dialog:'Dialog opened – waiting for result',submitted:'Submitted to print system',pdf_saved:'Saved as PDF',cancelled:'Cancelled',failed:'Failed',unknown:'Unknown result after restart',print:'Print',save_pdf:'Save PDF'}
 };
 const trp=key=>printWords[lang][key]||key;
-const printKinds=['asset_report','invoice','payroll','voucher','report','purchase_order','purchase_invoice','inventory_report','inventory_count','sales_invoice','time_report','analysis_report'];
+const printKinds=['closing_report','asset_report','invoice','payroll','voucher','report','purchase_order','purchase_invoice','inventory_report','inventory_count','sales_invoice','time_report','analysis_report'];
 let historyFilter={q:'',kind:'',status:'',from:'',to:'',offset:0,source:null},historyRows=[],historyRequest=0;
 const printChannel=new BroadcastChannel('sizzla-print-history');
 printChannel.onmessage=()=>{if(page==='documents')loadPrintHistory();};
@@ -28,6 +28,7 @@ async function openPrintSource(source){await load();editor=null;
  if(source.kind==='asset_report'){page='assets';assetTab='report';assetReportDate=source.to;render();await assetsLoadReport();return;}
  if(source.kind==='analysis_report'){if(!state.accounting.years.some(y=>y.id===source.yearId)){toast(trp('printMissing'));return;}analysisFilter={yearId:source.yearId,from:source.from,to:source.to,compare:!!source.compareFrom,compareFrom:source.compareFrom||'',compareTo:source.compareTo||''};analysisTab=['result','accounts','customers','articles','receivables'].includes(source.id)?source.id:'result';page='analysis';render();return;}
  if(source.kind==='time_report'){page='projects';timeTab=source.id==='entries'?'entries':'batches';render();if(source.id!=='entries'&&timeBatch(source.id))timeBatchView(source.id);return;}
+ if(source.kind==='closing_report'&&state.closing.versions.some(v=>v.id===source.id)){const v=state.closing.versions.find(v=>v.id===source.id);page='closing';closingId=v.caseId;render();return;}
  if(source.kind==='sales_invoice'&&state.sales.documents.some(d=>d.id===source.id)){page='invoices';render();salesView(source.id);return;}
  if(source.kind==='invoice'){const issued=state.sales.documents.find(d=>d.draftId===source.id);if(issued){page='invoices';render();salesView(issued.id);return;}}
  if(source.kind==='inventory_count'&&state.inventory.counts.some(c=>c.id===source.id)){page='inventory';inventoryTab='counts';render();inventoryCountView(source.id);return;}
@@ -41,6 +42,7 @@ async function openPrintSource(source){await load();editor=null;
  toast(trp('printMissing'));
 }
 function printSourceMeta(){
+ if(new URLSearchParams(location.search).has('closingVersion'))return closingPrintMeta();
  if(sessionStorage.getItem('sizzla-assets-print'))return assetsPrintMeta();
  if(sessionStorage.getItem('sizzla-analysis-print'))return analysisPrintMeta();
  if(sessionStorage.getItem('sizzla-time-print'))return timePrintMeta();
@@ -52,7 +54,7 @@ function printSourceMeta(){
  return inventoryPrintMeta();
 }
 function setupPrintPreview(){
- const button=document.querySelector('#print-now,#hr-print-now,#book-print-now,#purchase-print-now,#inventory-print-now,#sales-print-now,#time-print-now,#analysis-print-now,#asset-print-now');if(!button)return;let meta;try{meta=printSourceMeta();}catch{return;}if(!meta)return;
+ const button=document.querySelector('#closing-print-now,#print-now,#hr-print-now,#book-print-now,#purchase-print-now,#inventory-print-now,#sales-print-now,#time-print-now,#analysis-print-now,#asset-print-now');if(!button)return;let meta;try{meta=printSourceMeta();}catch{return;}if(!meta)return;
  const toolbar=button.parentElement;toolbar.classList.add('snapshot-toolbar');
  const pdf=document.createElement('button');pdf.className='secondary';pdf.textContent=trp('printSavePdf');pdf.disabled=!window.sizzlaPrint;toolbar.append(pdf);
  const history=document.createElement('button');history.className='secondary';history.textContent=trp('printSourceHistory');toolbar.append(history);history.onclick=()=>{if(window.opener&&!window.opener.closed){window.opener.showPrintHistory(meta.source);window.opener.focus();}else{showPrintHistory(meta.source);}};
@@ -62,3 +64,5 @@ function setupPrintPreview(){
  document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='p'&&window.sizzlaPrint&&button.isConnected){event.preventDefault();if(!button.disabled)capture('print');}});
 }
 function bindPrinting(){if(page!=='documents')return;const form=document.querySelector('#history-filters');let timer;const apply=()=>{for(const key of ['q','kind','status','from','to'])historyFilter[key]=form.elements[key].value;historyFilter.offset=0;loadPrintHistory();};form.onsubmit=event=>{event.preventDefault();apply();};form.onchange=apply;form.elements.q.oninput=()=>{clearTimeout(timer);timer=setTimeout(apply,200);};const clear=document.querySelector('#print-clear-source');if(clear)clear.onclick=()=>showPrintHistory();loadPrintHistory();}
+
+printWords.sv.closing_report='Bokslutsunderlag';printWords.en.closing_report='Closing working papers';

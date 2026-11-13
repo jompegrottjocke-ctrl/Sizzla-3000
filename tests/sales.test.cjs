@@ -5,7 +5,7 @@ async function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzl
  const state=async()=>{const s=await fetch(app.url+'/api/state').then(r=>r.json());token=s.token;return s;};await state();
  const post=async(route,body)=>{const r=await fetch(app.url+'/api/'+route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});return {status:r.status,body:await r.json()};};
  const run=async(route,body)=>{const r=await post(route,body);assert.equal(r.status,200,JSON.stringify(r.body));return r.body;};
- await run('company',company);const customer=await run('customers',{name:'Kunden AB',address:'Kundgatan 2',postal:'22233',city:'Malmö'});const year=await run('accounting/years',{name:'2026',start:'2026-01-01',end:'2026-12-31'});
+ await run('accounting/operator',{name:'Testansvarig'});await run('company',company);const customer=await run('customers',{name:'Kunden AB',address:'Kundgatan 2',postal:'22233',city:'Malmö'});const year=await run('accounting/years',{name:'2026',start:'2026-01-01',end:'2026-12-31'});
  const draft=async(lines=[{description:'Vara',quantity:'10',unit:'st',price:'100',vat:25}])=>run('invoices',{customerId:customer.id,date:'2026-11-01',due:'2026-11-30',lines});
  const doc=async id=>(await state()).sales.documents.find(d=>d.id===id);
  const issue=async(id,patch={})=>{const s=await state(),d=s.invoices.find(d=>d.id===id);return run('sales/issue',{draftId:id,draftUpdated:d.updated,expectedNumber:s.sales.nextNumber,reviewed:true,yearId:year.id,...patch});};
@@ -13,7 +13,7 @@ async function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzl
  const credit=async(id,lines,patch={})=>{const s=await state(),d=s.sales.documents.find(d=>d.id===id);return run('sales/credit',{id,revision:d.revision,expectedNumber:s.sales.nextNumber,date:'2026-11-12',lines,reason:'Prisrättelse',yearId:year.id,reviewed:true,...patch});};
  const allocation=async(invoiceId,creditId,amount)=>{const a=await doc(invoiceId),b=await doc(creditId);return run('sales/allocations',{invoiceId,creditId,invoiceRevision:a.revision,creditRevision:b.revision,amount,date:'2026-11-12',yearId:year.id,reference:'KV-1',reviewed:true});};
  const restart=async()=>{app.close();app=createApp({dataDir:dir});await app.listen();return state();};
- try{await fn({dir,state,post,run,draft,doc,issue,payment,credit,allocation,restart,yearId:year.id,customerId:customer.id,get app(){return app;}});}finally{app.close();fs.rmSync(dir,{recursive:true,force:true});}}
+ try{await fn({dir,state,post,run,draft,doc,issue,payment,credit,allocation,restart,yearId:year.id,customerId:customer.id,get app(){return app;}});;for(const voucher of (await state()).accounting.vouchers.filter(v=>v.corrects))assert.equal(voucher.actor?.name,'Testansvarig');}finally{app.close();fs.rmSync(dir,{recursive:true,force:true});}}
 const accountBalance=(state,code)=>state.accounting.vouchers.filter(v=>v.status==='posted').flatMap(v=>v.lines).filter(l=>l.account===code).reduce((s,l)=>s+l.debit-l.credit,0);
 test('issuing is atomic, numbers never repeat, snapshots lock and mixed VAT posts exactly once',()=>fixture(async ctx=>{
  const d=await ctx.draft([{description:'Moms25',quantity:'2',unit:'tim',price:'100',vat:25},{description:'Moms12',quantity:'1',price:'100',vat:12},{description:'Moms6',quantity:'1',price:'100',vat:6}]);let s=await ctx.state(),raw=s.invoices.find(r=>r.id===d.id);

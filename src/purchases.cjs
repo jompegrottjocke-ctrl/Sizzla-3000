@@ -159,6 +159,7 @@ function initPurchases(db,accounting,inventory={}){
         }else if(route==='/api/purchases/invoices/post'){
           const i=current(invoices(),body);if(i.status!=='approved')throw new PurchaseError('purchaseLocked');if(body.reviewed!==true)invalid('purchaseReview');
           if(signedCompany(i.company)!==signedCompany(company))invalid('purchaseCompanyChanged');
+          if(i.type==='credit')accounting.requireOperator();
           const original=i.type==='credit'?invoiceSource(i.originalId):null;if(i.type==='credit'&&!original)throw new PurchaseError('purchasePostOriginalFirst');
           const liabilityAccount=allowed(original?.liabilityAccount||body.liabilityAccount,['liability']),vatAccount=i.lines.some(l=>l.deductibleTax)?allowed(body.vatAccount,['liability','asset']):null;
           const sign=i.type==='credit'?-1:1,lines=[];

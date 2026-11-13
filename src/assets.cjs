@@ -26,7 +26,7 @@ function initAssets(db,accounting){
  const rows=kind=>db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid').all(kind).map(r=>({id:r.id,...JSON.parse(r.data)}));
  const assets=()=>rows('fixed_asset'),operations=()=>rows('asset_operation');
  const save=(kind,value)=>{const {id,...data}=value;db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));};
- const audit=(a,action,data)=>db.prepare('INSERT INTO ledger_events(at,entity,entity_id,action,data) VALUES(?,?,?,?,?)').run(new Date().toISOString(),'asset',a.id,action,JSON.stringify(data));
+ const audit=(a,action,data)=>db.prepare('INSERT INTO ledger_events(at,entity,entity_id,action,data) VALUES(?,?,?,?,?)').run(new Date().toISOString(),'asset',a.id,action,JSON.stringify({...data,actor:accounting.operator(),programVersion:require('../package.json').version}));
  const current=body=>{const a=assets().find(a=>a.id===body.id);if(!a)throw new AssetError('assetMissing',404);if(a.revision!==body.revision)throw new AssetError('assetConflict');return a;};
  const live=(a,all=operations())=>all.filter(o=>o.assetId===a.id&&o.status==='posted');
  const dep=(a,all)=>live(a,all).filter(o=>o.kind==='depreciate');
@@ -103,7 +103,7 @@ function initAssets(db,accounting){
     const {asset,company:companySnapshot,yearRevision,saleRevision,lines,...operation}=plan;save('asset_operation',{...operation,id:opId,status:'posted',voucherId:v?.id||'',snapshot:asset,company:companySnapshot,lines,created:new Date().toISOString()});save('fixed_asset',{...asset,status:plan.kind==='dispose'?'disposed':'active',revision:asset.revision+1});audit(asset,plan.kind,{operationId:opId,...operation,voucherId:v?.id||''});result={id:asset.id,operationId:opId,voucherId:v?.id||''};db.exec('COMMIT');p.done=result;return result;
    }else if(route==='/api/assets/reverse'){
     if(body.reviewed!==true)fail('assetReview');const a=current(body),o=operations().find(o=>o.id===body.operationId&&o.assetId===a.id);if(!o||o.status!=='posted'||live(a).at(-1)?.id!==o.id)throw new AssetError('assetReverseLatest');const reversalDate=date(body.date),reason=text(body.reason,'assetReason');if(reversalDate<o.date||reversalDate>today()||reversalDate<operations().filter(op=>op.assetId===a.id).reduce((d,op)=>op.reversalDate>d?op.reversalDate:d,''))fail('assetChronology');year(body.yearId,reversalDate);
-    if(o.voucherId){const v=voucher(o.voucherId);if(!v)throw new AssetError('assetConflict');result=accounting.reverseSource(v.id,{revision:v.revision,yearId:body.yearId,date:reversalDate,reason},company);}else{markReversed(o,'',reversalDate,reason);result={id:a.id};}
+    if(o.voucherId){const v=voucher(o.voucherId);if(!v)throw new AssetError('assetConflict');result=accounting.reverseSource(v.id,{revision:v.revision,yearId:body.yearId,date:reversalDate,reason},company);}else{accounting.requireOperator();markReversed(o,'',reversalDate,reason);result={id:a.id};}
    }else throw new AssetError('assetMissing',404);
    db.exec('COMMIT');return result;
   }catch(e){db.exec('ROLLBACK');throw e;}
