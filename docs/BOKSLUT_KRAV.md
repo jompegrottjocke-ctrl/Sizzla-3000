@@ -15,7 +15,7 @@ Upprättat 2026-11-13. Granskad programgrund: Sizzla 3000 0.15.1, commit 3147922
 
 Lagtexterna BFL, ÅRL, ABL och IL samt Skatteverkets sidor för AB, enskild näringsverksamhet och filöverföring har lästs. Exakta länkar, lagrum och kontrollstatus finns i [källförteckningen](BOKSLUT_KALLOR.md).
 
-**BFN-underlaget är kompletterat med uppladdade PDF-filer:** både tidigare och senare versioner av K2 (BFNAR 2016:10) och Årsbokslut (BFNAR 2017:3) har granskats i relevanta delar. Se [versions- och regelanalysen](BFN_UPPLADDADE_REGLER.md) samt [källmanifestet](BFN_UPPLADDADE_KALLOR.json). Årsbokslutsändringen BFNAR 2026:1 och K2-ändringen BFNAR 2025:2 har olika tillämpningsvillkor; lanseringsdatum får inte ensamt välja regelversion. Direktåtkomst till BFN är fortfarande blockerad. Bokföringsvägledningen och K1/K3 i tillämpliga delar samt fullständig detaljgranskning och förnyad publiceringskontroll återstår. Det tidigare nätverksförslaget är inte tillämpat.
+**BFN-underlaget är kompletterat med uppladdade PDF-filer:** både tidigare och senare versioner av K2 (BFNAR 2016:10) och Årsbokslut (BFNAR 2017:3) har granskats i relevanta delar. Se [versions- och regelanalysen](BFN_UPPLADDADE_REGLER.md) samt [källmanifestet](BFN_UPPLADDADE_KALLOR.json). Årsbokslutsändringen BFNAR 2026:1 och K2-ändringen BFNAR 2025:2 har olika tillämpningsvillkor; lanseringsdatum får inte ensamt välja regelversion. Direktåtkomst till BFN är fortfarande blockerad. Bokföringsvägledningen och Gränsvärden har granskats i utvalda delar; se [kompletteringen U5–U7](BFN_BOKFORING_GRANSVARDEN.md). K1/K3 för valda spår, fullständig detaljgranskning och förnyad publiceringskontroll återstår. Det tidigare nätverksförslaget är inte tillämpat.
 
 Status nedan avser kodläget, inte juridiskt godkännande: **Delvis** = användbar funktion finns men krav återstår; **Saknas** = ingen komplett motsvarande funktion påvisad; **Källkontroll återstår** = detaljregel får inte implementeras som verifierad.
 
@@ -104,7 +104,7 @@ Dessa prov ska implementeras tillsammans med respektive funktion; detta dokument
 4. **Skatteunderlag:** AB05–AB06 respektive EF03–EF05 med versionsstyrda regler, redovisade begränsningar och kontrollerade beräkningsexempel.
 5. **Inlämningsstöd:** AB07 och A12 först efter verifierad aktuell kanal/specifikation och användarstyrd överförings-/signeringsrutin.
 
-**Kvarstående kontroll före regelberoende implementation:** bokföringsvägledning, K1/K3 för valda spår, återstående detaljregler i de uppladdade dokumenten och eventuella senare ändringar; fullständiga tekniska inlämningsspecifikationer; exakt lanseringsperiod och första stödda beskattningsår; sakgranskning av beräkningsfall och fullständiga boksluts-/årsredovisningsexempel. Befintlig kod och Windows-tester är inte bevis för att dessa krav är uppfyllda.
+**Kvarstående kontroll före regelberoende implementation:** återstående detaljgranskning av bokföringsvägledningen, K1/K3 för valda spår, återstående detaljregler i de uppladdade dokumenten och eventuella senare ändringar; fullständiga tekniska inlämningsspecifikationer; exakt lanseringsperiod och första stödda beskattningsår; sakgranskning av beräkningsfall och fullständiga boksluts-/årsredovisningsexempel. Befintlig kod och Windows-tester är inte bevis för att dessa krav är uppfyllda.
 
 ## 9. Komplettering från användarens BFN-filer
 

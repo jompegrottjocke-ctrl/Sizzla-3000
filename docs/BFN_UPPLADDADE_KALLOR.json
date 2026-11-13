@@ -55,6 +55,45 @@
       "sizeBytes": 4873793,
       "sha256": "8fe8e04668e5e6dd19bc289a69606370bdf1416ac275ab7c3d3781616e893131",
       "reviewScope": "selected_applicability_transition_and_closing_rules"
+    },
+    {
+      "id": "U5",
+      "fileName": "vl13-2-bokforing.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2013:2",
+      "title": "Bokföring",
+      "updated": "2024-09-16",
+      "corrected": null,
+      "pages": 120,
+      "sizeBytes": 2349603,
+      "sha256": "cca0573d1eb9027bbe87cd3505432f70261062107b552a8393dfd8d1dea6273c",
+      "reviewScope": "selected_permanence_corrections_archiving_system_documentation_and_processing_history"
+    },
+    {
+      "id": "U6",
+      "fileName": "vl-2006-11-gransvarden-kons-2026.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2006:11",
+      "title": "Gränsvärden",
+      "updated": "2026-09-14",
+      "corrected": null,
+      "pages": 21,
+      "sizeBytes": 327506,
+      "sha256": "987aee6407946d5015258f01cbc6101b0f8bcf41cae4eeb4ebf5cc1c9788782a",
+      "reviewScope": "selected_size_classification_methods_and_transition_rules"
+    },
+    {
+      "id": "U7",
+      "fileName": "vl-2020-5-fusion-kons-2026.pdf",
+      "source": "user_uploaded_pdf",
+      "norm": "BFNAR 2020:5",
+      "title": "Redovisning av fusion",
+      "updated": "2026-09-14",
+      "corrected": null,
+      "pages": 112,
+      "sizeBytes": 2545935,
+      "sha256": "59531aeb32bc48e5eb0626c91867c52706ed1cb747680085eab2ca4486cbc816",
+      "reviewScope": "scope_and_transition_triage_only"
     }
   ]
 }

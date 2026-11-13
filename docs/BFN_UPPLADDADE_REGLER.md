@@ -112,7 +112,7 @@ Följande tillägg gäller kravlistans G01, G04, G06, G09, G12, AB01–AB02 och 
 
 ## 6. Vad återstår i källinsamlingen?
 
-- **Bokföring – BFNAR 2013:2**, aktuell vägledning med relevanta ändringar: behövs för bland annat tidpunkter, rättelser, systemdokumentation, behandlingshistorik och arkivering.
+- **Bokföring – BFNAR 2013:2** har nu tillhandahållits och granskats i utvalda delar, tillsammans med Gränsvärden. Fusion har avgränsats till en första omfattningskontroll. Se [kompletteringen U5–U7](BFN_BOKFORING_GRANSVARDEN.md).
 - **K1 – BFNAR 2006:1**, aktuell vägledning: behövs om förenklat årsbokslut för enskild näringsidkare ska ingå.
 - **K3 – BFNAR 2012:1**, om det spåret eller årsbokslut enligt punkt 1.7 ska stödjas. Någon sådan fullständig granskning har inte gjorts här.
 - Aktuella tekniska deklarations-/inlämningsspecifikationer och kontroll av eventuella senare ändringar inför lanseringen.

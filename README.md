@@ -263,3 +263,5 @@ Metoden är redovisningsmässig linjär avskrivning i SEK. Skattemässiga avskri
 Se [kravlista och gap-analys](docs/BOKSLUT_KRAV.md) samt [kontrollerade källor och kvarstående verifiering](docs/BOKSLUT_KALLOR.md). Kraven skiljer mellan aktiebolag och enskild näringsverksamhet och tar hänsyn till planerad lansering efter 2026-12-29. BFN-regelversioner och aktuella tekniska inlämningsformat behöver verifieras innan regelberoende funktioner färdigställs.
 
 Användarens uppladdade tidigare och senare K2-/årsbokslutsvägledningar har nu kompletterat underlaget. Se [BFN-analys och versionsvillkor](docs/BFN_UPPLADDADE_REGLER.md). Granskningen gäller utvalda regler och är inte en färdig regelmotor.
+
+Kompletterande krav från uppladdad Bokföring och Gränsvärden samt avgränsning av Fusion finns i [BFN-kompletteringen](docs/BFN_BOKFORING_GRANSVARDEN.md). Detta är dokumentation inför utveckling, inte nya implementerade funktioner.
