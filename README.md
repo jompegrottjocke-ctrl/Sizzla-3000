@@ -281,3 +281,11 @@ Stäm av bank/kassa, kundfordringar, leverantörsskulder, moms, löner, anläggn
 Ansvarig vid bokföring anges i Bokföring eller Bokslut & skatt och sparas per databas. Det är ett självdeklarerat namn med lokalt ID, inte en verifierad inloggning. Motbokningar, kreditbokningar och bokslutsgranskning kräver ansvarig. Nya bokföringshändelser bevarar uppgiften; äldre poster med okänd ansvarig lämnas oförändrade. Ändringshistoriken kan exporteras till JSON, och journalens CSV samt verifikationsunderlaget visar nya uppgifter om ansvarig och registreringstid.
 
 Schema **9** lägger till bokslutsärenden, bevarade versioner och skyddad historik. Kompletta äldre schema 4–8-säkerhetskopior migreras vid återstart. Ta säkerhetskopia före uppdatering.
+
+## AI-agent – beta (0.16.1)
+
+Under **Inställningar → AI-agent** kan du spara planerad anslutning och modell samt behörigheter för bokföring, försäljning, lager, personal/lön och utkast. Tillåtelse och samtliga behörigheter är avstängda från början. Valen gäller endast aktiv företagsdatabas. Status är alltid **Ej ansluten** i denna version.
+
+Serveradressen måste använda HTTPS utan användarnamn/lösenord, frågeparametrar eller fragment. Inga API-nycklar ska anges; nyckelfältet är spärrat i väntan på säker nyckellagring. Spara inställningar och Kontrollera anslutningsstöd fungerar lokalt. Kontrollen gör ingen nätverksanslutning och skickar inga uppgifter. Anslut agent och Starta uppgift är spärrade. Inga val ger en agent åtkomst till data ännu.
+
+Historiken visar de senaste 100 inställnings-/kontrollhändelserna med tid, eventuell lokalt angiven ansvarig och före-/efteruppgifter. Hela historiken behålls i databasen och ingår med inställningarna i säkerhetskopian. Ett framtida agentstöd ska visa mottagare och delade uppgifter och använda appens kontrollerade funktioner med uttrycklig granskning/godkännande av bokföring, löneutbetalningar och deklarationsinlämning.

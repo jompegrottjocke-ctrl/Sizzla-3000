@@ -27,7 +27,7 @@ function initClosing(db,accounting){
  const fingerprint=()=>{
   const hash=createHash('sha256');hash.update(require('../package.json').version);
   const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r=>r.name).filter(n=>n==='settings'||n==='records'||/^(ledger_(accounts|years|vouchers)$|purchase_|sales_|inventory_|employees$|payruns$|leaves$|time_)/.test(n)).filter(n=>!n.endsWith('_events'));
-  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime') ORDER BY kind,id").all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
+  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime','ai_agent_config','ai_agent_event') ORDER BY kind,id").all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
   return hash.digest('hex');
  };
  const context=c=>{const a=accounting.state(),year=a.years.find(y=>y.id===c.yearId);if(!year)throw new ClosingError('closingMissing',404);const rows=balances(year,a.vouchers,a.accounts);return {year,balances:rows,posted:a.vouchers.filter(v=>v.yearId===year.id&&v.status==='posted'),drafts:a.vouchers.filter(v=>v.yearId===year.id&&v.status==='draft').length};};

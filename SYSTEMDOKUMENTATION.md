@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.16.0, databasschema 9. Uppdaterad 2026-11-13.
+Version 0.16.1, databasschema 9. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -144,3 +144,13 @@ Bevarad version innehåller företagskopia, år, avsedd regelprofil och manuell 
 JSON-export innehåller den valda versionen och ärendehistoriken. Utskrift läser den bevarade versionen, med egen typ `closing_report` i PDF-/utskriftshistoriken. Originalfiler som endast anges med referens kopieras inte. Vanlig säkerhetskopia tar med nya tabeller; schema 4–8 tillåts vid import med motsvarande äldre strukturkontroll, och nya tabeller skapas vid öppning.
 
 Ansvarig person lagras som lokal aktiv profil i `records` med namn och UUID. Samma namn behåller aktivt ID; namnbyte skapar nytt ID. Profilen används av gemensam bokföringskod även när inköp, försäljning, lön eller anläggningar initierar en motbokning. Appens tidigare lösenordslås återinförs inte. Uppgiften är ingen autentisering. Programversionsbyte loggas när databasen öppnas med versionen, och kontoplansändring loggar före-/efteruppgifter och registreringstid. Detta ersätter inte fullständig versionsbunden dokumentation av alla beräkningsregler.
+
+## AI-agent – förberedande beta (0.16.1)
+
+`src/agent.cjs` och `public/agent.js` tillför lokal konfiguration och historik utan agenttransport eller exekveringsmotor. Företagets `records` lagrar `ai_agent_config` med revision, avstängd tillåtelse som standard, anslutningstyp, HTTPS-adress, modell och fem behörighetsval som alla är avstängda från början. `ai_agent_event` lagrar separata historikposter med före-/eftervärden, UTC-tid, eventuell kopia av aktuell lokal operatör och programversion. Ingen särskild användaridentitet krävs för att förbereda inställningarna; okänd ansvarig markeras som ej angiven.
+
+Konfigurationsuppdatering och händelse sparas atomiskt med revisionskontroll. API:t accepterar endast angivna konfigurationsfält och avvisar bland annat API-nyckelfält. HTTPS-adresser med inloggningsuppgifter, frågesträng eller fragment avvisas. Detta är adressvalidering, inte ett anslutnings- eller certifikattest. Endpoint kontaktas aldrig. API-nycklar lagras inte av funktionen; nyckelfält och anslutnings-/uppgiftsknappar är spärrade.
+
+Kontroll av anslutningsstöd registrerar att transport inte är implementerad och returnerar alltid `available:false` och `connected:false`. Ingen företagsinformation överförs och inga bokföringsåtgärder utförs av agentfunktionen. Gränssnittet visar senaste 100 händelser, medan alla behålls i databasen. Ingen raderings-/ändringsfunktion för agenthistoriken exponeras. Schema 9 är oförändrat. Säkerhetskopior och databasbyte omfattar inställningar och historik. Dessa två förberedande register undantas från bokslutets källfingeravtryck eftersom de inte ändrar affärsdata.
+
+Planerade godkännandekrav är produktkrav för den framtida agentmotorn, inte implementerad åtkomstkontroll för en extern agent. Agentidentitet, säkra hemligheter, verklig transport, datadelning, verktygsbehörigheter, godkännandeflöden och körhistorik kräver separat implementation och verifiering innan anslutning eller automatisering kan användas.
