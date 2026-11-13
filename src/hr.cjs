@@ -1,3 +1,4 @@
+const {employeePhoto}=require('./employee-photo.cjs');
 const { randomUUID } = require('node:crypto');
 const { ValidationError, text, decimal } = require('./domain.cjs');
 const bad = field => { throw new ValidationError(field); };
@@ -35,6 +36,7 @@ function employee(input) {
   data.vacationYear=Number(input.vacationYear);if(!Number.isInteger(data.vacationYear)||data.vacationYear<2000||data.vacationYear>2200)bad('vacationYear');
   data.vacationDays=decimal(input.vacationDays??'0','vacationDays',{max:36600});
   data.taxNote=text(input.taxNote??'','taxNote',false,1000);
+  data.photo=employeePhoto(input.photo);
   data.archived=input.archived===true;
   return data;
 }
@@ -73,6 +75,7 @@ function initHr(db, { payrollHasPosting = () => false } = {}) {
     handle(route,body,company) {return transaction(()=>{
       if(route==='/api/employees') {
         const data=employee(body),all=employees(),old=body.id?match(all,body):null;
+        if(old&&body.photo===undefined)data.photo=old.photo||'';
         const used=leaves().filter(l=>!l.cancelled&&l.employeeId===old?.id&&l.type==='vacation'&&+l.start.slice(0,4)===data.vacationYear).reduce((s,l)=>s+l.days,0);
         if(used>data.vacationDays)bad('vacationBalance');
         if(data.personId&&all.some(e=>e.id!==body.id&&e.personId===data.personId))throw new HrError('duplicatePerson');
@@ -109,7 +112,7 @@ function initHr(db, { payrollHasPosting = () => false } = {}) {
           if(!entry||typeof entry!=='object')bad('entry');
           const person=people.find(p=>p.id===entry.employeeId);if(!person||person.archived||seen.has(person.id))bad('employeeId');seen.add(person.id);
           if(person.startDate.slice(0,7)>period||(person.endDate&&person.endDate.slice(0,7)<period))bad('employmentPeriod');
-          return {employeeId:person.id,person,...calculatePay(person,entry)};
+          const {photo,...payrollPerson}=person;return {employeeId:person.id,person:payrollPerson,...calculatePay(person,entry)};
         });
         const id=old?.id||randomUUID(),number=old?.number||Math.max(0,...runs().map(r=>r.number))+1;
         const data={period,payDate,company,entries,note:text(body.note??'','note',false,2000),created:old?.created||new Date().toISOString(),updated:new Date().toISOString()};

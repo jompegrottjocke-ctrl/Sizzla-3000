@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.13.1, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.14.0, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -92,3 +92,15 @@ En ikon vid den anställdas namn öppnar ett nummer från den aktuella personalp
 Öppningen använder en begränsad Electron-brygga som tar anställd-ID och aktuell databastoken; gränssnittet får inte ange en valfri extern URL. Ursprung, huvudfönster, aktiv databas, av/på-val och aktuellt nummer kontrolleras i huvudprocessen, före öppningen. Windows får öppna protokollet direkt, utan krav på att appens installationssökväg kan läsas (Microsoft Store-appar kan sakna sådan metadata). Inga meddelanden fylls i eller skickas. Vid klick lämnas telefonnumret till den lokalt registrerade WhatsApp-appen. Sizzla skickar inga uppgifter till WhatsApp i bakgrunden.
 
 Windowsappen kräver installerad och registrerad WhatsApp Desktop; misslyckad öppning ger meddelandet ”WhatsApp Desktop behövs för denna funktion.” Inloggning och chattens tillgänglighet hanteras av WhatsApp. Webbläsarversionen öppnar inte webbchatten utan visar samma krav på skrivbordsappen.
+
+## Personalformulär och läsbarhet (0.14.0)
+
+Formulär för anställda, löneutkast och frånvaro har nu en separat rullningsyta för fälten. Rubrik och åtgärdsknappar ligger utanför rullningsytan. Dialogens maximala storlek tar hänsyn till programmets textförstoring, och knapparna kan radbrytas. Spara och Avbryt förblir synliga vid redigering även med 200 procents textstorlek. Ingen ändring av sparande, validering eller databasformat görs.
+
+## Profilbilder och e-post i Personal (0.14.0)
+
+En valfri bild väljs i personalprofilen. JPEG, PNG och WebP accepteras, högst 10 MB. Webbläsarens bildavkodare förminskar bilden till högst 384 × 384 bildpunkter med bibehållna proportioner och kodar om den till JPEG (högst 150 KiB). Omkodningen tar bort originalfilens metadata. Val, byte och borttagning sparas först med Spara; Avbryt behåller den lagrade bilden. Den omkodade bilden lagras i befintlig employees.data, inte som extern filsökväg, och ingår i företagets säkerhetskopia. Servern kontrollerar format, storlek och JPEG-dimensioner. Originalfilen lagras inte. Bilder utelämnas ur nya lönekörningars personögonblicksbilder och läggs inte på lönebesked.
+
+Brevikonen bredvid namnet öppnar ett nytt mejl i Windows standardprogram för e-post med den aktuella personalprofilens adress som mottagare. Saknad eller ogiltig adress ger avaktiverad ikon. En separat, ursprungs- och databastokenkontrollerad Electron-brygga läser adressen från databasen och öppnar endast mailto:, utan ämne, meddelandetext eller automatisk sändning. Vid fel visas instruktion om standardprogram. Brevknappen påverkas inte av WhatsApp Desktop-knappens av/på-val. WhatsApp-knappens etikett och hjälptext anger uttryckligen Desktop och textchatt. Den öppnar send-länken, aldrig en samtalslänk.
+
+Databasschema 8 är oförändrat. Äldre profiler utan bild fungerar; uppdateringar som utelämnar bildfältet bevarar befintlig bild.

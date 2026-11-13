@@ -5,3 +5,5 @@ contextBridge.exposeInMainWorld('sizzlaPrint',{
 });
 
 contextBridge.exposeInMainWorld('sizzlaWhatsApp',{open:(employeeId,token)=>ipcRenderer.invoke('sizzla:whatsapp',{employeeId,token})});
+
+contextBridge.exposeInMainWorld('sizzlaEmail',{open:(employeeId,token)=>ipcRenderer.invoke('sizzla:employee-email',{employeeId,token})});

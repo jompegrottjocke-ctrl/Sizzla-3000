@@ -236,4 +236,12 @@ En liten WhatsApp-knapp bredvid den anställdas namn öppnar WhatsApp Desktop me
 
 Svenska mobilnummer som `070 123 45 67` normaliseras till `+46`. Andra nummer behöver landskod, exempelvis `+1 202 555 0123`. Saknade eller ogiltiga nummer ger en avaktiverad ikon med hjälptext. Numret måste kunna användas i WhatsApp.
 
-Stäng av funktionen helt med **WhatsApp: På/Av** överst i Personal. Alla ikoner döljs och inga chattar kan öppnas från Sizzla när funktionen är av. Valet sparas per företag och följer med säkerhetskopian. Funktionen är på från början.
+Stäng av funktionen helt med **WhatsApp Desktop: På/Av** överst i Personal. Alla ikoner döljs och inga chattar kan öppnas från Sizzla när funktionen är av. Valet sparas per företag och följer med säkerhetskopian. Funktionen är på från början.
+
+## Personalprofiler: bild och e-post
+
+Profilen har en valfri bild med knappar för att välja, byta och ta bort den. JPEG, PNG och WebP upp till 10 MB stöds. Bilden förminskas automatiskt, sparas med Spara och följer med säkerhetskopian. Avbryt lämnar den sparade bilden oförändrad.
+
+Brevikonen vid den anställdas namn öppnar ett nytt mejl till profilens e-postadress i Windows standardprogram. Inget mejl skickas automatiskt. Saknad adress ger en avaktiverad knapp. E-postknappen fungerar oberoende av WhatsApp Desktop-funktionen, som öppnar textchatt och aldrig startar samtal.
+
+I personalformulären ligger Spara och Avbryt kvar synliga medan uppgifterna rullar, även med större textstorlek.
