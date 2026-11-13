@@ -229,3 +229,11 @@ CSV (.csv, UTF-8 eller Windows-1252, semikolon/komma/tabb) och Excel (.xlsx) st�
 Artiklar kräver artikelnummer, namn och enhet. Valfria fält är pris exklusive moms i SEK, moms 0/6/12/25 och GTIN/EAN. Artikelnummer matchas utan hänsyn till stora/små bokstäver. Befintliga artiklar hoppas över som standard; uppdatering är ett separat val. Okopplade valfria fält behålls vid uppdatering. Lagra artikelnummer och GTIN som text i Excel för att behålla inledande nollor. Priser och antal kan använda decimalpunkt eller decimalkomma, högst två decimaler och inga tusentalsavgränsare.
 
 Inventering kräver befintligt artikelnummer och absolut räknat antal, med valfri enhet och lagerplats. Importen skapar ett **inventeringsutkast**: saldo och kopplade lagerplatser ändras först när du öppnar utkastet och godkänner det. Om du väljer att aktivera lagerhantering sker just aktiveringen redan när utkastet skapas. Spara alltid originalfilen som underlag.
+
+## WhatsApp i Personal
+
+En liten WhatsApp-knapp bredvid den anställdas namn öppnar WhatsApp Desktop med numret i personalprofilen. Inget meddelande skickas automatiskt. WhatsApp Desktop behöver vara installerat och registrerat i Windows; annars visas **WhatsApp Desktop behövs för denna funktion.**
+
+Svenska mobilnummer som `070 123 45 67` normaliseras till `+46`. Andra nummer behöver landskod, exempelvis `+1 202 555 0123`. Saknade eller ogiltiga nummer ger en avaktiverad ikon med hjälptext. Numret måste kunna användas i WhatsApp.
+
+Stäng av funktionen helt med **WhatsApp: På/Av** överst i Personal. Alla ikoner döljs och inga chattar kan öppnas från Sizzla när funktionen är av. Valet sparas per företag och följer med säkerhetskopian. Funktionen är på från början.

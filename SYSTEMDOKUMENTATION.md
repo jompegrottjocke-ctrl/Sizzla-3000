@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.12.0, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.13.0, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -82,3 +82,13 @@ Förhandsgranskningen är tidsbegränsad till 30 minuter, knuten till aktiv data
 Inventering matchar befintliga artiklar och skapar endast utkast. Uttryckligt val kan aktivera lagerhantering när utkastet skapas; det återtas inte automatiskt om utkastet annulleras. Räknade antal är absoluta saldon. Antal och valfria lagerplatser ändras först vid separat granskning och godkännande av utkastet, med lagrets ordinarie revisions- och datumkontroller. En kopplad tom lagerplats tömmer platsen vid godkännande. Filens SHA-256, namn, blad och radantal sparas i inventeringsunderlaget. Samma fil och datum kan inte skapa ytterligare utkast så länge det tidigare inte annullerats.
 
 Importhändelser lagras i befintlig inventory_events-tabell och inventeringens källa i befintlig JSON-data. Ingen schemaändring görs (schema 8). Säkerhetskopior omfattar dessa uppgifter. Originalfiler lagras inte; företaget måste spara underlagen enligt sina dokumentationsrutiner.
+
+## WhatsApp i Personal (0.13.0)
+
+Personal visar en av/på-knapp överst. Funktionen är på tills användaren stänger av den och valet lagras per företag i preferences.whatsappEnabled. När den är av döljs alla kontaktikoner och den inbyggda öppningsfunktionen blockerar även äldre sidors anrop. Databasschema 8 behålls; säkerhetskopior innehåller valet.
+
+En ikon vid den anställdas namn öppnar ett nummer från den aktuella personalprofilen via Windows registrerade whatsapp:-protokoll. Svenska mobilnummer med 07 normaliseras till +46; andra nummer kräver +landskod eller 00-landskod. Mellanslag, bindestreck, parenteser och punkter tillåts som formatering. Nummer som inte kan normaliseras ger avaktiverad ikon med hjälptext. Syntaktisk kontroll verifierar inte att numret har ett WhatsApp-konto.
+
+Öppningen använder en begränsad Electron-brygga som tar anställd-ID och aktuell databastoken; gränssnittet får inte ange en valfri extern URL. Ursprung, huvudfönster, aktiv databas, av/på-val och aktuellt nummer kontrolleras i huvudprocessen, även efter asynkron protokollkontroll. Inga meddelanden fylls i eller skickas. Vid klick lämnas telefonnumret till den lokalt registrerade WhatsApp-appen. Sizzla skickar inga uppgifter till WhatsApp i bakgrunden.
+
+Windowsappen kräver installerad och registrerad WhatsApp Desktop; saknad registrering ger meddelandet ”WhatsApp Desktop behövs för denna funktion.” Inloggning och chattens tillgänglighet hanteras av WhatsApp. Webbläsarversionen öppnar inte webbchatten utan visar samma krav på skrivbordsappen.

@@ -3,3 +3,5 @@ contextBridge.exposeInMainWorld('sizzlaPrint',{
  capture:(meta,action,token)=>ipcRenderer.invoke('sizzla:capture-print',{meta,action,token}),
  action:(documentId,action,token)=>ipcRenderer.invoke('sizzla:print-action',{documentId,action,token})
 });
+
+contextBridge.exposeInMainWorld('sizzlaWhatsApp',{open:(employeeId,token)=>ipcRenderer.invoke('sizzla:whatsapp',{employeeId,token})});

@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell, dialog } = require('electron');
 const path = require('node:path');
+const {setupWhatsApp}=require('./desktop-whatsapp.cjs');
 const {setupPrinting}=require('./desktop-printing.cjs');
 const { createApp } = require('./server.cjs');
 app.setName('Sizzla 3000');
@@ -15,6 +16,7 @@ async function open() {
     service = createApp({dataDir,openDataDirectory:async directory=>{const error=await shell.openPath(directory);if(error)throw new Error(error);},canSwitchDatabase:()=>!printController?.isBusy(),onDatabaseChanged:()=>{for(const other of BrowserWindow.getAllWindows())if(other!==window)other.destroy();}});
     await service.listen();
     printController=setupPrinting(service);
+    setupWhatsApp(service);
   }
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 1000, minHeight: 700,
     title: 'Sizzla 3000', backgroundColor: '#f4f6fa',

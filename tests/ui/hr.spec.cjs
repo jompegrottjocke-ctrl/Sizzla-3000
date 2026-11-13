@@ -18,7 +18,7 @@ test('employee, leave, reviewed payroll, payslip, reporting, archive and persist
  await page.getByLabel('Clearingnummer').fill('1234');await page.getByLabel('Kontonummer').fill('123456789');
  await page.getByLabel('Semesterår').fill('2026');await page.getByLabel('Tilldelade betalda').fill('25');
  await page.getByRole('dialog').getByRole('button',{name:'Spara',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
- await expect(page.getByRole('cell',{name:'Test Person <AB>',exact:true})).toBeVisible();
+ await expect(page.locator('.hr-employee-name strong').filter({hasText:'Test Person <AB>'})).toBeVisible();
  await page.getByRole('tab',{name:'Frånvaro & semester'}).click();await page.getByRole('button',{name:'Registrera frånvaro'}).click();
  await page.getByLabel('Från och med').fill('2026-11-16');await page.getByLabel('Till och med').fill('2026-11-18');await page.getByLabel('Arbetsdagar').fill('3');
  await page.getByRole('dialog').getByRole('button',{name:'Spara',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);

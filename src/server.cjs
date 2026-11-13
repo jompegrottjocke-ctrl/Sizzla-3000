@@ -57,7 +57,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && ['/','/app.js','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/app.js','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
@@ -107,8 +107,9 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       }
       if(url.pathname==='/api/preferences') {
         if(!['sv','en'].includes(body.language)||!['light','dark','contrast','blue','warm','system'].includes(body.theme))throw new ValidationError('preferences');
+        if(body.whatsappEnabled!==undefined&&typeof body.whatsappEnabled!=='boolean')throw new ValidationError('preferences');
         if(body.textSize!==undefined&&(![100,125,150,175,200].includes(body.textSize)||typeof body.bold!=='boolean'))throw new ValidationError('preferences');
-        db.prepare('INSERT INTO preferences VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify({...preferences(),language:body.language,theme:body.theme,...(body.textSize!==undefined?{textSize:body.textSize,bold:body.bold}:{})}));
+        db.prepare('INSERT INTO preferences VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify({...preferences(),...(body.whatsappEnabled!==undefined?{whatsappEnabled:body.whatsappEnabled}:{}),language:body.language,theme:body.theme,...(body.textSize!==undefined?{textSize:body.textSize,bold:body.bold}:{})}));
         return send(res,200,{ok:true});
       }
       if (/^\/api\/(employees|payruns|leaves)(\/|$)/.test(url.pathname)) {
