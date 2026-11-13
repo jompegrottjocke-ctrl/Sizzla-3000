@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.11.1, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.12.0, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -70,3 +70,15 @@ Den lokala versionen skickar inte företagets register till en Sizzla-server. Om
 ## Källa och kontroll
 
 [Bokföringslag (1999:1078), Riksdagen](https://www.riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/bokforingslag-19991078_sfs-1999-1078/), läst 2026-11-12. Särskilt 4 kap. 1–2 §§, 5 kap. 5–11 §§ och 7 kap. Detta dokument beskriver implementationen och kända luckor; det är ingen fullständig granskning av lag, god redovisningssed eller kundens användning.
+
+## Import av artiklar och inventering (0.12.0)
+
+Artiklar & tjänster respektive Lager har separata importguider. CSV (UTF-8 eller Windows-1252; semikolon, komma eller tabb) och Excel .xlsx stöds, högst 5 MB och 50 kolumner. Första ifyllda raden är rubriker. Artikelimport tillåter 5 000 datarader, inventering 500. Excel begränsas även till 20 blad och 30 MB uppackad data; formler och externa datatyper som datum i importfälten avvisas. Äldre .xls och .xlsm stöds inte. Mallar med texter och exempel finns i båda formaten.
+
+Kolumner kopplas och varje rad valideras före import. Artikelnummer matchas utan hänsyn till stora/små bokstäver. Dubbletter i filen, flera registerträffar, ogiltiga priser, enheter och GTIN blockeras. Priser är SEK exklusive moms, med högst två decimaler; moms är 0/6/12/25. GTIN valideras med längd och kontrollsiffra, vilket inte verifierar ägarskap hos GS1. Befintliga artiklar hoppas över som standard; uppdatering kräver aktivt val. Okopplade valfria fält behålls på befintliga artiklar, nya får pris 0, moms 25 och tom GTIN.
+
+Förhandsgranskningen är tidsbegränsad till 30 minuter, knuten till aktiv databas och kontrolleras mot förändringar i artikel- och lagerunderlaget vid sparande. Alla rader sparas i en SQLite-transaktion; fel ger återställning. Upprepat sparande av samma granskning gör inte dubbla importer. Byte av företag kastar tidigare importsessioner.
+
+Inventering matchar befintliga artiklar och skapar endast utkast. Uttryckligt val kan aktivera lagerhantering när utkastet skapas; det återtas inte automatiskt om utkastet annulleras. Räknade antal är absoluta saldon. Antal och valfria lagerplatser ändras först vid separat granskning och godkännande av utkastet, med lagrets ordinarie revisions- och datumkontroller. En kopplad tom lagerplats tömmer platsen vid godkännande. Filens SHA-256, namn, blad och radantal sparas i inventeringsunderlaget. Samma fil och datum kan inte skapa ytterligare utkast så länge det tidigare inte annullerats.
+
+Importhändelser lagras i befintlig inventory_events-tabell och inventeringens källa i befintlig JSON-data. Ingen schemaändring görs (schema 8). Säkerhetskopior omfattar dessa uppgifter. Originalfiler lagras inte; företaget måste spara underlagen enligt sina dokumentationsrutiner.

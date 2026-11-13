@@ -29,9 +29,9 @@ function initInventory(db){
  const requireActive=id=>{article(id);if(!settings(id).enabled)throw new InventoryError('invInactive');};
  const event=(entity,id,action,data={})=>db.prepare('INSERT INTO inventory_events(at,entity,entity_id,action,data) VALUES(?,?,?,?,?)').run(new Date().toISOString(),entity,String(id),action,JSON.stringify(data));
  const openOrder=id=>db.prepare("SELECT data FROM purchase_orders WHERE status='issued'").all().some(r=>JSON.parse(r.data).lines.some(l=>l.articleId===id&&l.stockTracked));
- function assertArticleChange(id,data){
-  const old=articles().find(a=>a.id===id);if(old&&(settings(id).enabled||stockRevision(id)||openOrder(id))&&(old.sku!==data.sku||old.unit!==data.unit))throw new InventoryError('invArticleLocked');
-  if(data.sku&&articles().some(a=>a.id!==id&&settings(a.id).enabled&&a.sku.toLocaleUpperCase('sv-SE')===data.sku.toLocaleUpperCase('sv-SE')))throw new InventoryError('invSku');
+ function assertArticleChange(id,data,knownArticles=articles()){
+  const old=knownArticles.find(a=>a.id===id);if(old&&(old.sku!==data.sku||old.unit!==data.unit)&&(settings(id).enabled||stockRevision(id)||openOrder(id)))throw new InventoryError('invArticleLocked');
+  if(data.sku&&knownArticles.some(a=>a.id!==id&&settings(a.id).enabled&&a.sku.toLocaleUpperCase('sv-SE')===data.sku.toLocaleUpperCase('sv-SE')))throw new InventoryError('invSku');
  }
  function checkBalance(id){const rows=db.prepare('SELECT quantity FROM inventory_movements WHERE article_id=? ORDER BY date,id').all(id);let balance=0;for(const r of rows){balance+=r.quantity;if(balance<0)throw new InventoryError('invNegative');if(!Number.isSafeInteger(balance)||balance>1000000000000)bad('invQuantityInvalid');}}
  function move({articleId,date,kind,quantity:qty,reference,reason,sourceKind=null,sourceId=null,sourceLine=null,reverses=null}){
@@ -46,14 +46,22 @@ function initInventory(db){
  const counts=()=>db.prepare('SELECT * FROM inventory_counts ORDER BY number DESC').all().map(r=>({...r,...JSON.parse(r.data),data:undefined}));
  function currentCount(body){const row=counts().find(c=>c.id===body.id);if(!row)throw new InventoryError('invMissing');if(row.revision!==body.revision||row.status!=='draft')throw new InventoryError('invConflict');return row;}
  function state(){return {items:articles().map(a=>({...a,enabled:!!settings(a.id).enabled,minimum:settings(a.id).minimum,location:settings(a.id).location,revision:settings(a.id).revision,quantity:quantity(a.id),stockRevision:stockRevision(a.id)})),movements:db.prepare('SELECT * FROM inventory_movements ORDER BY date DESC,id DESC').all().map(r=>({...r,articleId:r.article_id,sourceKind:r.source_kind,sourceId:r.source_id,reversedBy:r.reversed_by,...JSON.parse(r.snapshot),snapshot:undefined})),counts:counts(),events:db.prepare('SELECT * FROM inventory_events ORDER BY id DESC LIMIT 500').all().map(r=>({...r,data:JSON.parse(r.data)}))};}
- function handle(route,body){
-  db.exec('BEGIN IMMEDIATE');try{let result;
-   if(route==='/api/inventory/settings'){
+ function configure(body){
     const a=article(body.articleId),old=settings(a.id);if(body.revision!==old.revision)throw new InventoryError('invConflict');if(typeof body.enabled!=='boolean')bad('invInvalid');
     if(body.enabled&&(!a.sku||articles().some(x=>x.id!==a.id&&x.sku.toLocaleUpperCase('sv-SE')===a.sku.toLocaleUpperCase('sv-SE'))))throw new InventoryError('invSku');
     if(!body.enabled&&(quantity(a.id)!==0||openOrder(a.id)))throw new InventoryError('invInUse');
     const minimum=decimal(body.minimum??'0','invQuantityInvalid',{max:1000000000000}),location=text(body.location??'','invLocation',false);
-    db.prepare('INSERT INTO inventory_settings VALUES(?,?,?,?,?) ON CONFLICT(article_id) DO UPDATE SET revision=excluded.revision,enabled=excluded.enabled,minimum=excluded.minimum,location=excluded.location').run(a.id,old.revision+1,body.enabled?1:0,minimum,location);event('article',a.id,'settings',{enabled:body.enabled,minimum,location});result={id:a.id};
+    db.prepare('INSERT INTO inventory_settings VALUES(?,?,?,?,?) ON CONFLICT(article_id) DO UPDATE SET revision=excluded.revision,enabled=excluded.enabled,minimum=excluded.minimum,location=excluded.location').run(a.id,old.revision+1,body.enabled?1:0,minimum,location);event('article',a.id,'settings',{enabled:body.enabled,minimum,location});return {id:a.id};
+ }
+ function createCountDraft(body,source=null){
+    const date=stockDate(body.date);if(!Array.isArray(body.lines)||!body.lines.length||body.lines.length>500)bad('invLines');const seen=new Set();
+    const lines=body.lines.map(l=>{if(!l||seen.has(l.articleId))bad('invLines');seen.add(l.articleId);requireActive(l.articleId);checkCountDate(l.articleId,date);if(l.stockRevision!==stockRevision(l.articleId)||l.settingsRevision!==settings(l.articleId).revision)throw new InventoryError('invConflict');return {articleId:l.articleId,...snap(l.articleId),expected:quantity(l.articleId,date),stockRevision:stockRevision(l.articleId),settingsRevision:settings(l.articleId).revision,counted:decimal(l.counted,'invQuantityInvalid',{max:1000000000000}),location:settings(l.articleId).location,...(source&&l.importLocation!==undefined?{importLocation:text(l.importLocation,'invLocation',false)}:{})};});
+    const id=randomUUID(),number=db.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM inventory_counts').get().n;db.prepare("INSERT INTO inventory_counts VALUES(?,?,1,'draft',?,?,?,NULL)").run(id,number,date,text(body.reference,'invReference'),JSON.stringify({lines,...(source?{source}: {})}));event('count',id,'created');return {id};
+ }
+ function handle(route,body){
+  db.exec('BEGIN IMMEDIATE');try{let result;
+   if(route==='/api/inventory/settings'){
+    result=configure(body);
    }else if(route==='/api/inventory/movements'){
     requireActive(body.articleId);if(body.stockRevision!==stockRevision(body.articleId)||body.settingsRevision!==settings(body.articleId).revision)throw new InventoryError('invConflict');if(!['opening','in','out'].includes(body.kind))bad('invInvalid');if(body.kind==='opening'&&stockRevision(body.articleId))throw new InventoryError('invOpening');
     const qty=decimal(body.quantity,'invQuantityInvalid',{min:1,max:10000000});const id=move({articleId:body.articleId,date:stockDate(body.date),kind:body.kind,quantity:body.kind==='out'?-qty:qty,reference:text(body.reference,'invReference'),reason:text(body.reason,'invReason')});result={id};
@@ -61,12 +69,11 @@ function initInventory(db){
     if(!Number.isSafeInteger(body.id)||body.id<1)bad('invInvalid');const r=db.prepare('SELECT * FROM inventory_movements WHERE id=?').get(Number(body.id));if(!r)throw new InventoryError('invMissing');if(r.reversed_by)throw new InventoryError('invReversed');if(!['opening','in','out'].includes(r.kind))throw new InventoryError('invReverseSource');
     const date=stockDate(body.date);if(date<r.date)bad('invDate');const id=move({articleId:r.article_id,date,kind:'reverse',quantity:-r.quantity,reference:r.reference,reason:text(body.reason,'invReason'),reverses:r.id});db.prepare('UPDATE inventory_movements SET reversed_by=? WHERE id=?').run(id,r.id);result={id};
    }else if(route==='/api/inventory/counts'){
-    const date=stockDate(body.date);if(!Array.isArray(body.lines)||!body.lines.length||body.lines.length>500)bad('invLines');const seen=new Set();
-    const lines=body.lines.map(l=>{if(!l||seen.has(l.articleId))bad('invLines');seen.add(l.articleId);requireActive(l.articleId);checkCountDate(l.articleId,date);if(l.stockRevision!==stockRevision(l.articleId)||l.settingsRevision!==settings(l.articleId).revision)throw new InventoryError('invConflict');return {articleId:l.articleId,...snap(l.articleId),expected:quantity(l.articleId,date),stockRevision:stockRevision(l.articleId),settingsRevision:settings(l.articleId).revision,counted:decimal(l.counted,'invQuantityInvalid',{max:1000000000000})};});
-    const id=randomUUID(),number=db.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM inventory_counts').get().n;db.prepare("INSERT INTO inventory_counts VALUES(?,?,1,'draft',?,?,?,NULL)").run(id,number,date,text(body.reference,'invReference'),JSON.stringify({lines}));event('count',id,'created');result={id};
+    result=createCountDraft(body);
    }else if(route==='/api/inventory/counts/post'){
     const c=currentCount(body);if(body.reviewed!==true)bad('invReview');for(const l of c.lines){requireActive(l.articleId);checkCountDate(l.articleId,c.date);if(stockRevision(l.articleId)!==l.stockRevision||settings(l.articleId).revision!==l.settingsRevision||article(l.articleId).unit!==l.unit||article(l.articleId).sku!==l.sku)throw new InventoryError('invConflict');}
     for(const l of c.lines){const delta=l.counted-l.expected;if(delta)move({articleId:l.articleId,date:c.date,kind:'count',quantity:delta,reference:c.reference,reason:'IN'+c.number,sourceKind:'count',sourceId:c.id,sourceLine:l.articleId});}
+    for(const l of c.lines)if(l.importLocation!==undefined&&l.importLocation!==settings(l.articleId).location){db.prepare('UPDATE inventory_settings SET location=?,revision=revision+1 WHERE article_id=?').run(l.importLocation,l.articleId);event('article',l.articleId,'imported_location',{countId:c.id,location:l.importLocation});}
     db.prepare("UPDATE inventory_counts SET status='posted',revision=revision+1 WHERE id=?").run(c.id);event('count',c.id,'posted');result={id:c.id};
    }else if(route==='/api/inventory/counts/cancel'){
     const c=currentCount(body);db.prepare("UPDATE inventory_counts SET status='cancelled',revision=revision+1,reason=? WHERE id=?").run(text(body.reason,'invReason'),c.id);event('count',c.id,'cancelled',{reason:body.reason});result={id:c.id};
@@ -74,6 +81,6 @@ function initInventory(db){
    db.exec('COMMIT');return result;
   }catch(error){db.exec('ROLLBACK');throw error;}
  }
- return {state,handle,assertArticleChange,prepareOrderLines,assertOrderLines,receive,reverseReceipt};
+ return {state,handle,configure,createCountDraft,assertArticleChange,prepareOrderLines,assertOrderLines,receive,reverseReceipt};
 }
 module.exports={initInventory,InventoryError,stockDate};

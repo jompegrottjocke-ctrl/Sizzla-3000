@@ -15,6 +15,8 @@ const path = require('node:path');
   await expect(window.getByRole('tab',{name:'Verifikationer'})).toBeVisible();
   await window.locator('nav').getByRole('button',{name:'Inköp',exact:true}).click();
   await expect(window.getByRole('button',{name:'Ny leverantör'})).toBeVisible();
+  const importBytes=require('../src/import-files.cjs').template('articles','xlsx').toString('base64');
+  await window.evaluate(async file=>{const f=await post('file-import/read',{kind:'articles',name:'native.xlsx',file});const p=await post('file-import/preview',{fileId:f.fileId,sheet:0,mapping:{sku:0,name:1,unit:2,price:3,vat:4,barcode:5},policy:'skip'});await post('file-import/commit',{previewId:p.previewId,reviewed:true});await load();if(!state.articles.some(a=>a.sku==='VARA-001'&&a.barcode==='4006381333931'))throw Error('Native Excel import failed');},importBytes);
   await app.evaluate(({shell})=>{shell.openPath=async directory=>{global.openedFolder=directory;return '';};});
   await window.locator('nav').getByRole('button',{name:'Säkerhet & säkerhetskopiering',exact:true}).click();
   await window.getByRole('button',{name:'Öppna databasens katalog'}).click();

@@ -219,3 +219,13 @@ Databaslistan hanteras i `src/databases.cjs` och `public/databases.js`. Servern 
 Tid och projekt finns i `src/time.cjs` och `public/time.js`. Schema 8 tillför projekt, tidsrader, låsta fakturaunderlag och händelser. Vid databasbyte laddas även tidsmodulen om; äldre kompletta säkerhetskopior får tomma tidstabeller utan att kund-, bokförings- eller PDF-data ersätts.
 
 Analysens rena beräkningar finns i `public/analysis-math.js` och gränssnittet i `public/analysis.js`. Samma beräkningar verifieras i Node-tester. Färgteman ligger i `public/themes.css`; tillåtna temaval valideras i det lokala API:t och sparas i databasens befintliga preferenser.
+
+## Importera artiklar och lagersaldo
+
+Välj **Artiklar & tjänster → Importera artiklar** eller **Lager → Importera inventering**. Guiden visar stöd, regler och nedladdningsbara CSV-/Excelmallar innan du väljer fil. Koppla kolumner, förhandsgranska alla rader, rätta eventuella fel och bekräfta importen. Felrapport kan laddas ned som CSV.
+
+CSV (.csv, UTF-8 eller Windows-1252, semikolon/komma/tabb) och Excel (.xlsx) stöds. Högst 5 MB, 50 kolumner och 5 000 artikelrader eller 500 inventeringsrader. Första ifyllda raden ska vara rubriker. Excelblad väljs i guiden; formler måste ersättas med värden. Äldre .xls, .xlsm, PDF och SIE stöds inte i denna guide.
+
+Artiklar kräver artikelnummer, namn och enhet. Valfria fält är pris exklusive moms i SEK, moms 0/6/12/25 och GTIN/EAN. Artikelnummer matchas utan hänsyn till stora/små bokstäver. Befintliga artiklar hoppas över som standard; uppdatering är ett separat val. Okopplade valfria fält behålls vid uppdatering. Lagra artikelnummer och GTIN som text i Excel för att behålla inledande nollor. Priser och antal kan använda decimalpunkt eller decimalkomma, högst två decimaler och inga tusentalsavgränsare.
+
+Inventering kräver befintligt artikelnummer och absolut räknat antal, med valfri enhet och lagerplats. Importen skapar ett **inventeringsutkast**: saldo och kopplade lagerplatser ändras först när du öppnar utkastet och godkänner det. Om du väljer att aktivera lagerhantering sker just aktiveringen redan när utkastet skapas. Spara alltid originalfilen som underlag.
