@@ -1,9 +1,11 @@
-Sizzla 3000 0.14.0 för Windows 11 (x64): Förbättrade personalprofiler.
+Sizzla 3000 0.15.0 för Windows 11 (x64): Anläggningsregister lämnar beta.
 
-- Spara och Avbryt ligger kvar synliga medan profilens uppgifter rullar, även med 200 procents textstorlek. Samma förbättring gäller löneutkast och frånvaro.
-- Valfri profilbild med välj/byt/ta bort. JPEG, PNG och WebP upp till 10 MB förminskas automatiskt. Bilden sparas först med Spara och följer med säkerhetskopian.
-- Brevikon bredvid varje anställds namn öppnar ett nytt mejl till profilens adress i standardprogrammet för e-post. Inget skickas automatiskt.
-- WhatsApp-knappen heter nu WhatsApp Desktop: På/Av. Ikonen öppnar en textchatt, aldrig ett samtal. E-postknappen fungerar även när WhatsApp Desktop-funktionen är av.
-- Svenska och engelska. Databasschema 8 är oförändrat.
+- Registrera tillgångar med anskaffningsvärde, restvärde, nyttjandeperiod, konton och underlag. Koppla verifikation eller bokförd leverantörsfaktura. Registreringen bokför inte inköpet igen.
+- Granska och bokför linjära månadsavskrivningar med korrekt öresfördelning. Stöd för tidigare bokförd ingående avskrivning.
+- Hantera utrangering och avyttring efter redan bokförd försäljning, med vinst/förlust och spårbara motbokningar.
+- Behandlingshistorik, verifikationslänkar, registerrapport per bokföringsdatum, CSV och PDF med utskriftshistorik.
+- Periodlås, granskning, dubblettskydd och separata företagsdatabaser. Svenska och engelska. Schema 8 och tidigare säkerhetskopior behålls.
+
+Avskrivningen använder hela månader. Företaget granskar principer, konton och underlag; skattemässiga avskrivningar och automatiska K2/K3-bedömningar ingår inte. Registerrapporten utgår från nu registrerade tillgångar; spara periodens PDF och stäm av mot huvudboken.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

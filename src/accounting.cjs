@@ -18,6 +18,7 @@ function lastFiscalDay(start) {
   return limit.toISOString().slice(0,10);
 }
 const starterAccounts = [
+  ['1220','Inventarier och verktyg','Equipment and tools'],['1229','Ackumulerade avskrivningar på inventarier','Accumulated equipment depreciation'],['7832','Avskrivningar på inventarier och verktyg','Equipment depreciation'],['3973','Vinst vid avyttring av maskiner och inventarier','Gain on equipment disposal'],['7973','Förlust vid avyttring av maskiner och inventarier','Loss on equipment disposal'],
   ['1510','Kundfordringar','Trade receivables'],['1610','Fordringar hos anställda','Employee receivables'],['1910','Kassa','Cash'],['1930','Företagskonto','Business bank account'],
   ['2010','Eget kapital, enskild firma','Owner equity, sole trader'],['2019','Årets resultat, enskild firma','Current year result, sole trader'],['2081','Aktiekapital','Share capital'],['2091','Balanserat resultat','Retained earnings'],['2099','Årets resultat','Current year result'],
   ['2440','Leverantörsskulder','Trade payables'],['2611','Utgående moms 25 %','Output VAT 25%'],['2621','Utgående moms 12 %','Output VAT 12%'],['2631','Utgående moms 6 %','Output VAT 6%'],['2641','Ingående moms','Input VAT'],['2650','Redovisningskonto för moms','VAT settlement'],
@@ -84,7 +85,7 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
     if(v.status!=='posted'||v.corrects||v.reversedBy)throw new AccountingError('bookImmutable');
     if(validDate(body.date)<v.date)invalid('bookReversalDate');
     if(v.sourceKind==='payroll'&&activeSource('payrollPayment',v.sourceId))throw new AccountingError('bookReversePaymentFirst');
-    beforeReverse(v);
+    beforeReverse(v,body);
     const reason=text(body.reason,'bookReason'),y=yearById(body.yearId);
     const result=createPosted(y,{date:body.date,description:reason,reference:`A${v.number} / ${yearById(v.yearId).name}`,lines:v.lines.map(l=>({...l,debit:l.credit,credit:l.debit})),company},{corrects:v.id});
     db.prepare('UPDATE ledger_vouchers SET reversed_by=?,revision=revision+1 WHERE id=?').run(result.id,v.id);event('voucher',v.id,'reversed',{reversal:result.id,reason});

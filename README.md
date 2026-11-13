@@ -245,3 +245,15 @@ Profilen har en valfri bild med knappar för att välja, byta och ta bort den. J
 Brevikonen vid den anställdas namn öppnar ett nytt mejl till profilens e-postadress i Windows standardprogram. Inget mejl skickas automatiskt. Saknad adress ger en avaktiverad knapp. E-postknappen fungerar oberoende av WhatsApp Desktop-funktionen, som öppnar textchatt och aldrig startar samtal.
 
 I personalformulären ligger Spara och Avbryt kvar synliga medan uppgifterna rullar, även med större textstorlek.
+
+## Anläggningsregister
+
+Fliken **Anläggningsregister** finns under Verksamhet. Registrera tillgången, koppla anskaffningsverifikation eller bokförd leverantörsfaktura (alternativt ange historiskt underlag), granska och aktivera. **Inköpet ska redan vara bokfört**: registreringen skapar inget nytt inköp.
+
+Ange anskaffningsvärde, restvärde, startmånad, nyttjandeperiod och konton. Äldre tillgångar kan ha manuellt verifierad ingående avskrivning till och med en viss månad. Nästa månads linjära avskrivning förhandsgranskas och bokförs först efter din bekräftelse. Hela månader används, utan dagsproportionering. Periodlås och räkenskapsår respekteras.
+
+Utrangering bokför bort kvarvarande bokfört värde. Vid försäljning ska försäljningsintäkten vara bokförd först; koppla den verifikationen så att avyttringen omför till vinst/förlust utan att skapa ytterligare faktura eller moms. Rättelser görs genom motbokning av senaste händelsen först. Historik och verifikationslänkar bevaras.
+
+Registerrapporten kan visas per bokföringsdatum, exporteras till CSV och sparas som PDF i utskriftshistoriken. Den utgår från nu registrerade aktiva/avyttrade tillgångar, inte frysta historiska registerversioner. Före ingående avskrivningsdatum saknas äldre värden. Stäm av mot huvudboken och spara rapportens PDF för perioden.
+
+Metoden är redovisningsmässig linjär avskrivning i SEK. Skattemässiga avskrivningar, nedskrivningar, komponenthantering och automatiska K2/K3-bedömningar ingår inte.

@@ -1,5 +1,5 @@
 const {randomUUID}=require('node:crypto');
-const KINDS=['invoice','payroll','voucher','report','purchase_order','purchase_invoice','inventory_report','inventory_count','sales_invoice','time_report','analysis_report'];
+const KINDS=['asset_report','invoice','payroll','voucher','report','purchase_order','purchase_invoice','inventory_report','inventory_count','sales_invoice','time_report','analysis_report'];
 class PrintError extends Error{}
 const field=(value,max=200)=>{if(typeof value!=='string'||value.length>max)throw new PrintError('printInvalid');return value;};
 function initPrinting(db){
