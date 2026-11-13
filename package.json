@@ -1,6 +1,6 @@
 {
   "name": "sizzla-3000",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "private": true,
   "description": "Sizzla 3000 – lokal företagsadministration",
   "main": "src/desktop.cjs",
@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node src/server.cjs",
     "desktop": "electron .",
-    "test": "node --test tests/*.test.cjs",
+    "test": "node scripts/test-ci.cjs",
     "test:ui": "playwright test",
     "dist:win": "electron-builder --win nsis --x64 --publish never"
   },

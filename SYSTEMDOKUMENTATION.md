@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.15.0, databasschema 8. Uppdaterad 2026-11-13.
+Version 0.15.1, databasschema 8. Uppdaterad 2026-11-13.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -105,7 +105,7 @@ Brevikonen bredvid namnet öppnar ett nytt mejl i Windows standardprogram för e
 
 Databasschema 8 är oförändrat. Äldre profiler utan bild fungerar; uppdateringar som utelämnar bildfältet bevarar befintlig bild.
 
-## Anläggningsregister (0.15.0)
+## Anläggningsregister (0.15.1)
 
 Anläggningsregister är en arbetsmodul under Verksamhet. Tillgångar registreras med unikt nummer, benämning, kategori, serienummer, placering, anskaffningsdatum/-värde, restvärde, avskrivningsstart, nyttjandeperiod 1–600 månader, konton och underlagsreferens. Registeruppgifter lagras som `records.kind=fixed_asset`; händelser som `asset_operation`. Ändringshistoriken använder befintlig `ledger_events` med entity=asset och bevarar före-/efteruppgifter eller händelse-/verifikationsreferenser. Inga nya tabeller eller ändrade SQL-definitioner krävs: databasschema 8 behålls. Separata företagsdatabaser och säkerhetskopior omfattar även registret och dess historik.
 

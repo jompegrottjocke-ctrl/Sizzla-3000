@@ -1,4 +1,4 @@
-Sizzla 3000 0.15.0 för Windows 11 (x64): Anläggningsregister lämnar beta.
+Sizzla 3000 0.15.1 för Windows 11 (x64): Anläggningsregister lämnar beta.
 
 - Registrera tillgångar med anskaffningsvärde, restvärde, nyttjandeperiod, konton och underlag. Koppla verifikation eller bokförd leverantörsfaktura. Registreringen bokför inte inköpet igen.
 - Granska och bokför linjära månadsavskrivningar med korrekt öresfördelning. Stöd för tidigare bokförd ingående avskrivning.
