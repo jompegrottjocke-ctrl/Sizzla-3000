@@ -1,0 +1,17 @@
+{
+  "version": "0.29.6",
+  "dataset": "Sizzla-3000-Stor-Testdatabas-0.29.1.zip",
+  "bytes": {
+    "full": 36209214,
+    "supply": 531545,
+    "stock": 685080
+  },
+  "counts": {
+    "articles": 3000,
+    "suppliers": 200,
+    "invoices": 600,
+    "movements": 300,
+    "counts": 0,
+    "orders": 0
+  }
+}

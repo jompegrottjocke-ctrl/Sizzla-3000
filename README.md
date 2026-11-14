@@ -429,3 +429,7 @@ Listorna över utfärdade fakturor, krediter och kund-/leverantörsreskontra hä
 Betalningshistoriken hämtas när den öppnas och visar 50 rader per sida. Sökning och CSV-export arbetar på hela urvalet. Utkast behålls kompletta för befintlig sökning och redigering. Mer omfattande order-, mall-, bank- och påminnelseflöden samt utskriftsfönster kan fortfarande behöva fullständiga underlag.
 
 [Verifiering, gränser och före-/eftermätning](docs/FAKTURERING-DATA.md).
+
+### Inköp och Lager i 0.29.6
+
+Listorna hämtar mindre datamängder. Detaljer och historik hämtas när de behövs. Se [avgränsning och verifiering](docs/INKOP-LAGER-DATA.md).

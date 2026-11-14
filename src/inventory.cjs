@@ -47,10 +47,14 @@ function initInventory(db){
  function reverseCustomerDelivery(delivery,date,reason){const movements=db.prepare("SELECT * FROM inventory_movements WHERE source_kind='trade_delivery' AND source_id=? ORDER BY id").all(delivery.id);for(const r of movements){if(r.reversed_by)throw new InventoryError('invReversed');const id=move({articleId:r.article_id,date,kind:'reverse',quantity:-r.quantity,reference:r.reference,reason,sourceKind:'trade_delivery_reverse',sourceId:delivery.id,sourceLine:r.source_line,reverses:r.id});db.prepare('UPDATE inventory_movements SET reversed_by=? WHERE id=?').run(id,r.id);}}
  const counts=()=>db.prepare('SELECT * FROM inventory_counts ORDER BY number DESC').all().map(r=>({...r,...JSON.parse(r.data),data:undefined}));
  function currentCount(body){const row=counts().find(c=>c.id===body.id);if(!row)throw new InventoryError('invMissing');if(row.revision!==body.revision||row.status!=='draft')throw new InventoryError('invConflict');return row;}
- function state(){
+ function items(){
   const configurations=new Map(db.prepare('SELECT * FROM inventory_settings').all().map(s=>[s.article_id,s]));
   const stock=new Map(db.prepare("SELECT article_id,SUM(CASE WHEN date<='9999-12-31' THEN quantity ELSE 0 END) AS quantity,MAX(id) AS revision FROM inventory_movements GROUP BY article_id").all().map(s=>[s.article_id,s]));
-  return {items:articles().map(a=>{const config=configurations.get(a.id)||{enabled:0,minimum:0,location:'',revision:0},balance=stock.get(a.id);return {...a,enabled:!!config.enabled,minimum:config.minimum,location:config.location,revision:config.revision,quantity:balance?.quantity||0,stockRevision:balance?.revision||0};}),movements:db.prepare('SELECT * FROM inventory_movements ORDER BY date DESC,id DESC').all().map(r=>({...r,articleId:r.article_id,sourceKind:r.source_kind,sourceId:r.source_id,reversedBy:r.reversed_by,...JSON.parse(r.snapshot),snapshot:undefined})),counts:counts(),events:db.prepare('SELECT * FROM inventory_events ORDER BY id DESC LIMIT 500').all().map(r=>({...r,data:JSON.parse(r.data)}))};}
+  return articles().map(a=>{const config=configurations.get(a.id)||{enabled:0,minimum:0,location:'',revision:0},balance=stock.get(a.id);return {...a,enabled:!!config.enabled,minimum:config.minimum,location:config.location,revision:config.revision,quantity:balance?.quantity||0,stockRevision:balance?.revision||0};});
+ }
+ function state(){return {items:items(),movements:db.prepare('SELECT * FROM inventory_movements ORDER BY date DESC,id DESC').all().map(r=>({...r,articleId:r.article_id,sourceKind:r.source_kind,sourceId:r.source_id,reversedBy:r.reversed_by,...JSON.parse(r.snapshot),snapshot:undefined})),counts:counts(),events:db.prepare('SELECT * FROM inventory_events ORDER BY id DESC LIMIT 500').all().map(r=>({...r,data:JSON.parse(r.data)}))};}
+ function summary(){return {items:items(),counts:db.prepare("SELECT id,number,revision,status,date,reference,reason,json_array_length(data,'$.lines') AS lineCount FROM inventory_counts ORDER BY number DESC").all()};}
+
  function configure(body){
     const a=article(body.articleId),old=settings(a.id);if(body.revision!==old.revision)throw new InventoryError('invConflict');if(typeof body.enabled!=='boolean')bad('invInvalid');
     if(body.enabled&&(!a.sku||articles().some(x=>x.id!==a.id&&x.sku.toLocaleUpperCase('sv-SE')===a.sku.toLocaleUpperCase('sv-SE'))))throw new InventoryError('invSku');
@@ -86,6 +90,6 @@ function initInventory(db){
    db.exec('COMMIT');return result;
   }catch(error){db.exec('ROLLBACK');throw error;}
  }
- return {state,handle,configure,createCountDraft,assertArticleChange,prepareOrderLines,assertOrderLines,receive,reverseReceipt,deliverCustomer,reverseCustomerDelivery};
+ return {state,summary,handle,configure,createCountDraft,assertArticleChange,prepareOrderLines,assertOrderLines,receive,reverseReceipt,deliverCustomer,reverseCustomerDelivery};
 }
 module.exports={initInventory,InventoryError,stockDate};

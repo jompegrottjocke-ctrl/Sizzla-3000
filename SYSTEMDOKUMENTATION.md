@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.29.5, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.29.6, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -293,3 +293,5 @@ Från 0.29.3 finns explicita läsvyer för översikt och grundregister. Utelämn
 Från 0.29.4 används separata läsvyer employees, hr-runs och hr-leave för Personal. Varje vy innehåller anställda med oförändrade revisioner/bilder, aktuellt företag och sammanfattande lönekörningsantal; körnings- respektive frånvarounderlag inkluderas endast i rätt vy. Ej inlästa moduler saknas. Godkännande, löneberäkning, källgranskning och revisions-/sessionskontroller ändras inte. Fullständigt tillstånd finns kvar för bokföring och utskrift. Se docs/PERSONAL-DATA.md för avgränsning, jämförelse och tester.
 
 Från 0.29.5 används commerce, commerce-history och commerce-detail för fakturering/reskontra. Sammanfattningar kopierar befintligt beräknade belopp/saldon och revisioner; de innehåller inga falska tomma radlistor. Fakturafamilj och kopplade betalningar/kvittningar hämtas före detaljåtgärder; historik behålls komplett när den aktiva vyn behöver den. Utkast är fortsatt kompletta för sökning. Konton/räkenskapsår är metadata; huvudbok och bokföringshistorik är inte inlästa i listvyn. Skrivkommandon, valuta/öresberäkning, revisioner, låsning, snapshot- och sessionskontroller är oförändrade. Betalningshistorik sidindelas endast för visning, medan export använder hela urvalet. Mer omfattande flöden och utskrifter kan fortsatt använda full modell. Inget schema eller backupformat ändras. Se docs/FAKTURERING-DATA.md.
+
+Inköps- och lagerlistor har selektiva API-vyer; kompletta underlag hämtas före redigering, historik och utskrift. Se [INKOP-LAGER-DATA.md](docs/INKOP-LAGER-DATA.md).
