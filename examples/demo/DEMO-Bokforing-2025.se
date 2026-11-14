@@ -1,0 +1,216 @@
+#FLAGGA 0
+#KSUMMA
+#PROGRAM "Sizzla 3000" "0.28.1"
+#FORMAT PC8
+#GEN 20261114 "DEMO Redovisningsansvarig"
+#SIETYP 4
+#FNAMN "DEMO Sizzla Handel AB"
+#ORGNR 999999-9999
+#RAR 0 20250101 20251231
+#VALUTA SEK
+#KONTO 1220 "Inventarier och verktyg"
+#KTYP 1220 T
+#KONTO 1229 "Ackumulerade avskrivningar pÜ inventarier"
+#KTYP 1229 T
+#KONTO 1460 "DEMO lager av handelsvaror"
+#KTYP 1460 T
+#KONTO 1510 "Kundfordringar"
+#KTYP 1510 T
+#KONTO 1610 "Fordringar hos anstÑllda"
+#KTYP 1610 T
+#KONTO 1910 "Kassa"
+#KTYP 1910 T
+#KONTO 1930 "Fîretagskonto"
+#KTYP 1930 T
+#KONTO 2010 "Eget kapital, enskild firma"
+#KTYP 2010 S
+#KONTO 2019 "èrets resultat, enskild firma"
+#KTYP 2019 S
+#KONTO 2081 "Aktiekapital"
+#KTYP 2081 S
+#KONTO 2091 "Balanserat resultat"
+#KTYP 2091 S
+#KONTO 2099 "èrets resultat"
+#KTYP 2099 S
+#KONTO 2440 "Leverantîrsskulder"
+#KTYP 2440 S
+#KONTO 2611 "UtgÜende moms 25 %"
+#KTYP 2611 S
+#KONTO 2621 "UtgÜende moms 12 %"
+#KTYP 2621 S
+#KONTO 2631 "UtgÜende moms 6 %"
+#KTYP 2631 S
+#KONTO 2641 "IngÜende moms"
+#KTYP 2641 S
+#KONTO 2650 "Redovisningskonto fîr moms"
+#KTYP 2650 S
+#KONTO 2710 "Personalskatt"
+#KTYP 2710 S
+#KONTO 2731 "AvrÑkning sociala avgifter"
+#KTYP 2731 S
+#KONTO 2910 "Upplupna lîner"
+#KTYP 2910 S
+#KONTO 3001 "FîrsÑljning, 25 % moms"
+#KTYP 3001 I
+#KONTO 3002 "FîrsÑljning, 12 % moms"
+#KTYP 3002 I
+#KONTO 3003 "FîrsÑljning, 6 % moms"
+#KTYP 3003 I
+#KONTO 3044 "Momsfri fîrsÑljning"
+#KTYP 3044 I
+#KONTO 3740 "ôres- och kronutjÑmning"
+#KTYP 3740 I
+#KONTO 3960 "Valutakursvinster pÜ rîrelsefordringar och rîrelseskulder"
+#KTYP 3960 I
+#KONTO 3973 "Vinst vid avyttring av maskiner och inventarier"
+#KTYP 3973 I
+#KONTO 4000 "Inkîp av varor"
+#KTYP 4000 K
+#KONTO 5010 "Lokalhyra"
+#KTYP 5010 K
+#KONTO 5410 "Fîrbrukningsinventarier"
+#KTYP 5410 K
+#KONTO 5420 "Programvaror och licenser"
+#KTYP 5420 K
+#KONTO 5460 "Fîrbrukningsmaterial"
+#KTYP 5460 K
+#KONTO 5800 "Resekostnader"
+#KTYP 5800 K
+#KONTO 6110 "Kontorsmaterial"
+#KTYP 6110 K
+#KONTO 6210 "Telekommunikation"
+#KTYP 6210 K
+#KONTO 6540 "IT-tjÑnster"
+#KTYP 6540 K
+#KONTO 6570 "Bankkostnader"
+#KTYP 6570 K
+#KONTO 7010 "Lîner till kollektivanstÑllda"
+#KTYP 7010 K
+#KONTO 7210 "Lîner till tjÑnstemÑn"
+#KTYP 7210 K
+#KONTO 7390 "ôvriga kostnadsersÑttningar och fîrmÜner"
+#KTYP 7390 K
+#KONTO 7510 "Arbetsgivaravgifter"
+#KTYP 7510 K
+#KONTO 7832 "Avskrivningar pÜ inventarier och verktyg"
+#KTYP 7832 K
+#KONTO 7960 "Valutakursfîrluster pÜ rîrelsefordringar och rîrelseskulder"
+#KTYP 7960 K
+#KONTO 7973 "Fîrlust vid avyttring av maskiner och inventarier"
+#KTYP 7973 K
+#KONTO 8310 "RÑnteintÑkter"
+#KTYP 8310 I
+#KONTO 8410 "RÑntekostnader"
+#KTYP 8410 K
+#KONTO 8999 "èrets resultat, omfîring"
+#KTYP 8999 K
+#IB 0 1930 250000.00
+#UB 0 1930 327328.00
+#IB 0 2081 -250000.00
+#UB 0 2081 -250000.00
+#UB 0 2099 -19828.00
+#UB 0 2611 -80000.00
+#UB 0 2641 22500.00
+#RES 0 3001 -320000.00
+#RES 0 5010 72000.00
+#RES 0 5420 18000.00
+#RES 0 7010 160000.00
+#RES 0 7510 50272.00
+#RES 0 8310 -100.00
+#RES 0 8999 19828.00
+#VER "A" 1 20250110 "DEMO ovningsranta" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1930 {} 100.00 20250110 ""
+#TRANS 8310 {} -100.00 20250110 ""
+}
+#VER "A" 2 20250205 "Kundfaktura 1" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1510 {} 50000.00 20250205 "Kundfordran"
+#TRANS 3001 {} -40000.00 20250205 "FîrsÑljning 25 %"
+#TRANS 2611 {} -10000.00 20250205 "UtgÜende moms 25 %"
+}
+#VER "A" 3 20250225 "Kundinbetalning 1" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1930 {} 50000.00 20250225 "DEMO simulerad bankbetalning 2025-sale0-payment"
+#TRANS 1510 {} -50000.00 20250225 "KF1"
+}
+#VER "A" 4 20250410 "Kundfaktura 2" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1510 {} 81250.00 20250410 "Kundfordran"
+#TRANS 3001 {} -65000.00 20250410 "FîrsÑljning 25 %"
+#TRANS 2611 {} -16250.00 20250410 "UtgÜende moms 25 %"
+}
+#VER "A" 5 20250430 "Kundinbetalning 2" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1930 {} 81250.00 20250430 "DEMO simulerad bankbetalning 2025-sale1-payment"
+#TRANS 1510 {} -81250.00 20250430 "KF2"
+}
+#VER "A" 6 20250815 "Kundfaktura 3" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1510 {} 150000.00 20250815 "Kundfordran"
+#TRANS 3001 {} -120000.00 20250815 "FîrsÑljning 25 %"
+#TRANS 2611 {} -30000.00 20250815 "UtgÜende moms 25 %"
+}
+#VER "A" 7 20250904 "Kundinbetalning 3" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1930 {} 150000.00 20250904 "DEMO simulerad bankbetalning 2025-sale2-payment"
+#TRANS 1510 {} -150000.00 20250904 "KF3"
+}
+#VER "A" 8 20251001 "Kundfaktura 4" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1510 {} 118750.00 20251001 "Kundfordran"
+#TRANS 3001 {} -95000.00 20251001 "FîrsÑljning 25 %"
+#TRANS 2611 {} -23750.00 20251001 "UtgÜende moms 25 %"
+}
+#VER "A" 9 20251021 "Kundinbetalning 4" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 1930 {} 118750.00 20251021 "DEMO simulerad bankbetalning 2025-sale3-payment"
+#TRANS 1510 {} -118750.00 20251021 "KF4"
+}
+#VER "A" 10 20251002 "DEMO 2025-rent" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 5010 {} 72000.00 20251002 ""
+#TRANS 2641 {} 18000.00 20251002 ""
+#TRANS 2440 {} -90000.00 20251002 ""
+}
+#VER "A" 11 20251022 "DEMO 2025-rent-payment" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 2440 {} 90000.00 20251022 ""
+#TRANS 1930 {} -90000.00 20251022 ""
+}
+#VER "A" 12 20251005 "DEMO 2025-software" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 5420 {} 18000.00 20251005 ""
+#TRANS 2641 {} 4500.00 20251005 ""
+#TRANS 2440 {} -22500.00 20251005 ""
+}
+#VER "A" 13 20251025 "DEMO 2025-software-payment" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 2440 {} 22500.00 20251025 ""
+#TRANS 1930 {} -22500.00 20251025 ""
+}
+#VER "A" 14 20251125 "DEMO lîn 2025-11" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 7010 {} 160000.00 20251125 ""
+#TRANS 7510 {} 50272.00 20251125 ""
+#TRANS 2710 {} -38400.00 20251125 ""
+#TRANS 2731 {} -50272.00 20251125 ""
+#TRANS 2910 {} -121600.00 20251125 ""
+}
+#VER "A" 15 20251125 "DEMO lîn 2025-11" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 2910 {} 121600.00 20251125 ""
+#TRANS 1930 {} -121600.00 20251125 ""
+}
+#VER "A" 16 20251212 "DEMO reglering av îvningsskatter" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 2710 {} 38400.00 20251212 ""
+#TRANS 2731 {} 50272.00 20251212 ""
+#TRANS 1930 {} -88672.00 20251212 ""
+}
+#VER "A" 17 20251231 "DEMO resultatîverfîring 2025" 20261114 "DEMO Redovisningsansvarig"
+{
+#TRANS 8999 {} 19828.00 20251231 ""
+#TRANS 2099 {} -19828.00 20251231 ""
+}
+#KSUMMA 4113268523

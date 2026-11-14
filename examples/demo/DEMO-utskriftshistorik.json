@@ -1,0 +1,50 @@
+[
+  {
+    "kind": "payment_reminder",
+    "number": "BP2",
+    "title": "BETALNINGSPÅMINNELSE",
+    "status": "pdf_saved"
+  },
+  {
+    "kind": "closing_report",
+    "number": "2025-12-31 / 1",
+    "title": "Avstämt arbetsunderlag",
+    "status": "pdf_saved"
+  },
+  {
+    "kind": "analysis_report",
+    "number": "2026-01-01 – 2026-11-14",
+    "title": "Analysrapport · Resultat",
+    "status": "pdf_saved"
+  },
+  {
+    "kind": "time_report",
+    "number": "2026-11-14",
+    "title": "Tidsrapport",
+    "status": "pdf_saved"
+  },
+  {
+    "kind": "inventory_report",
+    "number": "2026-11-14",
+    "title": "Lagersaldolista",
+    "status": "pdf_saved"
+  },
+  {
+    "kind": "payroll",
+    "number": "#2 · 2026-01",
+    "title": "Lönebesked",
+    "status": "pdf_saved"
+  },
+  {
+    "kind": "sales_invoice",
+    "number": "KF16",
+    "title": "Kreditfaktura",
+    "status": "pdf_saved"
+  },
+  {
+    "kind": "sales_invoice",
+    "number": "KF15",
+    "title": "Faktura",
+    "status": "pdf_saved"
+  }
+]

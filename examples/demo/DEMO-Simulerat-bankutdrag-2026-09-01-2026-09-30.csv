@@ -1,0 +1,4 @@
+Datum;Belopp;Text;Saldo;Referens
+2026-09-20;-1000,00;"DEMO SIMULERAT - DEMO supplier-credit-rest";796492,89;"DEMO A76 LF9 / DEMO simulerad bankbetalning supplier-credit-rest"
+2026-09-25;120000,00;"DEMO SIMULERAT - Kundinbetalning 13";916492,89;"DEMO A47 DEMO simulerad bankbetalning 2026-monthly-sale7-payment"
+2026-09-25;-262580,00;"DEMO SIMULERAT - DEMO lön 2026-09";653912,89;"DEMO A49 Lön #3 / 2026-09"

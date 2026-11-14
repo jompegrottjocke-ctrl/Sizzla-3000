@@ -1,0 +1,6 @@
+Datum;Belopp;Text;Saldo;Referens
+2026-01-06;600000,00;"DEMO SIMULERAT - Kundinbetalning 5";927328,00;"DEMO A5 DEMO simulerad bankbetalning 2026-start-contract-payment"
+2026-01-12;-57500,00;"DEMO SIMULERAT - DEMO simulerad reglering av föregående års moms";869828,00;"DEMO A3 DEMO-UNDERLAG 2026-vat-paid"
+2026-01-20;-1250,00;"DEMO SIMULERAT - DEMO ersättningsverifikation efter motbokning";868578,00;"DEMO A79 DEMO-UNDERLAG 2026-correct-journal"
+2026-01-25;-301203,26;"DEMO SIMULERAT - DEMO warehouse-bill-payment";567374,74;"DEMO A7 LF3 / DEMO simulerad bankbetalning warehouse-bill-payment"
+2026-01-25;-262580,00;"DEMO SIMULERAT - DEMO lön 2026-01";304794,74;"DEMO A30 Lön #2 / 2026-01"

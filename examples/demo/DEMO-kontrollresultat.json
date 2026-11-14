@@ -1,0 +1,76 @@
+{
+  "created": "2026-11-14T11:25:06.737Z",
+  "programVersion": "0.28.1",
+  "amountUnit": "SEK i heltalsören; dokumentvalutor anges i respektive dokument",
+  "company": "DEMO Sizzla Handel AB",
+  "demoOnly": true,
+  "counts": {
+    "customers": 10,
+    "articles": 31,
+    "suppliers": 8,
+    "employees": 12,
+    "archivedEmployees": 1,
+    "payruns": 6,
+    "leaves": 5,
+    "issuedSales": 24,
+    "customerCredits": 3,
+    "invoiceDrafts": 2,
+    "supplierInvoices": 13,
+    "purchaseOrders": 3,
+    "customerOrders": 1,
+    "quotes": 3,
+    "inventoryMovements": 32,
+    "stocktakes": 2,
+    "projects": 3,
+    "timeEntries": 6,
+    "recurringTemplates": 2,
+    "reminders": 2,
+    "assets": 2,
+    "bankStatements": 3,
+    "archiveDocuments": 5,
+    "postedVouchers": 108
+  },
+  "years": [
+    {
+      "name": "2026 - pågående demoår",
+      "start": "2026-01-01",
+      "end": "2026-12-31",
+      "closed": false,
+      "lockedThrough": "2026-01-31",
+      "bankBalance": 66903789
+    },
+    {
+      "name": "2025 - avslutat demoår",
+      "start": "2025-01-01",
+      "end": "2025-12-31",
+      "closed": true,
+      "lockedThrough": "2025-12-31",
+      "bankBalance": 32732800
+    }
+  ],
+  "examples": {
+    "eurInvoice": 15,
+    "usdInvoice": 17,
+    "overdueInvoice": 20,
+    "disputedInvoice": 21
+  },
+  "checks": {
+    "balancedJournals": true,
+    "nonnegativeStock": true,
+    "nonnegativeReceivables": true,
+    "nonnegativePayables": true,
+    "historicalClosingFrozen": true,
+    "localMcpOff": true,
+    "externalAgentOff": true,
+    "customerLedgerReconciled": true,
+    "supplierLedgerReconciled": true,
+    "trialBalanceBalanced": true,
+    "exportVerified": true,
+    "importIntoNewCompanyVerified": true,
+    "pdfSnapshotsRestored": true,
+    "mainPagesVisited": 23,
+    "subtabsVisited": 44,
+    "rendererErrors": 0
+  },
+  "printSnapshots": 8
+}

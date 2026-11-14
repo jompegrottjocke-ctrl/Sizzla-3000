@@ -373,3 +373,7 @@ Skrivbordsappen har **Öppna i eget fönster** vid varje huvudfliks rubrik. Anv�
 ## Formulärrättningar (0.28.1)
 
 Dialoger håller nu fält och sparknappar åtkomliga även med stor text. Lönekörningens granskning behålls vid oförändrat företag eller enbart ändrad allmän anteckning; ändrat löneunderlag kräver fortsatt ny granskning. [Formulärgranskning och kontroller](docs/FORMULARGRANSKNING.md).
+
+## Nedladdningsbart demoföretag
+
+[Demodatabas och guide](examples/README.md) innehåller påhittad personal, kunder, artiklar och sammanhängande exempel på fakturering, betalningar, lager, löner, projekt, bokföring och bokslutsarbetsunderlag. Databasen har provimporterats och ska användas i en separat företagsdatabas med namnet **DEMO**.

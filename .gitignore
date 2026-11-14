@@ -6,3 +6,5 @@ test-results/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+# Intentional synthetic, import-tested demonstration export.
+!examples/demo/Sizzla-3000-Demo-0.28.1.sqlite

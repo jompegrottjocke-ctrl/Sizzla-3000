@@ -1,0 +1,10 @@
+Datum;Belopp;Text;Saldo;Referens
+2025-01-10;100,00;"DEMO SIMULERAT - DEMO ovningsranta";250100,00;"DEMO A1 SIE DEMO-Ingaende-2025.se / DEMO 1"
+2025-02-25;50000,00;"DEMO SIMULERAT - Kundinbetalning 1";300100,00;"DEMO A3 DEMO simulerad bankbetalning 2025-sale0-payment"
+2025-04-30;81250,00;"DEMO SIMULERAT - Kundinbetalning 2";381350,00;"DEMO A5 DEMO simulerad bankbetalning 2025-sale1-payment"
+2025-09-04;150000,00;"DEMO SIMULERAT - Kundinbetalning 3";531350,00;"DEMO A7 DEMO simulerad bankbetalning 2025-sale2-payment"
+2025-10-21;118750,00;"DEMO SIMULERAT - Kundinbetalning 4";650100,00;"DEMO A9 DEMO simulerad bankbetalning 2025-sale3-payment"
+2025-10-22;-90000,00;"DEMO SIMULERAT - DEMO 2025-rent-payment";560100,00;"DEMO A11 LF1 / DEMO simulerad bankbetalning 2025-rent-payment"
+2025-10-25;-22500,00;"DEMO SIMULERAT - DEMO 2025-software-payment";537600,00;"DEMO A13 LF2 / DEMO simulerad bankbetalning 2025-software-payment"
+2025-11-25;-121600,00;"DEMO SIMULERAT - DEMO lön 2025-11";416000,00;"DEMO A15 Lön #1 / 2025-11"
+2025-12-12;-88672,00;"DEMO SIMULERAT - DEMO reglering av övningsskatter";327328,00;"DEMO A16 DEMO-UNDERLAG 2025-payroll-tax"
