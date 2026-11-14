@@ -1,12 +1,12 @@
-Sizzla 3000 0.23.0 för Windows 11 (x64): EUR och USD i försäljningen.
+Sizzla 3000 0.24.0 för Windows 11 (x64): betalningspåminnelser.
 
-- Välj SEK, EUR eller USD på offert, kundorder och kundfakturautkast. Ange kurs, kursdatum och källa manuellt.
-- Artikelpriser från SEK-registret räknas om när de väljs till ett valutaunderlag. Befintliga priser måste granskas vid valutabyte.
-- Utfärdande bevarar valuta och kurs samt bokför belopp och moms i SEK. Fakturautskrift visar även moms i SEK och kursunderlag.
-- Valutabetalningar regleras mot faktiskt bankbelopp i SEK. Kursvinst/förlust bokförs normalt på 3960/7960, med spårbar rättelse.
-- Krediter och kvittning bevarar ursprungsfakturans bokföringsvärde. Analys och sammanräknade saldon använder SEK.
-- Svenska och engelska. Utökade fakturadialoger har nåbar sidfot även vid stor text. Schema 10 är oförändrat.
+- Ny del under Betalningar → Påminnelser med förfallna kundfakturor och spärr för bestridda fakturor.
+- Granska och bevara påminnelseunderlag, skriv ut/spara PDF och registrera manuellt utskick med referens.
+- Avgift är 0 från början. Upp till 60 SEK kräver tidigare avtal och uttrycklig granskning; samma avgift skapas inte igen.
+- Valfri ränta på kvarstående SEK-kapital med granskad grund, källa och perioder. Referensräntor anges manuellt per halvår.
+- Tidigare öppna tillägg följer med utan dubbel registrering och kan markeras separat betalda eller efterskänkta.
+- Ändrade saldon eller tillägg ger varning; gamla underlag och PDF-kopior bevaras. Svenska/engelska och stor text stöds.
 
-Första stödet gäller försäljning med befintlig svensk momsbehandling och betalning till SEK-konto. Inköp/löner är fortfarande i SEK. Kurser hämtas inte automatiskt; utländsk moms, valutakonton och automatisk årsskiftesomvärdering ingår inte. Se docs/VALUTA.md för arbetsgång och begränsningar.
+Detta är betalningspåminnelser, inte automatiska inkassokrav. Inga brev skickas automatiskt. Ränta/avgift ändrar inte bokföring eller fakturasaldo automatiskt; de hanteras separat. Historisk ränta på redan betalda belopp och automatisk förseningsersättning ingår inte. EUR/USD stöder påminnelse om fakturabelopp utan nya tillägg. Se docs/PAMINNELSER.md. Schema 10 är oförändrat.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

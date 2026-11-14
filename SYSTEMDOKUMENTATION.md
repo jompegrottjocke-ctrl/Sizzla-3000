@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.23.0, databasschema 10. Uppdaterad 2026-11-13.
+Version 0.24.0, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -227,3 +227,14 @@ FU-återtagning före utfärdande tar bort utkastet och frigör leveranser atomi
 Utfärdande låser `currency`, `fx` och `sek`. `sales.cjs` bokför från SEK-raderna. Delbetalningar sparar reglerat valutabelopp, faktiskt bankbelopp i SEK och reglerat historiskt bokföringsvärde. Skillnaden balanseras normalt på 3960/7960. Motbokning återtar exakt ursprunglig betalningsverifikation och dess reskontrapåverkan. Krediter proportionerar både originalets valuta- och SEK-rader; kvittning bevarar respektive dokuments bokföringsvärde och balanserar eventuell andelsavrundning.
 
 Orderflödet skyddar kommersiell valuta och priser, men fakturans kurs kan granskas separat i utkastet. Utskrifter visar dokumentvaluta och moms/kurs i SEK. Kundreskontrans sammanräkningar och analys använder sparade SEK-värden och kvarvarande bokföringsvärde. Ingen automatisk omvärdering till dags-/bokslutskurs görs. Bankavstämning förblir i SEK; bokförd valutabetalning matchas via sin SEK-bankrad. Säkerhetskopior inkluderar alla sparade kurs-/betalningsvärden. Se [Valuta](docs/VALUTA.md) för beräkningsregler och kvarstående begränsningar.
+
+
+## Betalningspåminnelser (0.24.0)
+
+`src/reminders.cjs` sparar frysta BP-underlag, separata tillägg, spärrar och händelser i befintliga `records` (`reminder_*`), utan schemaändring. En aktiv bokförd, förfallen kundfaktura med saldo krävs; spärr eller oreglerad kredit stoppar nya underlag. Skrivfri förhandsvisning innehåller en kontrollsumma för saldo, kontaktuppgifter, tillägg och ansvarig. Bevarande revaliderar underlaget atomiskt. Gammal databassession och fel revision avvisas.
+
+Påminnelser skickas manuellt. Bevarat underlag, utskrift och registrerat utskick är separata tillstånd. Ett skickat underlag skrivs inte om. Senare ändrat fakturasaldo, kontaktuppgifter, spärr eller medfört tillägg ger ändringsvarning. Efterhandsregistrering av verkligt utskick efter ändring kräver bekräftelse/orsak. Oskickad påminnelse kan avbrytas med bevarad historik.
+
+Ränta/avgift ändrar inte bokföring, moms eller fakturans kapitalreskontra. Separat hantering kräver manuell referens. Avgift begränsas till en per faktura och högst 60 SEK efter uttrycklig granskning. Ränta beräknas endast på kvarstående SEK-kapital efter senaste saldoändring/tidigare ränteperiod, med faktisk dagräkning/365 och granskade satser. Tidigare ränta på betalda belopp rekonstrueras inte. Källor och begränsningar finns i [Påminnelser](docs/PAMINNELSER.md). Inkassokrav och automatisk förseningsersättning ingår inte.
+
+`payment_reminder` tillkommer som utskriftstyp. Frysta underlag, tillägg, spärrar, händelser och PDF-kopior följer säkerhetskopian. Sammanräknad kundreskontra/analys omfattar fortfarande fakturakapitalet och dess bokföringsvärde; det separata tilläggsregistret utgör inte bokförd reskontra.

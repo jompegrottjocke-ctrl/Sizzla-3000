@@ -343,3 +343,7 @@ Under **Fakturering → Offerter / Kundorder** finns offert → accepterad order
 ## EUR och USD i försäljningen (0.23.0)
 
 Offerter, kundorder och kundfakturor stöder SEK, EUR och USD med manuellt granskad kurs, datum och källa. Bokföring och moms redovisas i SEK. Betalning i dokumentvaluta regleras mot faktiskt bankbelopp i SEK med bokförd kursvinst/-förlust; krediter använder originalets värden. Listor visar dokumentvaluta och sammanräknad analys använder SEK. Inköp och löner är fortsatt i SEK. Se [arbetsgång och begränsningar](docs/VALUTA.md).
+
+## Betalningspåminnelser (0.24.0)
+
+Under **Betalningar → Påminnelser** finns granskade underlag för förfallna kundfakturor, PDF/utskriftshistorik, manuell utskicksregistrering och spärr för bestridda fakturor. Avgift och ränta är avstängda från början och kräver kontrollerad grund. Tillägg följs upp separat och ändrar inte bokföring eller fakturasaldo automatiskt. Detta är vanliga påminnelser, inte automatiska inkassokrav. Se [arbetsgång, lagkällor och begränsningar](docs/PAMINNELSER.md).

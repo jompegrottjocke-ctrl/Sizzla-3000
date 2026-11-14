@@ -79,7 +79,7 @@ function bind() {
  document.querySelectorAll('[data-new]').forEach(el=>el.onclick=()=>openEditor(el.dataset.new));
  document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openEditor(el.dataset.edit,el.dataset.id));
  const input=document.querySelector('#search'); if(input) input.oninput=event=>{const pos=event.target.selectionStart;search=event.target.value;render();const next=document.querySelector('#search');next.focus();next.setSelectionRange(pos,pos);};
- bindTrade();bindBank();bindSie();bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
+ bindReminders();bindTrade();bindBank();bindSie();bindArchive();bindVersion();bindAgency();bindAgent();bindClosing();bindAssets();bindFileImport();bindAppearance();bindAnalysis();bindCloud();bindTime();bindDatabases();bindHr();bindAccounting();bindPurchases();bindSecurity();bindPrinting();bindInventory();bindSales();
  const form=document.querySelector('#company-form'); if(form) form.onsubmit=async event=>{event.preventDefault(); const button=form.querySelector('button');button.disabled=true;try{await post('company',Object.fromEntries(new FormData(form)));await load();render();toast(t('saved'));}catch(error){button.disabled=false;toast(error.message==='bookCompanyIdentityLocked'?bt(error.message):salesWords[lang][error.message]||t('failed'));}};
 }
 function openEditor(kind,id) {
@@ -150,6 +150,7 @@ function totals() {
  document.querySelector('#totals').innerHTML=`<div class="totals"><div><span>${t('net')}</span><strong>${money(net)}</strong></div><div><span>${t('tax')}</span><strong>${money(tax)}</strong></div><div class="grand"><span>${t('total')}</span><strong>${money(net+tax)}</strong></div></div>`;
 }
 function printView() {
+ if(reminderPrint())return;
  if(tradePrint())return;
  if(closingPrint())return;
  if(assetsPrint())return;
