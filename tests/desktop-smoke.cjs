@@ -148,6 +148,7 @@ const path = require('node:path');
   await expect(window.getByRole('heading',{name:'beta kommer senare'})).toBeVisible();
   const preferences=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
   if(preferences.nodeIntegration || !preferences.contextIsolation || !preferences.sandbox) throw new Error('Unsafe renderer preferences');
+  await require('./desktop-windows-check.cjs')(app,window);
   console.log('Desktop startup, local API, beta navigation and renderer isolation passed.');
- } finally {if(app)await app.close();fs.rmSync(dataDir,{recursive:true,force:true});}
+ } finally {if(app){await app.evaluate(({BrowserWindow})=>{for(const w of BrowserWindow.getAllWindows())w.destroy();}).catch(()=>{});await app.close().catch(()=>{});}fs.rmSync(dataDir,{recursive:true,force:true});}
 })().catch(error=>{console.error(error);process.exitCode=1;});

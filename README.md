@@ -365,3 +365,7 @@ Knappen **fruit-mode** under **Utseende & läsbarhet** visar unika färgglada fr
 ## Lokal MCP-server (0.27.0)
 
 Under **AI-agent → MCP & anslutningar** kan en betrodd MCP-klient ges läsåtkomst till aktiv företagsdatabas. Välj företag, försäljning, lager och/eller bokföring, aktivera och kopiera klientkonfigurationen. Servern kräver anslutningsnyckel och är avstängd vid varje start och företagsbyte. Nycklar lagras inte i databasen. Endast lokal Streamable HTTP på loopback stöds; det är ingen TLS-krypterad molnanslutning. Inga skrivverktyg finns. [Användning, protokoll och behörigheter](docs/MCP.md).
+
+## Separata modulfönster (0.28.0)
+
+Skrivbordsappen har **Öppna i eget fönster** vid varje huvudfliks rubrik. Använd exempelvis Bokföring på en skärm och Fakturering på en annan. Fönstren visar samma företag, med egna urval, uppdatering mellan fria vyer och skydd mot samtidiga överskrivningar i redigerarna. Osparade ändringar blockerar företagsbyte; efter lyckat byte stängs extrafönstren. **Visa huvudfönstret** går tillbaka till huvudfönstret. [Användning och gränser](docs/SEPARATA_FONSTER.md).

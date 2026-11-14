@@ -1,0 +1,3 @@
+.page-window-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.page-window-actions button{white-space:normal}.window-updates{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}.window-updates button{flex-shrink:0}.window-company{font-weight:600;overflow-wrap:anywhere}.breadcrumb:has(.window-company){flex-wrap:wrap}
+:root[data-detached=true] aside{display:none}:root[data-detached=true] .workspace{margin-left:0}:root[data-detached=true] .page-head{flex-wrap:wrap}
+@media print{.page-window-actions,.window-updates{display:none}}

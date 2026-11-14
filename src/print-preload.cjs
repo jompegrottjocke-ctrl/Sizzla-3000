@@ -11,3 +11,9 @@ contextBridge.exposeInMainWorld('sizzlaEmail',{open:(employeeId,token)=>ipcRende
 contextBridge.exposeInMainWorld('sizzlaArchive',{open:(id,token)=>ipcRenderer.invoke('sizzla:archive-open',{id,token})});
 
 contextBridge.exposeInMainWorld('sizzlaBackup',{chooseFolder:token=>ipcRenderer.invoke('sizzla:backup-folder',{token})});
+
+contextBridge.exposeInMainWorld('sizzlaWindows',{
+ open:(page,token)=>ipcRenderer.invoke('sizzla:open-module',{page,token}),
+ focusMain:token=>ipcRenderer.invoke('sizzla:focus-main',{token}),
+ onDatabaseChanged:callback=>{if(typeof callback==='function')ipcRenderer.on('sizzla:database-changed',(_,session)=>callback(session));}
+});

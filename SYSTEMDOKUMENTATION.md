@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.27.0, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.28.0, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -265,3 +265,11 @@ Den valfria booleska inställningen `preferences.fruitMode` sparas via befintlig
 `/api/mcp/*` använder appens vanliga Origin-, sessions- och tokenkontroller och kräver ansvarig operatör. Start/nyckelbyte kräver uttryckligt godkännande och minst en sparad behörighet. `mcp_config` och `mcp_event` ligger i `records` och omfattas av säkerhetskopior, utan anslutningsnyckel. Endast läsverktyg annonseras per tillåten kategori. Loggen sparar begärd/nekad/slutförd/misslyckad läsning, verktygsnamn, antal, operatör och anslutningsetikett, utan söktext eller innehåll. Dessa inställningar och loggar är undantagna från bokslutets källfingeravtryck.
 
 `public/mcp.js` erbjuder tvåspråkiga inställningar under AI-agent, konfigurationsexempel, nyckelbyte/återkallning och de senaste 100 logghändelserna. Den externa agentens betainställningar är separata. HTTP är lokalt, inte TLS-krypterad fjärrtrafik; klienten kan vidarebefordra data till en AI-tjänst. Inga verktyg för skrivning, personalprofiler eller lön finns. Schema 10 är oförändrat. Se [MCP-dokumentation](docs/MCP.md).
+
+## Separata modulfönster (0.28.0)
+
+`src/desktop-windows.cjs` hanterar registrerade modul-/huvudfönster, IPC för modulöppning och fokusering, återanvändning av befintliga fönster och förebyggande kontroll vid företagsbyte. IPC kontrollerar lokalt ursprung, huvudram, registrerat fönster och aktuell sessionstoken; modulnamn kommer från en tillåtelselista. Alla modulfönster har sandbox, kontextisolering, avstängd Node-integration och programmets ordinarie preload. Företagsbyte kontrollerar osparat/öppen redigerare/pågående skrivning i samtliga modulfönster och pausar inmatning tills bytet har lyckats eller avbrutits. Sessionen och utskriftsstatus kontrolleras på nytt efter den asynkrona kontrollen. Andra fönster stängs efter byte. Avslut av databastjänsten sker vid faktisk programavslutning, efter att frågor om osparade uppgifter hanterats.
+
+`public/windows.js` erbjuder knappstyrd öppning, företagskontext, uppdateringsmeddelanden och sessionavgränsad BroadcastChannel för lyckade åtgärder. Fria vyer kan uppdateras automatiskt; formulär och öppna dialoger bevaras. Ett sekvensnummer hindrar äldre inläsningssvar från att ersätta senare begärda uppgifter. Kunder, artiklar, fakturautkast och företagsuppgifter får en beräknad `recordVersion` som redigeraren skickar vid sparande; versionsavvikelse ger HTTP 409 utan skrivning. Denna metadata lagras inte i affärsposterna. Befintliga revisions-, utfärdande- och bokföringsspärrar gäller parallellt.
+
+Schema 10 och backupformat är oförändrade. Fönsterplacering och öppna fönster sparas inte. Företagsbyte görs från huvudfönstret. En stängning kan avbrytas med osparad information kvar. Se [Separata fönster](docs/SEPARATA_FONSTER.md) för arbetsflöden, avgränsningar och intern API-kompatibilitet.

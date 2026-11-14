@@ -1,12 +1,13 @@
-Sizzla 3000 0.27.0 för Windows 11 (x64): lokal MCP-anslutning.
+Sizzla 3000 0.28.0 för Windows 11 (x64): huvudflikar i separata fönster.
 
-- AI-agent har underfliken MCP & anslutningar med en fungerande lokal MCP-server för betrodda klienter.
-- Välj läsbehörigheter för företagsuppgifter, kundnamn/fakturor, artiklar/lager och bokförda verifikationer.
-- Aktivera med uttrycklig bekräftelse. Slumpad anslutningsnyckel, kopierbart konfigurationsexempel, nyckelbyte och avstängning.
-- Servern är avstängd vid varje programstart och företagsbyte. Nycklar lagras inte i databasen eller säkerhetskopior.
-- Aktivitetslogg visar begärda, nekade och utförda läsningar utan att spara nycklar, söktexter eller svarsinnehåll.
-- Fruit-mode är rättat: 23 unika frukter på huvudflikarna, inga frukter på underflikarna.
+- Ny knapp Öppna i eget fönster vid huvudflikens rubrik. Flytta fönstret till en annan skärm och arbeta parallellt.
+- Extrafönster visar samma företag och har knappen Visa huvudfönstret. Ett befintligt fönster för modulen återanvänds.
+- Sparade ändringar uppdateras mellan fria vyer. Vid redigering visas ett uppdateringsmeddelande utan att formuläret skrivs över.
+- Samtidiga ändringar av kund, artikel, fakturautkast och företagsuppgifter ger versionskonflikt i stället för att skriva över en nyare post.
+- Företagsbyte kontrollerar alla modulfönster och blockeras vid osparade ändringar eller pågående åtgärder. Extrafönstren stängs efter lyckat byte.
+- Utskrift/PDF fungerar även från extrafönster. Språk och utseende följer företagets sparade inställningar.
+- Stängning med osparade ändringar kan avbrytas utan att databastjänsten avslutas.
 
-MCP stöder lokal Streamable HTTP på 127.0.0.1 med Bearer-nyckel. Detta är lokal HTTP, inte TLS-krypterad fjärråtkomst. Den anslutna klienten kan föra data vidare till sin AI-tjänst. Inga verktyg för utkast, bokföring, betalningar eller lön finns. Extern AI-agent och molnserver återstår. Schema 10 är oförändrat. Se docs/MCP.md.
+Funktionen gäller skrivbordsappen och använder knappstyrd öppning av huvudflikar. Ett nytt fönster öppnar modulens startvy; redigeringar kopieras inte mellan fönstren. Schema 10 är oförändrat. Se docs/SEPARATA_FONSTER.md.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

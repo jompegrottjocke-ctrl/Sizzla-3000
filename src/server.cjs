@@ -5,7 +5,7 @@ const {CurrencyError}=require('./currency.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const { randomBytes, randomUUID } = require('node:crypto');
+const { randomBytes, randomUUID, createHash } = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 const { ValidationError, text, decimal, invoice } = require('./domain.cjs');
 const {initTrade,TradeError}=require('./trade.cjs');
@@ -64,13 +64,14 @@ function openDatabase(dataDir,openDataDirectory){
   } catch(error) { db.close(); throw error; }
   return {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade,reminders,recurring,mcp};
 }
-function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirname, '..', '.local'), openDataDirectory, canSwitchDatabase=()=>true, onDatabaseChanged=()=>{} } = {}) {
+function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirname, '..', '.local'), openDataDirectory, canSwitchDatabase=()=>true, onDatabaseChanged=()=>{},prepareDatabaseSwitch=async()=>()=>{} } = {}) {
   fs.mkdirSync(dataDir,{recursive:true,mode:0o700});
   const databases=initDatabases(dataDir);
   if(!databases.created&&(!fs.existsSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite'))||!fs.statSync(path.join(databases.directory(databases.activeId),'sizzla.sqlite')).size))throw new DatabaseError('dbUnavailable');
   let {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade,reminders,recurring,mcp}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
   let token=randomBytes(32).toString('hex'),databaseSession=randomUUID();
-  const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data) }));
+  const recordVersion=data=>createHash('sha256').update(data).digest('hex');
+  const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data), recordVersion:recordVersion(row.data) }));
   const get = (kind,id) => { const row = db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,id); return row ? { id, data: JSON.parse(row.data) } : null; };
   const settings = () => JSON.parse(db.prepare('SELECT data FROM settings WHERE id=1').get()?.data || '{}');
   const preferences = () => JSON.parse(db.prepare('SELECT data FROM preferences WHERE id=1').get()?.data || '{}');
@@ -86,7 +87,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
       if(url.pathname==='/mcp'){const active=mcp;return await active.http(req,res,()=>mcp===active&&!closed);}
-      if (req.method === 'GET' && ['/','/mcp.js','/app.js','/recurring.js','/recurring.css','/overview.js','/overview-math.js','/overview.css','/reminders.js','/reminders.css','/currency.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/window-pages.js','/windows.js','/windows.css','/mcp.js','/app.js','/recurring.js','/recurring.css','/overview.js','/overview-math.js','/overview.css','/reminders.js','/reminders.css','/currency.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
@@ -96,7 +97,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(req.method==='GET'&&url.pathname==='/api/prints')return send(res,200,printing.list(Object.fromEntries(url.searchParams)));
       const pdfMatch=url.pathname.match(/^\/api\/prints\/([a-f0-9-]{36})\/pdf$/);
       if(req.method==='GET'&&pdfMatch){const doc=printing.document(pdfMatch[1]);if(!doc.pdf)return send(res,404,{error:'printPdfFailed'});res.setHeader('Content-Disposition',`inline; filename="Sizzla-${doc.id}.pdf"`);return send(res,200,doc.pdf,'application/pdf');}
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(), security:{...security.status(),automatic:automatic.status()}, preferences:preferences(), assets:assets.state(), closing:closing.state(), agent:agent.state(),mcp:mcp.state(`http://127.0.0.1:${server.address().port}`), agency:agency.state(), archive:archive.summary(), sie:sie.state(), bank:bank.state(),trade:trade.state(),reminders:reminders.state(),recurring:recurring.state(), company:settings(), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state(),time:time.state() });
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ token, databaseSession,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(), security:{...security.status(),automatic:automatic.status()}, preferences:preferences(), assets:assets.state(), closing:closing.state(), agent:agent.state(),mcp:mcp.state(`http://127.0.0.1:${server.address().port}`), agency:agency.state(), archive:archive.summary(), sie:sie.state(), bank:bank.state(),trade:trade.state(),reminders:reminders.state(),recurring:recurring.state(), company:{...settings(),recordVersion:recordVersion(JSON.stringify(settings()))}, customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!sales.isIssuedDraft(d.id)),...hr.state(),accounting:accounting.state(),purchases:purchases.state(),inventory:inventory.state(),sales:sales.state(),time:time.state() });
       if(req.method==='POST'&&req.headers.origin===`http://127.0.0.1:${server.address().port}`&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname==='/api/assets/report'&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname.startsWith('/api/archive')){
@@ -127,9 +128,10 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if(route==='activate'){
           if(security.status().importPending)throw new DatabaseError('dbImportPending');
           if(!canSwitchDatabase())throw new DatabaseError('dbPrintBusy');
+          const release=await prepareDatabaseSwitch();try{if(requestToken!==token)throw new DatabaseError('dbChanged');if(!canSwitchDatabase())throw new DatabaseError('dbPrintBusy');
           const result=databases.activate(body,dir=>{if(fs.existsSync(path.join(dir,'pending-import.sqlite')))throw new DatabaseError('dbImportPending');let candidate;try{candidate=openDatabase(dir,openDataDirectory);if(candidate.db.prepare('PRAGMA quick_check').get().quick_check!=='ok'||candidate.db.prepare('PRAGMA foreign_key_check').all().length)throw Error();for(const row of candidate.db.prepare('SELECT data FROM records UNION ALL SELECT data FROM settings UNION ALL SELECT data FROM preferences').all()){const value=JSON.parse(row.data);if(!value||typeof value!=='object'||Array.isArray(value))throw Error();}candidate.hr.state();candidate.accounting.state();candidate.purchases.state();candidate.inventory.state();candidate.sales.state();candidate.time.state();candidate.assets.state();candidate.closing.state();candidate.agent.state();candidate.agency.state();candidate.archive.summary();candidate.sie.state();candidate.bank.state();candidate.trade.state();candidate.reminders.state();candidate.recurring.state();return candidate;}catch{candidate?.db.close();throw new DatabaseError('dbUnavailable');}});
           if(!result.unchanged){mcp.shutdown();const old=db,oldAutomatic=automatic;({db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade,reminders,recurring,mcp}=result.candidate);token=randomBytes(32).toString('hex');databaseSession=randomUUID();oldAutomatic.due('switch');old.close();automatic.due();try{onDatabaseChanged();}catch(error){console.error(error);}}
-          return send(res,200,{ok:true});
+          return send(res,200,{ok:true});}finally{release?.();}
         }
         throw new DatabaseError('dbMissing',404);
       }
@@ -174,6 +176,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         return send(res,result?200:404,result||{error:'route'});
       }
       if (url.pathname === '/api/company') {
+        if(body.recordVersion!==undefined&&body.recordVersion!==recordVersion(JSON.stringify(settings())))throw new DatabaseError('recordConflict',409);
         const data = {};
         for (const key of ['name','org','email','phone','address','postal','city','bankgiro','vatNumber']) data[key] = text(body[key] ?? '',key,key === 'name');
         data.vatNumber=data.vatNumber.replace(/[ -]/g,'').toUpperCase();
@@ -201,6 +204,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         if(body.id){const old=get('invoice',body.id)?.data;data=recurring.protectDraft(body.id,trade.protectDraft(body.id,data,old,body),old,body);}
         for(const line of data.lines)if(line.articleId&&!get('article',line.articleId))throw new ValidationError('articleId');
       } else return send(res,404,{error:'route'});
+      if(body.id&&body.recordVersion!==undefined){const old=db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,body.id);if(!old||typeof body.recordVersion!=='string'||recordVersion(old.data)!==body.recordVersion)throw new DatabaseError('recordConflict',409);}
       const id = body.id === undefined ? randomUUID() : text(body.id,'id');
       if (body.id && !get(kind,id)) return send(res,404,{error:'missing'});
       if(kind==='article')inventory.assertArticleChange(id,data);
