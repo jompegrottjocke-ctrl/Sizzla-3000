@@ -1,6 +1,6 @@
 {
   "name": "sizzla-3000",
-  "version": "0.28.1",
+  "version": "0.29.0",
   "private": true,
   "description": "Sizzla 3000 – lokal företagsadministration",
   "main": "src/desktop.cjs",
@@ -10,7 +10,8 @@
     "desktop": "electron .",
     "test": "node scripts/test-ci.cjs",
     "test:ui": "playwright test",
-    "dist:win": "electron-builder --win nsis --x64 --publish never"
+    "dist:win": "electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "electron-builder --mac dmg zip --publish never"
   },
   "engines": {
     "node": ">=24"
@@ -37,6 +38,15 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "minimumSystemVersion": "15.0",
+      "artifactName": "Sizzla-3000-${version}-macOS-${arch}.${ext}"
     }
   },
   "dependencies": {

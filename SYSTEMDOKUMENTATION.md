@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.28.1, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.29.0, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -281,3 +281,5 @@ Schema 10 och backupformat är oförändrade. Fönsterplacering och öppna föns
 Företagets beräknade versionsmarkering returneras nu separat som `companyVersion` i `/api/state`, så att `company` fortsatt innehåller enbart företagets affärsuppgifter. Företagsformuläret skickar markeringen som `recordVersion` vid sparande; tidigare kontroll mot samtidiga ändringar kvarstår. Löneutkastens jämförelse mot företagets snapshot påverkas därmed inte av teknisk presentationsmetadata. Den allmänna löneanteckningen undantas från gränssnittets återställning av skatte-/avgiftsgranskning; ändringar av belopp och underlag återställer fortfarande granskningen och serverkontrollerna gäller som tidigare.
 
 Schema 10, sparade affärsposter och backupformat är oförändrade. Se [Formulärgranskning](docs/FORMULARGRANSKNING.md) för verifiering och avgränsning.
+
+Från 0.29.0 finns macOS-byggkonfiguration för Apple Silicon och Intel (mål macOS 15+, CI macOS 15). Dataformat och lokalt loopback-API är gemensamma med Windows. På Mac avslutas appen med ⌘Q, inte när sista fönstret stängs; avslutsbackup följer faktisk avslutning. macOS-byggen är ännu osignerade och inte notarierade.

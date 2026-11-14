@@ -43,5 +43,6 @@ async function open() {
   await window.loadURL(origin);
 }
 app.whenReady().then(()=>primary?ensureMain():undefined).catch(error => { dialog.showErrorBox('Sizzla 3000', error.message); app.quit(); });
-app.on('window-all-closed', () => app.quit());
+app.on('activate', () => { if(primary)ensureMain().catch(error=>dialog.showErrorBox('Sizzla 3000',error.message)); });
+app.on('window-all-closed', () => { if(process.platform!=='darwin')app.quit(); });
 app.on('will-quit', () => { if (service) { const result=service.close();if(result?.error)dialog.showErrorBox('Sizzla 3000 – säkerhetskopiering','Den automatiska säkerhetskopieringen misslyckades. Kontrollera status och målkatalog under Säkerhet & säkerhetskopiering nästa gång du startar programmet.'); } });

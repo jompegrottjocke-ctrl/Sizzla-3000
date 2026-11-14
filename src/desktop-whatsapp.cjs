@@ -11,9 +11,9 @@ function whatsappHandler(service,{shell,platform=process.platform}){
   if(!row)return {status:'invalid'};
   const phone=whatsappPhone(JSON.parse(row.data).phone);
   if(!phone)return {status:'invalid'};
-  if(platform!=='win32')return {status:'required'};
+  if(!['win32','darwin'].includes(platform))return {status:'required'};
   const target='whatsapp://send?phone='+phone;
-  // Windows can launch Store apps even when protocol metadata has no executable path.
+  // Let Windows/macOS dispatch the desktop protocol; installed apps need not expose an executable path.
   // Dispatch only after validating the active company, preference and profile above.
   try{await shell.openExternal(target);return {status:'opened'};}catch{return {status:'required'};}
  };

@@ -6,7 +6,7 @@ const path = require('node:path');
  const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-desktop-'));
  let app;
  try {
-  app=await electron.launch({args:[...(process.env.SIZZLA_HEADLESS?['--ozone-platform=headless']:[]),path.join(__dirname,'..')],env:{...process.env,SIZZLA_DATA_DIR:dataDir}});
+  app=await electron.launch({...(process.env.SIZZLA_EXECUTABLE?{executablePath:process.env.SIZZLA_EXECUTABLE}:{}),args:[...(process.env.SIZZLA_HEADLESS?['--ozone-platform=headless']:[]),...(process.env.SIZZLA_EXECUTABLE?[]:[path.join(__dirname,'..')])],env:{...process.env,SIZZLA_DATA_DIR:dataDir}});
   const window=await app.firstWindow();
   await expect(window.getByRole('heading',{name:'Ordning på affärerna.'})).toBeVisible();await expect(window.locator('#overview-work-title')).toHaveText('Din arbetsöversikt');
   const archived=await window.evaluate(async()=>post('archive/upload',{filename:'native.pdf',file:btoa('%PDF-1.4\n%%EOF\n')}));
@@ -27,8 +27,8 @@ const path = require('node:path');
   await window.evaluate(async()=>{const person=await post('employees',{firstName:'WhatsApp',lastName:'Native Test',startDate:'2026-01-01',salaryType:'monthly',salary:'100',employmentPercent:'100',weeklyHours:'40',vacationYear:2026,vacationDays:'0',contract:'permanent',phone:'070 123 45 67',email:'native+test@example.com'});await load();const missing=await window.sizzlaWhatsApp.open(person.id,state.token);if(missing.status!=='required')throw Error('Missing WhatsApp not reported');await post('preferences',{language:lang,theme,whatsappEnabled:false});const disabled=await window.sizzlaWhatsApp.open(person.id,state.token);if(disabled.status!=='disabled')throw Error('Disabled WhatsApp opened');await post('preferences',{language:lang,theme,whatsappEnabled:true});await load();});
   await app.evaluate(()=>{global.whatsappMode='installed';});
   const whatsappStatus=await window.evaluate(async()=>{await load();const p=state.employees.find(p=>p.lastName==='Native Test');return (await window.sizzlaWhatsApp.open(p.id,state.token)).status;});
-  if(whatsappStatus!==(process.platform==='win32'?'opened':'required'))throw Error('Direct WhatsApp dispatch failed');
-  if((await app.evaluate(()=>global.whatsappOpens)).length!==(process.platform==='win32'?2:0))throw Error('Unexpected WhatsApp dispatch count');
+  if(whatsappStatus!==(['win32','darwin'].includes(process.platform)?'opened':'required'))throw Error('Direct WhatsApp dispatch failed');
+  if((await app.evaluate(()=>global.whatsappOpens)).length!==(['win32','darwin'].includes(process.platform)?2:0))throw Error('Unexpected WhatsApp dispatch count');
   await window.evaluate(async()=>{const p=state.employees.find(p=>p.lastName==='Native Test');if((await window.sizzlaEmail.open(p.id,state.token)).status!=='opened')throw Error('Native mail bridge failed');});
   if(JSON.stringify(await app.evaluate(()=>global.emailOpens))!==JSON.stringify(['mailto:native%2Btest@example.com']))throw Error('Unexpected mail target');
   await app.evaluate(({shell})=>{shell.openPath=async directory=>{global.openedFolder=directory;return '';};});
@@ -149,6 +149,15 @@ const path = require('node:path');
   const preferences=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
   if(preferences.nodeIntegration || !preferences.contextIsolation || !preferences.sandbox) throw new Error('Unsafe renderer preferences');
   await require('./desktop-windows-check.cjs')(app,window);
+  if(process.platform==='darwin'){
+   const before=await app.windows().at(-1).evaluate(()=>({session:state.databaseSession,company:state.company.name}));
+   await app.evaluate(({BrowserWindow})=>{for(const w of BrowserWindow.getAllWindows())w.close();});
+   await expect.poll(()=>app.windows().length).toBe(0);
+   const reopened=app.waitForEvent('window');await app.evaluate(({app})=>app.emit('activate'));const restored=await reopened;
+   await expect(restored.locator('nav')).toBeVisible();
+   expect(await restored.evaluate(()=>({session:state.databaseSession,company:state.company.name}))).toEqual(before);
+   console.log('macOS: closing all windows and reopening through Dock activation preserves the active database.');
+  }
   console.log('Desktop startup, local API, beta navigation and renderer isolation passed.');
  } finally {if(app){await app.evaluate(({BrowserWindow})=>{for(const w of BrowserWindow.getAllWindows())w.destroy();}).catch(()=>{});await app.close().catch(()=>{});}fs.rmSync(dataDir,{recursive:true,force:true});}
 })().catch(error=>{console.error(error);process.exitCode=1;});

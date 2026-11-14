@@ -1,6 +1,6 @@
 # Sizzla 3000
 
-Ett affärssystem för Windows 11, med svenska som standardspråk och valbar engelska. Första versionen kör lokalt och kräver inget konto eller internet för användning.
+Ett affärssystem för Windows 11 och macOS (Apple Silicon och Intel), med svenska som standardspråk och valbar engelska. Första versionen kör lokalt och kräver inget konto eller internet för användning.
 
 ## Funktioner
 
@@ -196,7 +196,7 @@ För ett Windows-paket utan installationsprogram: `npx electron-builder --win zi
 
 ## Förberett för nästa steg
 
-Gränssnittet använder ett HTTP-API. Validering och momsberäkning ligger i `src/domain.cjs`, lagring och lokalt API i `src/server.cjs`, Windowsfönstret i `src/desktop.cjs`. Gränssnittet ligger i `public/` och använder gemensamma svenska/engelska språktexter.
+Gränssnittet använder ett HTTP-API. Validering och momsberäkning ligger i `src/domain.cjs`, lagring och lokalt API i `src/server.cjs`, skrivbordsfönstret i `src/desktop.cjs`. Gränssnittet ligger i `public/` och använder gemensamma svenska/engelska språktexter.
 
 Personal, löneberäkning, frånvaro och statusövergångar ligger i `src/hr.cjs`; personalgränssnittet i `public/hr.js`. Pengar och decimalantal lagras som heltal i ören respektive hundradelar. Beräkningen av skatteavdrag, avgifter och klassificeringen av förmåner/kostnadsersättningar måste tills vidare göras och verifieras utanför programmet. Inga åldersgränser, skattesatser eller myndighetsformat antas som standard. Aktuella myndighetsregler måste verifieras innan automatisk svensk löneberäkning införs.
 
@@ -232,7 +232,7 @@ Inventering kräver befintligt artikelnummer och absolut räknat antal, med valf
 
 ## WhatsApp i Personal
 
-En liten WhatsApp-knapp bredvid den anställdas namn öppnar WhatsApp Desktop med numret i personalprofilen. Inget meddelande skickas automatiskt. WhatsApp Desktop behöver vara installerat och registrerat i Windows; annars visas **WhatsApp Desktop behövs för denna funktion.**
+En liten WhatsApp-knapp bredvid den anställdas namn öppnar WhatsApp Desktop med numret i personalprofilen. Inget meddelande skickas automatiskt. WhatsApp Desktop behöver vara installerat och registrerat i operativsystemet; annars visas **WhatsApp Desktop behövs för denna funktion.**
 
 Svenska mobilnummer som `070 123 45 67` normaliseras till `+46`. Andra nummer behöver landskod, exempelvis `+1 202 555 0123`. Saknade eller ogiltiga nummer ger en avaktiverad ikon med hjälptext. Numret måste kunna användas i WhatsApp.
 
@@ -242,7 +242,7 @@ Stäng av funktionen helt med **WhatsApp Desktop: På/Av** överst i Personal. A
 
 Profilen har en valfri bild med knappar för att välja, byta och ta bort den. JPEG, PNG och WebP upp till 10 MB stöds. Bilden förminskas automatiskt, sparas med Spara och följer med säkerhetskopian. Avbryt lämnar den sparade bilden oförändrad.
 
-Brevikonen vid den anställdas namn öppnar ett nytt mejl till profilens e-postadress i Windows standardprogram. Inget mejl skickas automatiskt. Saknad adress ger en avaktiverad knapp. E-postknappen fungerar oberoende av WhatsApp Desktop-funktionen, som öppnar textchatt och aldrig startar samtal.
+Brevikonen vid den anställdas namn öppnar ett nytt mejl till profilens e-postadress i operativsystemets standardprogram. Inget mejl skickas automatiskt. Saknad adress ger en avaktiverad knapp. E-postknappen fungerar oberoende av WhatsApp Desktop-funktionen, som öppnar textchatt och aldrig startar samtal.
 
 I personalformulären ligger Spara och Avbryt kvar synliga medan uppgifterna rullar, även med större textstorlek.
 
@@ -302,7 +302,7 @@ Datum och status anges manuellt. **Klar betyder inte att deklaration lämnats in
 
 ## Licens & version (0.17.1)
 
-Under **Inställningar → Licens & version** visas installerad version från programmets paketinformation, utgåva och målplattform Windows 11 (64-bitars). Sidofältets och sidfotens versionsnummer hämtas från samma källa.
+Under **Inställningar → Licens & version** visas installerad version från programmets paketinformation, utgåva och målplattform Windows 11 (x64) och macOS 15+ (Apple Silicon/Intel). Sidofältets och sidfotens versionsnummer hämtas från samma källa.
 
 Licenshantering är ännu inte aktiverad: nyckelfält, aktivering och licensvillkorsknapp är spärrade. Inga licensuppgifter lagras eller skickas. **Sök efter uppdateringar** är en förhandsvisning och förklarar att ingen kontroll gjorts; statusen för senaste kontroll förblir Inte kontrollerat. Ingen nedladdning eller installation startas. En separat länk öppnar GitHubs versionssida för manuell hämtning.
 
@@ -377,3 +377,17 @@ Dialoger håller nu fält och sparknappar åtkomliga även med stor text. Lönek
 ## Nedladdningsbart demoföretag
 
 [Demodatabas och guide](examples/README.md) innehåller påhittad personal, kunder, artiklar och sammanhängande exempel på fakturering, betalningar, lager, löner, projekt, bokföring och bokslutsarbetsunderlag. Databasen har provimporterats och ska användas i en separat företagsdatabas med namnet **DEMO**.
+
+## macOS – förhandsversion från 0.29.0
+
+GitHub Actions bygger separata `.dmg` och `.zip` för **Apple Silicon (arm64)** respektive **Intel (x64)**. Välj filen som motsvarar din Mac (Apple-menyn → Om den här datorn). Målplattform är macOS 15 eller senare; automatiska tester körs på macOS 15 för båda arkitekturerna. Äldre macOS-versioner är inte praktiskt verifierade.
+
+Öppna DMG-filen och dra Sizzla 3000 till Program. ZIP-filen innehåller samma app. Byggena är ännu inte signerade eller notarierade hos Apple och Gatekeeper kan därför hindra öppning. Apple-signering och notariering behöver ordnas före bred distribution; stäng inte av systemets säkerhetsskydd.
+
+Mac har samma funktioner och databasformat som Windows. Flytta företag med programmets export/import, gärna krypterad säkerhetskopia. Skapa och aktivera ett nytt företag innan import om befintliga uppgifter ska bevaras. Dela inte en öppen SQLite-databas mellan datorer.
+
+Datakatalogen är normalt `~/Library/Application Support/Sizzla 3000/data`. Använd **Säkerhet & säkerhetskopiering → Öppna databasens katalog** för den aktiva databasens exakta plats. PDF-, original- och e-postfunktioner använder Macens systemdialoger och standardprogram. WhatsApp Desktop krävs för chattknappen även på Mac.
+
+När sista fönstret stängs finns Mac-appen kvar i Dock; klicka på Dock-ikonen för att öppna huvudfönstret igen. Avsluta helt med **⌘Q**. Automatisk säkerhetskopiering vid avslut sker när appen avslutas helt. **⌘P** öppnar programmets utskriftsfunktion där den är tillgänglig; vanliga redigeringskommandon använder **⌘C/⌘V**.
+
+Utveckling på Mac: `npm ci`, `npm run desktop`. Bygg med `npm run dist:mac -- --arm64` eller `npm run dist:mac -- --x64` på macOS. CI testar den färdigpaketerade appen före publicering. Windowsinstallationen och datakatalogen där påverkas inte.
