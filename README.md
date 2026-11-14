@@ -391,3 +391,9 @@ Datakatalogen är normalt `~/Library/Application Support/Sizzla 3000/data`. Anv�
 När sista fönstret stängs finns Mac-appen kvar i Dock; klicka på Dock-ikonen för att öppna huvudfönstret igen. Avsluta helt med **⌘Q**. Automatisk säkerhetskopiering vid avslut sker när appen avslutas helt. **⌘P** öppnar programmets utskriftsfunktion där den är tillgänglig; vanliga redigeringskommandon använder **⌘C/⌘V**.
 
 Utveckling på Mac: `npm ci`, `npm run desktop`. Bygg med `npm run dist:mac -- --arm64` eller `npm run dist:mac -- --x64` på macOS. CI testar den färdigpaketerade appen före publicering. Windowsinstallationen och datakatalogen där påverkas inte.
+
+## Öva med ett demoföretag
+
+Från 0.29.1: välj **Inställningar → Databaser → Skapa demoföretag**. Ett separat demoföretag med påhittade kunder, personal, artiklar, fakturor, bokföring, lager och PDF-historik skapas lokalt utan internet. Välj därefter **Aktivera** i listan. Befintliga företagsuppgifter ersätts inte. Demo räknas mot gränsen på 10 företag; ytterligare en kopia får ett nytt namn.
+
+Övningsuppgifterna får inte användas för verkliga betalningar eller inlämningar. Stängda/låsta perioder i exemplet bevaras. Den mindre demon följer med appen; den större volymdatabasen hämtas separat. [Demo- och testdatabaser, nedladdningar och guider](examples/README.md).

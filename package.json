@@ -1,6 +1,6 @@
 {
   "name": "sizzla-3000",
-  "version": "0.29.0",
+  "version": "0.29.1",
   "private": true,
   "description": "Sizzla 3000 – lokal företagsadministration",
   "main": "src/desktop.cjs",
@@ -11,7 +11,8 @@
     "test": "node scripts/test-ci.cjs",
     "test:ui": "playwright test",
     "dist:win": "electron-builder --win nsis --x64 --publish never",
-    "dist:mac": "electron-builder --mac dmg zip --publish never"
+    "dist:mac": "electron-builder --mac dmg zip --publish never",
+    "demo:large": "node scripts/build-scale-demo.cjs"
   },
   "engines": {
     "node": ">=24"
@@ -27,7 +28,8 @@
     "files": [
       "src/**",
       "public/**",
-      "package.json"
+      "package.json",
+      "examples/demo/Sizzla-3000-Demo-0.28.1.sqlite"
     ],
     "directories": {
       "output": "dist"

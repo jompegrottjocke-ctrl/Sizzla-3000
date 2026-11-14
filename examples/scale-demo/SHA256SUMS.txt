@@ -1,0 +1,2 @@
+bbe9330c4cbc1d6f60c7450da312d82971a6c8e283eaefcc1b976eb6135c9e8d  Sizzla-3000-Stor-Testdatabas-0.29.1.sqlite
+20c31436da8d1869a32c421a1811427a587b8cd8b81070a296e4dc0ce894b707  Sizzla-3000-Stor-Testdatabas-0.29.1.zip

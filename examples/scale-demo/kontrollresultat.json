@@ -1,0 +1,36 @@
+{
+  "profile": "large",
+  "applicationVersion": "0.29.1",
+  "schema": 10,
+  "createdAt": "2026-11-14T14:23:58.138Z",
+  "dateRange": [
+    "2024-01-01",
+    "2026-11-10"
+  ],
+  "counts": {
+    "customers": 1000,
+    "articles": 3000,
+    "suppliers": 200,
+    "employees": 60,
+    "projects": 150,
+    "timeEntries": 6000,
+    "customerInvoices": 3000,
+    "customerCredits": 0,
+    "customerPayments": 2400,
+    "supplierInvoices": 600,
+    "vouchers": 7900,
+    "stockItems": 300,
+    "stockMovements": 300
+  },
+  "bytes": 46419968,
+  "sha256": "bbe9330c4cbc1d6f60c7450da312d82971a6c8e283eaefcc1b976eb6135c9e8d",
+  "validation": {
+    "balancedVouchers": true,
+    "receivablesReconciled": true,
+    "payablesReconciled": true,
+    "nonNegativeStock": true,
+    "normalImportAndRestart": true,
+    "restoredBusinessStateIdentical": true
+  },
+  "generationSeconds": 575
+}

@@ -30,3 +30,21 @@ node scripts/build-demo.cjs
 Standardkatalogen är `/tmp/sizzla-demo-0281`. Båda skripten kan använda `SIZZLA_DEMO_DATA` för en annan separat katalog. Den första raden bygger även register, historik och pågående affärer. Webbläsarsteget använder Chromium (`/usr/bin/chromium`, eller `SIZZLA_CHROMIUM`). På en Windowsdator med vanligt grafiskt Electron utelämnas headless-/sandboxmiljövariablerna. Förvalt temporärt datautrymme är anpassat för byggmiljön; välj själv en tom katalog vid egen körning.
 
 ZIP-paketet innehåller databasen, guiden, simulerade originalunderlag, PDF-exempel, CSV-/SIE-filer och kontrollresultat. Det innehåller inga byggskript eller körbara program. Kontrollsummor finns i `demo/SHA256SUMS.txt` och separat för ZIP-filen.
+
+## Inbyggt demoföretag från 0.29.1
+
+Öppna **Inställningar → Databaser → Skapa demoföretag**. Samma genomgångna, mindre demodatabas följer med appen och fungerar utan internet. Den skapas som ett nytt företag och aktiveras först när du väljer **Aktivera** i listan. Befintliga företag bevaras. Du kan skapa ytterligare en ren demokopia med samma knapp; varje kopia räknas mot gränsen på 10 företag.
+
+Börja på Översikt och utforska Försäljning, Personal, Lager samt Tid & projekt. Utskriftshistoriken innehåller åtta sparade PDF-exempel. Övningsåret 2025 är stängt och januari 2026 är låst. Bokslutsunderlagen behåller sin historiska snapshot från 0.28.1; en senare programversion kan markera att källan ändrats och behöver granskas igen. Inga skatteuppgifter ska lämnas in och inga betalningar ska göras från demon.
+
+## Stor databas för volymtester
+
+Den stora databasen **TEST Stora Sizzla AB** innehåller 3 000 artiklar, 1 000 kunder, 200 leverantörer, 60 anställda, 150 projekt, 6 000 tidsrader, 3 000 kundfakturor och 600 leverantörsfakturor över tre öppna räkenskapsår. Den är avsedd för volymtester och är separat från den mindre inbyggda demon.
+
+- [Hämta stora testpaketet (ZIP)](https://github.com/jompegrottjocke-ctrl/Sizzla-3000/raw/refs/heads/main/examples/scale-demo/Sizzla-3000-Stor-Testdatabas-0.29.1.zip)
+- [Importguide och begränsningar](scale-demo/LAS-MIG.md)
+- [Kontrollresultat](scale-demo/kontrollresultat.json)
+
+Skapa och aktivera ett separat, nytt företag innan import. Vanlig import ersätter innehållet i den aktiva databasen. Den stora databasen ingår inte i appinstallationen; den hämtas separat. Den kan vara långsam att bläddra i innan kommande prestandaoptimeringar.
+
+Återskapa med `npm run demo:large -- --out /valfri/tom/katalog` (Node.js 24+ och `npm ci`). Utan `--out` skapas en ny temporär utdatakatalog och sökvägen skrivs ut. Inga befintliga företagskataloger används. Receptet gör alla affärsskrivningar genom programmets validerade HTTP-kommandon. Innehåll, datum och antal är fasta; UUID, tidsstämplar och filernas kontrollsummor varierar mellan körningar. Ett litet prov med samma export/import-kontroller körs med `node scripts/build-scale-demo.cjs --smoke --out /valfri/annan/tom/katalog` och ingår i enhetstesterna.

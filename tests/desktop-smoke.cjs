@@ -149,6 +149,11 @@ const path = require('node:path');
   const preferences=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
   if(preferences.nodeIntegration || !preferences.contextIsolation || !preferences.sandbox) throw new Error('Unsafe renderer preferences');
   await require('./desktop-windows-check.cjs')(app,window);
+  const demoWindow=app.windows().at(-1);
+  const originalDemoState=await demoWindow.evaluate(async()=>{await load();const originalId=state.databases.activeId,company=state.company.name;const demo=await post('databases/demo',{name:'Native bundled demo',revision:state.databases.revision,confirm:true});await load();if(state.company.name!==company)throw Error('Demo creation changed the active company');await post('databases/activate',{id:demo.id,revision:state.databases.revision,confirm:true});return {originalId,company};});
+  await demoWindow.reload();await expect(demoWindow.locator('.company-chip')).toContainText('DEMO Sizzla Handel AB');
+  await demoWindow.evaluate(async originalId=>{if(state.customers.length!==10)throw Error('Packaged demo missing or invalid');await post('databases/activate',{id:originalId,revision:state.databases.revision,confirm:true});},originalDemoState.originalId);
+  await demoWindow.reload();await expect(demoWindow.locator('.company-chip')).toContainText(originalDemoState.company);
   if(process.platform==='darwin'){
    const before=await app.windows().at(-1).evaluate(()=>({session:state.databaseSession,company:state.company.name}));
    await app.evaluate(({BrowserWindow})=>{for(const w of BrowserWindow.getAllWindows())w.close();});

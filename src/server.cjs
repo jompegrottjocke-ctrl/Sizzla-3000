@@ -1,3 +1,4 @@
+const {installBundledDemo}=require('./bundled-demo.cjs');
 const {initMcp,McpError}=require('./mcp.cjs');
 const {initRecurring,RecurringError}=require('./recurring.cjs');
 const {initReminders,ReminderError}=require('./reminders.cjs');
@@ -124,6 +125,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(url.pathname.startsWith('/api/databases/')){
         const route=url.pathname.slice('/api/databases/'.length);
         if(route==='create')return send(res,200,databases.create(body,(dir,name)=>{const fresh=openDatabase(dir,openDataDirectory);try{fresh.db.prepare('INSERT INTO settings VALUES(1,?)').run(JSON.stringify({name}));fresh.db.prepare('INSERT INTO preferences VALUES(1,?)').run(JSON.stringify(preferences()));}finally{fresh.db.close();}}));
+        if(route==='demo'){if(body.confirm!==true)throw new DatabaseError('dbConfirm',400);try{return send(res,200,databases.create(body,dir=>installBundledDemo(dir,db)));}catch(error){if(error instanceof DatabaseError)throw error;throw new DatabaseError('dbDemoFailed',400);}}
         if(route==='rename')return send(res,200,databases.rename(body));
         if(route==='activate'){
           if(security.status().importPending)throw new DatabaseError('dbImportPending');

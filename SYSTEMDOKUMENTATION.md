@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.29.0, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.29.1, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -283,3 +283,5 @@ Företagets beräknade versionsmarkering returneras nu separat som `companyVersi
 Schema 10, sparade affärsposter och backupformat är oförändrade. Se [Formulärgranskning](docs/FORMULARGRANSKNING.md) för verifiering och avgränsning.
 
 Från 0.29.0 finns macOS-byggkonfiguration för Apple Silicon och Intel (mål macOS 15+, CI macOS 15). Dataformat och lokalt loopback-API är gemensamma med Windows. På Mac avslutas appen med ⌘Q, inte när sista fönstret stängs; avslutsbackup följer faktisk avslutning. macOS-byggen är ännu osignerade och inte notarierade.
+
+Från 0.29.1 kan användaren skapa en separat demodatabas under Databaser. Installationen läser endast den medföljande fasta filen, verifierar SHA256 och vanliga backup-/schemakontroller och registrerar sedan företaget via databaslistans revisionskontroll. Fel rullar tillbaka den nya katalogen. Befintlig databas aktiveras eller skrivs inte om. Aktivering använder samma befintliga skydd för session, osparade ändringar och utskrift som andra företag. Inget hämtas från internet. Demokopior räknas mot max 10 databaser. Volymtestdatabasen distribueras separat och följer inte med appinstallationen.

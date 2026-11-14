@@ -106,4 +106,4 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" release-assets/*.exe release-assets/*.dmg release-assets/*.zip --title "Sizzla 3000 $GITHUB_REF_NAME" --notes-file RELEASE_NOTES.md --prerelease --verify-tag
+        run: gh release create "$GITHUB_REF_NAME" release-assets/*.exe release-assets/*.dmg release-assets/*.zip examples/scale-demo/*.zip --title "Sizzla 3000 $GITHUB_REF_NAME" --notes-file RELEASE_NOTES.md --prerelease --verify-tag
