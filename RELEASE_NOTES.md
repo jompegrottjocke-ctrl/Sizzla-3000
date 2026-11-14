@@ -1,12 +1,13 @@
-Sizzla 3000 0.25.0 för Windows 11 (x64): samlad arbetsöversikt.
+Sizzla 3000 0.26.0 för Windows 11 (x64): återkommande fakturering.
 
-- Startsidan Översikt visar förfallna kundfakturor, leverantörsfakturor inför betalning, kundorder att leverera/fakturera, lager att kontrollera och pågående bankavstämningar.
-- Öppna rätt faktura, order, lagerartikel eller bankutdrag direkt från arbetslistan.
-- Spärrade fakturor, oreglerade krediter och saknad aktiv bokföring markeras för granskning.
-- Dokument visar sin egen valuta; summeringar använder SEK-värden. Sökning, prioritetsfilter och Visa fler hjälper vid större listor.
-- Automatisk säkerhetskopiering visar senaste registrerade status och fel utan att sökningen återställs.
-- Inläsningstid och uppdateringsknapp gör uppgifternas aktualitet tydlig. Registerstatistik och senaste utkast finns kvar.
+- Ny underflik under Fakturering med kundkopplade mallar för abonnemang, hyra och serviceavtal.
+- Vecka, varannan vecka, månad, kvartal, halvår och år, med datum som hanterar korta månader och skottår.
+- Granska en period och skapa ett vanligt redigerbart fakturautkast. Ett väntande utkast per mall och skydd mot dubbla perioder.
+- SEK, EUR och USD; kurs granskas för varje nytt utkast i utländsk valuta.
+- Pausa, återuppta, avsluta, hoppa över period och återta ännu inte utfärdat utkast med orsak och bevarad historik.
+- Avtalsperiod och länkar mellan mall och faktura, även på utskrift. Aktuella mallar visas på Översikt.
+- Svenska och engelska, mörkt läge och skalbar text med synliga åtgärdsknappar.
 
-Översikten läser det aktiva företaget och öppnar befintliga arbetsflöden. Den utför inga betalningar, påminnelser, leveranser eller bokföringsåtgärder. Endast importerade pågående bankutdrag bevakas här; avstämda utdrag kontrolleras i bankvyn. Schema 10 är oförändrat. Se docs/ARBETSOVERSIKT.md för urval och begränsningar.
+Inget skickas, utfärdas eller bokförs automatiskt. Varje faktura granskas i det vanliga fakturaflödet. Hela mallbeloppet används per period; sista periodstart ger ingen automatisk proportionering. Kredit frigör inte en fakturerad period. Schema 10 är oförändrat. Se docs/ATERKOMMANDE_FAKTURERING.md för arbetssätt och begränsningar.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

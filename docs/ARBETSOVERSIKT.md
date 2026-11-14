@@ -1,6 +1,6 @@
 # Arbetsöversikt
 
-Version 0.25.0. Startsidan **Översikt** visar uppgifter för den aktiva företagsdatabasen. Vyn är läsande: den skickar inga påminnelser, ändrar inga saldon och utför ingen leverans, betalning eller bokföring. Knapparna öppnar befintliga underlag och arbetsflöden där åtgärder behöver granskas separat.
+Version 0.26.0. Startsidan **Översikt** visar uppgifter för den aktiva företagsdatabasen. Vyn är läsande: den skickar inga påminnelser, ändrar inga saldon och utför ingen leverans, betalning eller bokföring. Knapparna öppnar befintliga underlag och arbetsflöden där åtgärder behöver granskas separat.
 
 ## Vad visas?
 
@@ -13,6 +13,7 @@ Version 0.25.0. Startsidan **Översikt** visar uppgifter för den aktiva företa
 | Leveranser att fakturera/följa upp | Bekräftade eller avslutade order med en faktiskt registrerad, ej återtagen leverans utan aktivt fakturaunderlag. Avbrutna FU-underlag frigör leveranser. Om ordern redan har ett annat öppet fakturautkast markeras detta; öppna ordern och följ dess befintliga kontroller. |
 | Lager | Lagerförda artiklar med saldo under beställningspunkt eller saldo noll. Noll visas även om beställningspunkten är noll. Enheter summeras inte. Knappen öppnar lagersaldot med artikelnummer/namn som sökurval. |
 | Bank | Importerade utdrag med status pågående. Radantal och antal kopplingar visas var för sig. De subtraheras inte till ett påstått antal omatchade bankrader, eftersom bland annat informationsrader kan ha nollbelopp. Avstämda/avbrutna utdrag visas inte här. |
+| Återkommande fakturering | Aktiva mallar med nästa periodstart senast idag, utan passerad sista periodstart eller väntande fakturautkast. Öppnar mallen för manuell granskning. |
 | Säkerhetskopiering | Automatisk kopiering för det aktiva företaget: avstängd, väntande första kopia, daglig kopia som behöver tas, senaste registrerade lyckade kopia, fel/varning eller paus vid förberedd import. Manuell exporthistorik och faktisk kontroll av filer på måldisken ingår inte i statusen. |
 
 En order kan visas både under leverans och fakturering eftersom det gäller olika arbetsmoment. Antalen är arbetslistornas antal, inte en summering av unika affärer eller alla företag. Vyn är inte en fullständig bevakning av deklarations-/löne-/bokslutsfrister eller en garanti om komplett bokföring.
@@ -21,7 +22,7 @@ En order kan visas både under leverans och fakturering eftersom det gäller oli
 
 Varje dokument visar sitt belopp i SEK, EUR eller USD. Kundfakturornas summering använder kvarstående sparat bokföringsvärde i SEK. Leverantörernas summering gäller de visade positiva SEK-fakturorna, utan automatisk nettning mot andra krediter. Påminnelsers separata ränta/avgifter ingår inte i dessa fakturasaldon.
 
-Prioritetsfiltret tar med förfallna kundfakturor, leverantörsbetalningar som förfallit eller förfaller idag, kundunderlag utan aktiv bokföring, passerat önskat leveransdatum och tomt lager. Övriga pågående uppgifter syns med filtret avstängt. Säkerhetskopieringspanelen är separat och visas även när arbetslistorna filtrerats.
+Prioritetsfiltret tar med förfallna kundfakturor, leverantörsbetalningar som förfallit eller förfaller idag, kundunderlag utan aktiv bokföring, passerat önskat leveransdatum aktuella återkommande perioder och tomt lager. Övriga pågående uppgifter syns med filtret avstängt. Säkerhetskopieringspanelen är separat och visas även när arbetslistorna filtrerats.
 
 Sökningen matchar dokumentnummer, namn, datum och valuta. Varje lista visar först fem träffar och kan utökas i steg om tio med **Visa fler**. Antal och summering gäller samtliga träffar i urvalet, inte bara de först synliga raderna. Registerstatistik, senaste fakturautkast och kom-igång-flödet finns kvar längre ned. Vid första uppstart utan företagsnamn visas företagsinställningen först.
 

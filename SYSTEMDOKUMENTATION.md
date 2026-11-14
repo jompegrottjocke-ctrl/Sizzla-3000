@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.25.0, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.26.0, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -245,3 +245,11 @@ Ränta/avgift ändrar inte bokföring, moms eller fakturans kapitalreskontra. Se
 `public/overview-math.js` läser aktiv databasstatus och skapar separata arbetslistor för förfallna bokförda kundfakturor, godkända leverantörsfakturor t.o.m. idag + sju dagar, utfärdade kundunderlag utan aktiv bokföring, väntande kundorderleveranser, registrerade leveranser utan aktivt fakturaunderlag, lågt/tomt lager och pågående bankutdrag. Spärrar och öppna krediter markeras för granskning. Kundbelopp summeras till kvarstående SEK-bokföringsvärden; påminnelsetillägg ingår inte.
 
 Vyn är läsande och öppnar befintliga arbetsflöden efter ny inläsning och kontroll av databassession/underlag. Den skriver inga transaktioner och introducerar inga tabeller eller schemaversioner. Backupstatus använder befintlig bakgrundshämtning utan att nollställa arbetslistornas filter. Inläsningstid, uppdateringsfel och äldre uppgifter visas. Avstämda bankutdrags ändrade källor kontrolleras i bankmodulen, inte genom översiktens pågående-lista. Se [Arbetsöversikt](docs/ARBETSOVERSIKT.md) för fullständiga urval, navigering och begränsningar.
+
+## Återkommande fakturering (0.26.0)
+
+`src/recurring.cjs` hanterar avtalsmallar och periodunderlag via `/api/recurring/*`. `records` lagrar `recurring_plan`, `recurring_run` och `recurring_event`. Mallrevision, snapshot, periodindex och operatör bevaras. Granskning är läsande; skapande gör en ny kontroll och skapar periodunderlag, fakturautkast, nästa periodindex och händelse i samma `BEGIN IMMEDIATE`-transaktion. Servern skyddar utkastets kund, valuta och periodkoppling vid sparande och utfärdande. Utfärdad status härleds ur försäljningsdokumentets koppling till utkastet. Kredit/motbokning frigör inte perioden.
+
+Vecko-/månadsintervall utgår från ursprunglig ankardag. Paus flyttar inte planen, och sista periodstart ger ingen proportionering. Ett väntande utkast per mall. Återtagning tar bort endast ännu inte utfärdat utkast och återställer periodindex, med kvarvarande underlag och orsak. Mallar och historik raderas inte via funktionen. Aktuell kund används vid ny granskning; gamla snapshot ändras inte. Generering kräver ny manuell valutakurs för EUR/USD. Ingen automatisk fakturering, sändning eller bokföring utförs.
+
+`public/recurring.js` och `public/recurring.css` ger tvåspråkig mall-, gransknings- och historikvy. Vanliga utkast och försäljningsdokument används därefter, inklusive källkoppling och PDF-historik. Avtalsperiod följer även kreditens utskrift. Översikt öppnar aktiva förfallna/aktuella mallar utan väntande utkast. Schema 10 är oförändrat och fullständig databasexport/import omfattar underlagen. Se [Återkommande fakturering](docs/ATERKOMMANDE_FAKTURERING.md) för detaljer, historikurval och avgränsningar.
