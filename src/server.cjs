@@ -159,9 +159,10 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       }
       if(url.pathname==='/api/preferences') {
         if(!['sv','en'].includes(body.language)||!['light','dark','contrast','blue','warm','system'].includes(body.theme))throw new ValidationError('preferences');
+        if(body.fruitMode!==undefined&&typeof body.fruitMode!=='boolean')throw new ValidationError('preferences');
         if(body.whatsappEnabled!==undefined&&typeof body.whatsappEnabled!=='boolean')throw new ValidationError('preferences');
         if(body.textSize!==undefined&&(![100,125,150,175,200].includes(body.textSize)||typeof body.bold!=='boolean'))throw new ValidationError('preferences');
-        db.prepare('INSERT INTO preferences VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify({...preferences(),...(body.whatsappEnabled!==undefined?{whatsappEnabled:body.whatsappEnabled}:{}),language:body.language,theme:body.theme,...(body.textSize!==undefined?{textSize:body.textSize,bold:body.bold}:{})}));
+        db.prepare('INSERT INTO preferences VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(JSON.stringify({...preferences(),...(body.fruitMode!==undefined?{fruitMode:body.fruitMode}:{}),...(body.whatsappEnabled!==undefined?{whatsappEnabled:body.whatsappEnabled}:{}),language:body.language,theme:body.theme,...(body.textSize!==undefined?{textSize:body.textSize,bold:body.bold}:{})}));
         return send(res,200,{ok:true});
       }
       if (/^\/api\/(employees|payruns|leaves)(\/|$)/.test(url.pathname)) {

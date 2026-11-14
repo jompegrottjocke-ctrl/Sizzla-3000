@@ -1,4 +1,8 @@
-Sizzla 3000 0.26.0 för Windows 11 (x64): återkommande fakturering.
+Sizzla 3000 0.26.1 för Windows 11 (x64): fruit-mode.
+
+Under **Utseende & läsbarhet** finns knappen **fruit-mode**. När den aktiveras får huvudflikar och underflikar små färgglada frukter bredvid namnen. Valet sparas per företagsdatabas och är avstängt som standard. Klicka igen för att stänga av.
+
+Återkommande fakturering från 0.26.0 ingår också:
 
 - Ny underflik under Fakturering med kundkopplade mallar för abonnemang, hyra och serviceavtal.
 - Vecka, varannan vecka, månad, kvartal, halvår och år, med datum som hanterar korta månader och skottår.

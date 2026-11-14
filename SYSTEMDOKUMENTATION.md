@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.26.0, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.26.1, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -253,3 +253,7 @@ Vyn är läsande och öppnar befintliga arbetsflöden efter ny inläsning och ko
 Vecko-/månadsintervall utgår från ursprunglig ankardag. Paus flyttar inte planen, och sista periodstart ger ingen proportionering. Ett väntande utkast per mall. Återtagning tar bort endast ännu inte utfärdat utkast och återställer periodindex, med kvarvarande underlag och orsak. Mallar och historik raderas inte via funktionen. Aktuell kund används vid ny granskning; gamla snapshot ändras inte. Generering kräver ny manuell valutakurs för EUR/USD. Ingen automatisk fakturering, sändning eller bokföring utförs.
 
 `public/recurring.js` och `public/recurring.css` ger tvåspråkig mall-, gransknings- och historikvy. Vanliga utkast och försäljningsdokument används därefter, inklusive källkoppling och PDF-historik. Avtalsperiod följer även kreditens utskrift. Översikt öppnar aktiva förfallna/aktuella mallar utan väntande utkast. Schema 10 är oförändrat och fullständig databasexport/import omfattar underlagen. Se [Återkommande fakturering](docs/ATERKOMMANDE_FAKTURERING.md) för detaljer, historikurval och avgränsningar.
+
+## Fruit-mode (0.26.1)
+
+Den valfria booleska inställningen `preferences.fruitMode` sparas via befintligt inställnings-API. Saknat värde innebär avstängt. `applyFruitMode()` i `public/appearance.js` dekorerar navigering och underflikar efter rendering. Frukterna är dekorativa med `aria-hidden` och ändrar inte flikarnas tillgängliga namn, funktion eller utskrifter. Inställningen är per företagsdatabas, bevaras vid andra preferensändringar och ingår i fullständig databasexport. Schema 10 är oförändrat.

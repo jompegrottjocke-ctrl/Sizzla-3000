@@ -26,3 +26,8 @@
 :root[data-theme=contrast] :is(button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible){outline:3px solid #111;outline-offset:3px}
 :root[data-theme=contrast] :is(td,th,input,select,textarea,.panel,.editor){border-color:#667889}
 }
+
+.tab-fruit{display:inline-block;flex-shrink:0;margin-inline-start:.4em;font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;font-size:1.05em;font-weight:normal;line-height:1.3;vertical-align:middle}
+@media print{.tab-fruit{display:none}}
+#fruit-mode[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--green)}
+#fruit-mode[aria-pressed=true]::after{content:" ✓"}

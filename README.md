@@ -357,3 +357,7 @@ Startsidan **Översikt** visar förfallna fakturor, leverantörsbetalningar inf�
 Under **Fakturering → Återkommande fakturering** finns kundkopplade mallar för abonnemang, hyra och serviceavtal. Granska och skapa ett fakturautkast per period, med skydd mot dubbletter och stöd för korta månader/skottår. Mallar kan pausas, avslutas och ändras för framtida utkast; återtagning och överhoppade perioder sparar orsak och historik. SEK, EUR och USD stöds med ny kursgranskning per utkast. Perioden följer med fakturautskriften, och aktuella mallar syns på Översikt.
 
 Utfärda och bokför via det vanliga fakturaflödet. Inget körs eller skickas automatiskt. Hela mallbeloppet används även för sista perioden; ingen automatisk proportionering. [Arbetssätt och begränsningar](docs/ATERKOMMANDE_FAKTURERING.md).
+
+## Fruit-mode (0.26.1)
+
+Knappen **fruit-mode** under **Utseende & läsbarhet** visar färgglada frukter bredvid huvudflikar och underflikar. Klicka igen för att stänga av. Avstängt som standard; valet sparas per företagsdatabas och följer med i säkerhetskopior.
