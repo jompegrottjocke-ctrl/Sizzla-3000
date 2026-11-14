@@ -1,12 +1,9 @@
-Sizzla 3000 0.24.0 för Windows 11 (x64): betalningspåminnelser.
+Sizzla 3000 0.24.1 för Windows 11 (x64): stabilare Windows-tester och tydligare byggloggar.
 
-- Ny del under Betalningar → Påminnelser med förfallna kundfakturor och spärr för bestridda fakturor.
-- Granska och bevara påminnelseunderlag, skriv ut/spara PDF och registrera manuellt utskick med referens.
-- Avgift är 0 från början. Upp till 60 SEK kräver tidigare avtal och uttrycklig granskning; samma avgift skapas inte igen.
-- Valfri ränta på kvarstående SEK-kapital med granskad grund, källa och perioder. Referensräntor anges manuellt per halvår.
-- Tidigare öppna tillägg följer med utan dubbel registrering och kan markeras separat betalda eller efterskänkta.
-- Ändrade saldon eller tillägg ger varning; gamla underlag och PDF-kopior bevaras. Svenska/engelska och stor text stöds.
+- Återställningstestet för äldre lagerdatabaser använder nya HTTP-anslutningar för att undvika återanvändning av en anslutning som hunnit stängas under databasbearbetning.
+- Testfiler körs i turordning för att minska konkurrerande SQLite-/diskarbete på Windows-runnaren.
+- GitHub-annoteringar visar det faktiska testfelet först. Hela testloggen sparas som Sizzla-unit-test-log vid fel.
 
-Detta är betalningspåminnelser, inte automatiska inkassokrav. Inga brev skickas automatiskt. Ränta/avgift ändrar inte bokföring eller fakturasaldo automatiskt; de hanteras separat. Historisk ränta på redan betalda belopp och automatisk förseningsersättning ingår inte. EUR/USD stöder påminnelse om fakturabelopp utan nya tillägg. Se docs/PAMINNELSER.md. Schema 10 är oförändrat.
+Funktionerna från 0.24.0 finns kvar: Betalningar → Påminnelser med granskade PDF-underlag, utskickshistorik och spärr för bestridda fakturor. Ränta och avgift hanteras separat och bokförs inte automatiskt. Se docs/PAMINNELSER.md för omfattning. Databasschema 10 är oförändrat.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

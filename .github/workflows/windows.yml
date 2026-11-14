@@ -20,6 +20,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/test-ci.cjs
+      - name: Upload unit test failure log
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Sizzla-unit-test-log
+          path: '${{ runner.temp }}/sizzla-unit-tests.log'
+          if-no-files-found: ignore
+          retention-days: 14
       - run: npx playwright install chromium
       - run: npm run test:ui
         env:

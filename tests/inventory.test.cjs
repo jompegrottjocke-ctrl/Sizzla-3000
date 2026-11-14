@@ -2,8 +2,11 @@ const {test}=require('node:test');const assert=require('node:assert/strict');
 const fs=require('node:fs');const os=require('node:os');const path=require('node:path');const {DatabaseSync}=require('node:sqlite');
 const {createApp}=require('../src/server.cjs');const {snapshot}=require('../src/security.cjs');
 async function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-inventory-'));let app=createApp({dataDir:dir});await app.listen();let token;
- const state=async()=>{const s=await fetch(app.url+'/api/state').then(r=>r.json());token=s.token;return s;};await state();
- const post=async(route,body)=>{const r=await fetch(app.url+'/api/'+route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});return {status:r.status,body:await r.json()};};
+ // Backups/migrations can outlive an idle HTTP socket on a loaded Windows runner.
+ // Use a fresh connection, never retry a potentially committed write.
+ const request=async(route,options={})=>{try{return await fetch(app.url+'/api/'+route,{...options,headers:{...options.headers,Connection:'close'}});}catch(cause){throw new Error((options.method||'GET')+' /api/'+route+' failed in inventory test',{cause});}};
+ const state=async()=>{const s=await request('state').then(r=>r.json());token=s.token;return s;};await state();
+ const post=async(route,body)=>{const r=await request(route,{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json','X-Sizzla-Token':token},body:JSON.stringify(body)});return {status:r.status,body:await r.json()};};
  const run=async(route,body)=>{const r=await post(route,body);assert.equal(r.status,200,JSON.stringify(r.body));return r.body;};
  const item=async id=>(await state()).inventory.items.find(a=>a.id===id);
  const movement=async(id,kind,quantity,date='2026-11-12')=>run('inventory/movements',{articleId:id,kind,quantity,date,reference:'UNDERLAG-1',reason:'Testregistrering',stockRevision:(await item(id)).stockRevision,settingsRevision:(await item(id)).revision});
