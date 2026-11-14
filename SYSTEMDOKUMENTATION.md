@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.24.1, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.25.0, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -238,3 +238,10 @@ Påminnelser skickas manuellt. Bevarat underlag, utskrift och registrerat utskic
 Ränta/avgift ändrar inte bokföring, moms eller fakturans kapitalreskontra. Separat hantering kräver manuell referens. Avgift begränsas till en per faktura och högst 60 SEK efter uttrycklig granskning. Ränta beräknas endast på kvarstående SEK-kapital efter senaste saldoändring/tidigare ränteperiod, med faktisk dagräkning/365 och granskade satser. Tidigare ränta på betalda belopp rekonstrueras inte. Källor och begränsningar finns i [Påminnelser](docs/PAMINNELSER.md). Inkassokrav och automatisk förseningsersättning ingår inte.
 
 `payment_reminder` tillkommer som utskriftstyp. Frysta underlag, tillägg, spärrar, händelser och PDF-kopior följer säkerhetskopian. Sammanräknad kundreskontra/analys omfattar fortfarande fakturakapitalet och dess bokföringsvärde; det separata tilläggsregistret utgör inte bokförd reskontra.
+
+
+## Samlad arbetsöversikt (0.25.0)
+
+`public/overview-math.js` läser aktiv databasstatus och skapar separata arbetslistor för förfallna bokförda kundfakturor, godkända leverantörsfakturor t.o.m. idag + sju dagar, utfärdade kundunderlag utan aktiv bokföring, väntande kundorderleveranser, registrerade leveranser utan aktivt fakturaunderlag, lågt/tomt lager och pågående bankutdrag. Spärrar och öppna krediter markeras för granskning. Kundbelopp summeras till kvarstående SEK-bokföringsvärden; påminnelsetillägg ingår inte.
+
+Vyn är läsande och öppnar befintliga arbetsflöden efter ny inläsning och kontroll av databassession/underlag. Den skriver inga transaktioner och introducerar inga tabeller eller schemaversioner. Backupstatus använder befintlig bakgrundshämtning utan att nollställa arbetslistornas filter. Inläsningstid, uppdateringsfel och äldre uppgifter visas. Avstämda bankutdrags ändrade källor kontrolleras i bankmodulen, inte genom översiktens pågående-lista. Se [Arbetsöversikt](docs/ARBETSOVERSIKT.md) för fullständiga urval, navigering och begränsningar.

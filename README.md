@@ -347,3 +347,7 @@ Offerter, kundorder och kundfakturor stöder SEK, EUR och USD med manuellt grans
 ## Betalningspåminnelser (0.24.0)
 
 Under **Betalningar → Påminnelser** finns granskade underlag för förfallna kundfakturor, PDF/utskriftshistorik, manuell utskicksregistrering och spärr för bestridda fakturor. Avgift och ränta är avstängda från början och kräver kontrollerad grund. Tillägg följs upp separat och ändrar inte bokföring eller fakturasaldo automatiskt. Detta är vanliga påminnelser, inte automatiska inkassokrav. Se [arbetsgång, lagkällor och begränsningar](docs/PAMINNELSER.md).
+
+## Samlad arbetsöversikt (0.25.0)
+
+Startsidan **Översikt** visar förfallna fakturor, leverantörsbetalningar inför förfallodag, väntande orderleveranser/fakturering, lagerartiklar under beställningspunkt eller utan saldo samt pågående bankavstämningar. Varje post öppnar rätt underlag. Sökning, prioritet, inläsningstid och backupstatus hjälper användaren att välja nästa åtgärd. Vyn ändrar inga affärsdata. Se [urval, aktualitet och begränsningar](docs/ARBETSOVERSIKT.md).
