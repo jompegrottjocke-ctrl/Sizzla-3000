@@ -421,3 +421,11 @@ Personalregistret hämtar anställda och profilbilder separat från lönehistori
 Sparande, arkivering, WhatsApp-val och uppdateringar från andra fönster använder rätt datainläsning. Ändrade anställningsvillkor kräver fortsatt ny granskning av berörda löneutkast; historiska lönesnapshots ändras inte. AGI-export och löneutskrifter använder hela det valda underlaget.
 
 [Avgränsning, verifiering och före-/eftermätning för Personal](docs/PERSONAL-DATA.md).
+
+## Fakturering och Betalningar från 0.29.5
+
+Listorna över utfärdade fakturor, krediter och kund-/leverantörsreskontra hämtar belopp och saldon separat från fakturarader och betalningshistorik. Vid öppning av en kundfaktura hämtas fakturafamiljen: originalet, dess krediter och kopplade betalningar/kvittningar. Räkenskapsår och kontoval finns tillgängliga för granskade åtgärder utan att hela huvudboken läses in.
+
+Betalningshistoriken hämtas när den öppnas och visar 50 rader per sida. Sökning och CSV-export arbetar på hela urvalet. Utkast behålls kompletta för befintlig sökning och redigering. Mer omfattande order-, mall-, bank- och påminnelseflöden samt utskriftsfönster kan fortfarande behöva fullständiga underlag.
+
+[Verifiering, gränser och före-/eftermätning](docs/FAKTURERING-DATA.md).

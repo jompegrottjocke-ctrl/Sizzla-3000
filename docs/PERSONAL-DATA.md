@@ -1,5 +1,7 @@
 # Datainläsning för Personal & lön 0.29.4
 
+Fortsättningen för Fakturering och Betalningar finns i [0.29.5-genomgången](FAKTURERING-DATA.md).
+
 Personalregistret öppnas utan full bokföring, andra företagsregister, samtliga lönesnapshots eller frånvaroposter. Tre läsvyer används:
 
 | Vy | Innehåll |

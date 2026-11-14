@@ -116,6 +116,7 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
         const posted=createPosted(yearById(yearId),{date:v.date,description:v.description||`SIE ${v.series} ${v.number}`,reference,lines:v.lines.filter(l=>l.amount).map(l=>({account:l.account,debit:Math.max(0,l.amount),credit:Math.max(0,-l.amount),note:l.note})),company,importSource},{sourceKind:'sie',sourceId:batchId+':'+i});mappings.push({series:v.series,number:v.number,...posted});
       }event('year',year.id,'sieImported',{batchId,filename,hash,mappings});return mappings;
     },
+    context:()=>({accounts:accounts(),years:years(),operator:operator()}),
     source:activeSource,
     sources:kind=>db.prepare("SELECT * FROM ledger_vouchers WHERE source_kind=? AND reversed_by IS NULL AND status='posted'").all(kind).map(voucherData),
     postSource:(yearId,data,source)=>createPosted(yearById(yearId),data,source),

@@ -1,11 +1,11 @@
-Sizzla 3000 0.29.4 – separat datainläsning för Personal & lön.
+Sizzla 3000 0.29.5 – mindre inläsningar för Fakturering och Betalningar.
 
-- Personalregistret hämtar anställda, profilbilder och sammanfattande antal lönekörningar utan hela lönehistoriken, frånvaron eller bokföringen.
-- Lönekörningar och AGI hämtar kompletta lönesnapshots och aktuella anställda när respektive del behövs. Frånvaro hämtar sitt eget kompletta underlag.
-- Profilredigering, arkivering och WhatsApp-inställning uppdaterar rätt del. Språk-/utseendeval behåller det underlag den öppna redigeringen behöver.
-- Befintliga kontroller av revisioner, ändrade anställningsvillkor, skatte-/avgiftsgranskning och företagsbyte är kvar. Sparade löneunderlag skrivs inte om av profiländringar.
-- Tester jämför de mindre svaren med den kompletta modellen och provar bland annat profilbild, samtidiga redigeringar, ändrade lönevillkor och fullständig AGI-export. Se docs/PERSONAL-DATA.md för metod och mätning.
+- Listor över utfärdade kundfakturor, krediter och reskontra hämtar aktuella belopp, saldon och revisionsuppgifter utan alla fakturarader, löner eller huvudboksrader.
+- När en faktura öppnas hämtas original, tillhörande krediter och kompletta betalnings-/kvittningsunderlag. Befintlig valutaberäkning och öresavrundning är oförändrade.
+- Betalningshistorik hämtas när den öppnas och visar 50 rader per sida. Sökning och CSV-export använder hela urvalet. Vid öppning av en faktura från historiken behålls det kompletta historikunderlaget.
+- Utkast är fortsatt kompletta så att sökning i rader/anteckningar och redigering fungerar som tidigare. Order, återkommande mallar, påminnelser, bankavstämning och utskriftsfönster behåller fullständiga underlag där de behövs.
+- Revisionskontroller mot dubbel-/samtidig betalning och skydd för osparad inmatning är kvar. Tester omfattar SEK/EUR/USD, krediter, delbetalningar, leverantörssaldon, historikexport, kopplade underlag och PDF/fakturautskrift.
 
-Övriga moduler och utskriftsfönster kan fortfarande använda fullständiga underlag. Databasschema 10, säkerhetskopior och demodatabaser är oförändrade. GitHub-knappen under Licens & version förblir borttagen.
+Se docs/FAKTURERING-DATA.md för uppdelning, avgränsning och mätresultat. Databasschema 10 och säkerhetskopior är oförändrade. GitHub-knappen under Licens & version förblir borttagen.
 
 Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.

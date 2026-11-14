@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.29.4, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.29.5, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -291,3 +291,5 @@ Från 0.29.2 hämtas lagersaldon/inställningar och aktiva bokföringskällor i 
 Från 0.29.3 finns explicita läsvyer för översikt och grundregister. Utelämnade moduler saknas i svaret, i stället för att se ut som tomma register. Oförändrat GET /api/state ger fortsatt full modell för övriga moduler/rapporter/utskrifter. Klienten accepterar bara senaste läs-/navigeringsgeneration och rätt databas-session, ersätter hela tillståndet och hämtar fullständiga underlag innan en avancerad vy visas. Företagsbytesmeddelandet kan inte överskrivas av ett fördröjt svar; återinläsning av aktiv databas krävs. De nya läsvyerna avvisar gamla sessionstoken. Artikelspärrar för SKU/enhet finns även i det mindre svaret och valideras fortsatt vid skrivning. Inget schema eller backupformat ändras. Se docs/SELEKTIV-DATA.md för gränser, mätningar och tester.
 
 Från 0.29.4 används separata läsvyer employees, hr-runs och hr-leave för Personal. Varje vy innehåller anställda med oförändrade revisioner/bilder, aktuellt företag och sammanfattande lönekörningsantal; körnings- respektive frånvarounderlag inkluderas endast i rätt vy. Ej inlästa moduler saknas. Godkännande, löneberäkning, källgranskning och revisions-/sessionskontroller ändras inte. Fullständigt tillstånd finns kvar för bokföring och utskrift. Se docs/PERSONAL-DATA.md för avgränsning, jämförelse och tester.
+
+Från 0.29.5 används commerce, commerce-history och commerce-detail för fakturering/reskontra. Sammanfattningar kopierar befintligt beräknade belopp/saldon och revisioner; de innehåller inga falska tomma radlistor. Fakturafamilj och kopplade betalningar/kvittningar hämtas före detaljåtgärder; historik behålls komplett när den aktiva vyn behöver den. Utkast är fortsatt kompletta för sökning. Konton/räkenskapsår är metadata; huvudbok och bokföringshistorik är inte inlästa i listvyn. Skrivkommandon, valuta/öresberäkning, revisioner, låsning, snapshot- och sessionskontroller är oförändrade. Betalningshistorik sidindelas endast för visning, medan export använder hela urvalet. Mer omfattande flöden och utskrifter kan fortsatt använda full modell. Inget schema eller backupformat ändras. Se docs/FAKTURERING-DATA.md.

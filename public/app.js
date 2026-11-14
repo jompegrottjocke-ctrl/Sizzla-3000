@@ -21,10 +21,10 @@ const beta = ['group'];
 const today = () => new Date().toLocaleDateString('sv-SE');
 function toast(message) { const element = document.querySelector('#toast'); element.textContent=message; element.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>element.classList.remove('show'),4500); }
 let latestLoad;
-function load(scope='full') {
+function load(scope='full',selection={}) {
  if(databaseSessionInvalid)return Promise.reject(Error('dbChanged'));
  const pending=(async()=>{
- const generation=++loadGeneration,navigation=navigationGeneration;const response = await fetch('/api/state'+(scope==='full'?'':'?view='+encodeURIComponent(scope)),{headers:state?{'X-Sizzla-Token':state.token}:{}}); if(generation!==loadGeneration||navigation!==navigationGeneration)return false;if(!response.ok){const error=await response.json().catch(()=>({}));if(error.error==='dbChanged'){databaseStale();throw Error('dbChanged');}throw Error('load');} const next=await response.json();if(generation!==loadGeneration||navigation!==navigationGeneration)return false;if((state&&state.databaseSession!==next.databaseSession)||(detachedWindow&&new URLSearchParams(location.search).get('databaseSession')!==next.databaseSession)||(location.pathname==='/print'&&sessionStorage.getItem('sizzla-database-session')!==next.databaseSession)){databaseStale();throw Error('dbChanged');}state=next;words.sv.version='Förhandsversion '+state.application.version;words.en.version='Preview '+state.application.version;stateLoadedAt=new Date().toISOString();sessionStorage.setItem('sizzla-database-session',state.databaseSession);if(state.preferences.language)lang=state.preferences.language;if(state.preferences.theme)theme=state.preferences.theme;applyTheme();applyReading();return true;
+ const generation=++loadGeneration,navigation=navigationGeneration;const response = await fetch('/api/state'+(scope==='full'?'':'?'+new URLSearchParams({view:scope,...selection})),{headers:state?{'X-Sizzla-Token':state.token}:{}}); if(generation!==loadGeneration||navigation!==navigationGeneration)return false;if(!response.ok){const error=await response.json().catch(()=>({}));if(error.error==='dbChanged'){databaseStale();throw Error('dbChanged');}throw Error('load');} const next=await response.json();if(generation!==loadGeneration||navigation!==navigationGeneration)return false;if((state&&state.databaseSession!==next.databaseSession)||(detachedWindow&&new URLSearchParams(location.search).get('databaseSession')!==next.databaseSession)||(location.pathname==='/print'&&sessionStorage.getItem('sizzla-database-session')!==next.databaseSession)){databaseStale();throw Error('dbChanged');}state=next;words.sv.version='Förhandsversion '+state.application.version;words.en.version='Preview '+state.application.version;stateLoadedAt=new Date().toISOString();sessionStorage.setItem('sizzla-database-session',state.databaseSession);if(state.preferences.language)lang=state.preferences.language;if(state.preferences.theme)theme=state.preferences.theme;applyTheme();applyReading();return true;
  })();latestLoad=pending;return pending;
 }
 async function post(route, body) {
@@ -45,9 +45,10 @@ function pageList(key,rows,filter=''){
  return {rows:rows.slice(start,start+size),controls};
 }
 function navItem(key) { return `<button class="nav-item ${page===key?'active':''}" data-page="${key}"><span class="nav-icon" aria-hidden="true">${icons[key]}</span><span>${t(key)}</span>${(beta.includes(key)||['cloud','agent','versionSettings'].includes(key))?'<span class="beta-tag" aria-hidden="true">β</span>':''}</button>`; }
-const pageScope=(target=page)=>location.pathname==='/print'?'full':target==='payroll'?(hrTab==='employees'?'employees':hrTab==='leave'?'hr-leave':'hr-runs'):target==='overview'?'overview':['customers','articles'].includes(target)?'registers':'full';
-const pageDataReady=()=>{const actual=state.loadScope,needed=pageScope();if(!actual)return true;if(needed==='registers')return ['registers','overview'].includes(actual);if(needed==='employees')return ['employees','hr-runs','hr-leave'].includes(actual);return actual===needed;};
+const pageScope=(target=page)=>location.pathname==='/print'?'full':target==='invoices'?(['drafts','issued','credits'].includes(salesTab)?'commerce':'full'):target==='payments'?(['customers','suppliers'].includes(paymentsTab)?'commerce':['history','events'].includes(paymentsTab)?'commerce-history':'full'):target==='payroll'?(hrTab==='employees'?'employees':hrTab==='leave'?'hr-leave':'hr-runs'):target==='overview'?'overview':['customers','articles'].includes(target)?'registers':'full';
+const pageDataReady=()=>{const actual=state.loadScope,needed=pageScope();if(!actual)return true;if(needed==='commerce-history'&&actual==='commerce-detail')return state.commerceDetails?.history===true;if(needed==='commerce')return ['commerce','commerce-history','commerce-detail'].includes(actual);if(needed==='registers')return ['registers','overview'].includes(actual);if(needed==='employees')return ['employees','hr-runs','hr-leave'].includes(actual);return actual===needed;};
 const editorDataScope=()=>{if(page==='payroll'&&['employee','payrun','leave'].includes(editor?.kind))return {employee:'employees',payrun:'hr-runs',leave:'hr-leave'}[editor.kind];return editor&&editor.kind!=='customer'&&editor.kind!=='article'?'full':pageScope();};
+async function openFullSource(open){const target=page,navigation=navigationGeneration;try{if(state.loadScope&&!await load())return;if(!databaseSessionInvalid&&target===page&&navigation===navigationGeneration)open();}catch(error){if(error.message!=='dbChanged')toast(t('loadFailed'));}}
 let pageLoad=null,pageLoadError=false;
 function requestPageData(){
  const scope=pageScope();if(pageLoad?.scope===scope)return;
@@ -116,7 +117,10 @@ function bind(ready=true) {
 }
 function openEditor(kind,id) {
  if(databaseSessionInvalid){databaseStale();return;}
- if(kind==='invoice'&&state.loadScope){const target=page;load('full').then(applied=>{if(applied&&page===target)openEditor(kind,id);}).catch(error=>{if(error.message!=='dbChanged')toast(t('loadFailed'));});return;}
+ if(kind==='invoice'&&state.loadScope){
+  const issued=id&&state.sales?.documents.find(d=>d.draftId===id);if(issued)return salesView(issued.id);
+  if(!state.commerceDetails?.inputs||id&&!state.commerceDetails.drafts.includes(id)){openCommerceDetail(id?{draft:id}:{},()=>openEditor(kind,id));return;}
+ }
  if(kind==='invoice'&&id){const issued=saleData().documents.find(d=>d.draftId===id);if(issued)return salesView(issued.id);}
  if(['employee','payrun','leave'].includes(kind))return hrOpen(kind,id);
  if(kind==='invoice' && !state.company.name) {page='company';render();toast(t('companyFirst'));return;}
@@ -167,7 +171,7 @@ function renderEditor() {
  const close=()=>{editor=null;dialog.close();root.innerHTML='';};
  document.querySelector('#cancel').onclick=close;document.querySelector('#close-dialog').onclick=close;dialog.oncancel=()=>{editor=null;};
  const lockedStock=kind==='article'&&r.id&&(state.inventory?.items||state.articleLocks||[]).find(a=>a.id===r.id);if(lockedStock&&(lockedStock.enabled||lockedStock.stockRevision)){for(const key of ['sku','unit'])root.querySelector(`[name=${key}]`).readOnly=true;const note=document.createElement('p');note.className='muted wide';note.textContent=it('invArticleLocked');root.querySelector('.dialog-body').append(note);}
- const form=document.querySelector('#editor-form');form.onsubmit=async event=>{event.preventDefault();captureEditor();const button=form.querySelector('[type=submit]');button.disabled=true;try{await post(kind==='customer'?'customers':kind==='article'?'articles':'invoices',editor.record);editor=null;await load(kind==='customer'||kind==='article'?pageScope():'full');render();toast(t('saved'));}catch(error){button.disabled=false;toast(error.message==='barcode'?fi('importBarcode'):windowWords[lang][error.message]||recurringWords[lang][error.message]||fxWords[lang][error.message]||inventoryWords[lang][error.message]||t('failed'));}};
+ const form=document.querySelector('#editor-form');form.onsubmit=async event=>{event.preventDefault();captureEditor();const button=form.querySelector('[type=submit]');button.disabled=true;try{await post(kind==='customer'?'customers':kind==='article'?'articles':'invoices',editor.record);editor=null;await load(['customer','article','invoice'].includes(kind)?pageScope():'full');render();toast(t('saved'));}catch(error){button.disabled=false;toast(error.message==='barcode'?fi('importBarcode'):windowWords[lang][error.message]||recurringWords[lang][error.message]||fxWords[lang][error.message]||inventoryWords[lang][error.message]||t('failed'));}};
  if(kind==='invoice') {
   document.querySelector('#add-line').onclick=()=>{captureEditor();editor.record.lines.push({description:'',quantity:'1',unit:'st',price:'0',vat:25});renderEditor();};
   document.querySelectorAll('[data-remove]').forEach(button=>button.onclick=()=>{captureEditor();editor.record.lines.splice(Number(button.dataset.remove),1);renderEditor();});

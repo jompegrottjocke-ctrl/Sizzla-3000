@@ -1,0 +1,318 @@
+{
+  "version": "0.29.4",
+  "platform": "linux",
+  "arch": "x64",
+  "node": "v24.22.1",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "dataset": "Sizzla-3000-Stor-Testdatabas-0.29.1.sqlite",
+  "datasetSha256": "bbe9330c4cbc1d6f60c7450da312d82971a6c8e283eaefcc1b976eb6135c9e8d",
+  "measurements": {
+    "serverOpen": {
+      "samplesMs": [
+        36.7
+      ],
+      "medianMs": 36.7
+    },
+    "apiState": {
+      "samplesMs": [
+        2458.5,
+        1691.3,
+        1694.5
+      ],
+      "medianMs": 1694.5
+    },
+    "api.registers": {
+      "samplesMs": [
+        30.7,
+        25.2,
+        22.6
+      ],
+      "medianMs": 25.2
+    },
+    "api.overview": {
+      "samplesMs": [
+        184.5,
+        171.2,
+        167.9
+      ],
+      "medianMs": 171.2
+    },
+    "api.employees": {
+      "samplesMs": [
+        4.8,
+        2.1,
+        2
+      ],
+      "medianMs": 2.1
+    },
+    "api.hr-runs": {
+      "samplesMs": [
+        2.2,
+        2.5,
+        2
+      ],
+      "medianMs": 2.2
+    },
+    "api.hr-leave": {
+      "samplesMs": [
+        1.6,
+        1.8,
+        1.9
+      ],
+      "medianMs": 1.8
+    },
+    "api.commerce": {
+      "samplesMs": [
+        1318.4,
+        1247.8,
+        1398.1
+      ],
+      "medianMs": 1318.4
+    },
+    "api.commerce-history": {
+      "samplesMs": [
+        1236.2,
+        1205.5,
+        1637.2
+      ],
+      "medianMs": 1236.2
+    },
+    "api.commerce-detail": {
+      "samplesMs": [
+        1361.1,
+        1298.5,
+        1290.9
+      ],
+      "medianMs": 1298.5
+    },
+    "browserOpen": {
+      "samplesMs": [
+        451.3
+      ],
+      "medianMs": 451.3
+    },
+    "view.customers": {
+      "samplesMs": [
+        86.5,
+        100.3,
+        82.7
+      ],
+      "medianMs": 86.5
+    },
+    "search.customers": {
+      "samplesMs": [
+        84.2,
+        82.5,
+        66.7
+      ],
+      "medianMs": 82.5
+    },
+    "view.articles": {
+      "samplesMs": [
+        99.8,
+        83.1,
+        100.4
+      ],
+      "medianMs": 99.8
+    },
+    "search.articles": {
+      "samplesMs": [
+        99.9,
+        83.3,
+        83.3
+      ],
+      "medianMs": 83.3
+    },
+    "view.invoices": {
+      "samplesMs": [
+        1682.8,
+        66.8,
+        66.7
+      ],
+      "medianMs": 66.8
+    },
+    "view.accounting": {
+      "samplesMs": [
+        82.9,
+        83.3,
+        83.3
+      ],
+      "medianMs": 83.3
+    },
+    "search.accounting": {
+      "samplesMs": [
+        66.6,
+        67.2,
+        66.2
+      ],
+      "medianMs": 66.6
+    },
+    "view.projects": {
+      "samplesMs": [
+        99.6,
+        100,
+        100
+      ],
+      "medianMs": 100
+    },
+    "view.inventory": {
+      "samplesMs": [
+        100.4,
+        82.7,
+        83.3
+      ],
+      "medianMs": 83.3
+    },
+    "view.analysis": {
+      "samplesMs": [
+        133.5,
+        83.1,
+        83.3
+      ],
+      "medianMs": 83.3
+    },
+    "view.issuedInvoices": {
+      "samplesMs": [
+        102.6,
+        117,
+        83.3
+      ],
+      "medianMs": 102.6
+    },
+    "view.timeEntries": {
+      "samplesMs": [
+        116.4,
+        99.9,
+        116.9
+      ],
+      "medianMs": 116.4
+    },
+    "view.payments": {
+      "samplesMs": [
+        99.7,
+        83.4,
+        83.1
+      ],
+      "medianMs": 83.4
+    },
+    "report.trialBalance": {
+      "samplesMs": [
+        80.6,
+        83.5,
+        83.1
+      ],
+      "medianMs": 83.1
+    },
+    "hr.browserOpen": {
+      "samplesMs": [
+        143.7
+      ],
+      "medianMs": 143.7
+    },
+    "hr.runs": {
+      "samplesMs": [
+        72.9,
+        66.8,
+        83.5
+      ],
+      "medianMs": 72.9
+    },
+    "hr.leave": {
+      "samplesMs": [
+        99.9,
+        100,
+        83.7
+      ],
+      "medianMs": 99.9
+    },
+    "hr.agi": {
+      "samplesMs": [
+        100.7,
+        65,
+        66.1
+      ],
+      "medianMs": 66.1
+    },
+    "commerce.browserOpen": {
+      "samplesMs": [
+        1810.3
+      ],
+      "medianMs": 1810.3
+    },
+    "commerce.documentOpen": {
+      "samplesMs": [
+        54.9
+      ],
+      "medianMs": 54.9
+    },
+    "commerce.history": {
+      "samplesMs": [
+        618.1,
+        855.5,
+        810.9
+      ],
+      "medianMs": 810.9
+    },
+    "activateLarge": {
+      "samplesMs": [
+        907.9
+      ],
+      "medianMs": 907.9
+    }
+  },
+  "rendererErrors": [],
+  "businessDigest": "6fc80ec036402fe1c9dae47c136df6d57be3ff3a764a1f9d82fb5d414c9e721c",
+  "businessDigestScope": "Company, registers, payroll, accounting, purchases, sales, inventory and time; runtime version audit events excluded, financial events included.",
+  "counts": {
+    "employees": 60,
+    "payrollRuns": 0,
+    "leave": 0,
+    "articles": 3000,
+    "customers": 1000,
+    "vouchers": 7900,
+    "invoices": 3000,
+    "timeEntries": 6000
+  },
+  "stateBytes": 36209214,
+  "viewBytes": {
+    "full": 36209214,
+    "registers": 972342,
+    "overview": 1267429,
+    "employees": 40091,
+    "hr-runs": 40102,
+    "hr-leave": 40102,
+    "commerce": 36209214,
+    "commerce-history": 36209214,
+    "commerce-detail": 36209214
+  },
+  "unsupportedViews": [
+    "commerce",
+    "commerce",
+    "commerce",
+    "commerce-history",
+    "commerce-history",
+    "commerce-history",
+    "commerce-detail",
+    "commerce-detail",
+    "commerce-detail"
+  ],
+  "browserStateRequests": [
+    "overview",
+    "full",
+    "employees",
+    "hr-runs",
+    "hr-leave",
+    "hr-runs",
+    "full"
+  ],
+  "initialView": "overview",
+  "initialViewBytes": 1267429,
+  "firstFullModuleMs": 1682.8,
+  "firstFullModule": "invoices",
+  "hrInitialView": "employees",
+  "hrInitialBytes": 40091,
+  "commerceInitialView": "full",
+  "commerceInitialBytes": 36209214,
+  "businessDataPreserved": true,
+  "measuredAt": "2026-11-14T20:27:32.816Z"
+}
