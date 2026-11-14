@@ -31,3 +31,5 @@
 @media print{.tab-fruit{display:none}}
 #fruit-mode[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--green)}
 #fruit-mode[aria-pressed=true]::after{content:" ✓"}
+
+.tab-fruit svg{width:1.2em;height:1.2em;vertical-align:middle;overflow:visible}

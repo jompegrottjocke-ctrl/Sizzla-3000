@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.26.1, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.27.0, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -256,4 +256,12 @@ Vecko-/månadsintervall utgår från ursprunglig ankardag. Paus flyttar inte pla
 
 ## Fruit-mode (0.26.1)
 
-Den valfria booleska inställningen `preferences.fruitMode` sparas via befintligt inställnings-API. Saknat värde innebär avstängt. `applyFruitMode()` i `public/appearance.js` dekorerar navigering och underflikar efter rendering. Frukterna är dekorativa med `aria-hidden` och ändrar inte flikarnas tillgängliga namn, funktion eller utskrifter. Inställningen är per företagsdatabas, bevaras vid andra preferensändringar och ingår i fullständig databasexport. Schema 10 är oförändrat.
+Den valfria booleska inställningen `preferences.fruitMode` sparas via befintligt inställnings-API. Saknat värde innebär avstängt. `applyFruitMode()` i `public/appearance.js` dekorerar enbart huvudnavigeringen med unika frukter efter rendering. Frukterna är dekorativa med `aria-hidden` och ändrar inte flikarnas tillgängliga namn, funktion eller utskrifter. Inställningen är per företagsdatabas, bevaras vid andra preferensändringar och ingår i fullständig databasexport. Schema 10 är oförändrat.
+
+## Lokal MCP-server (0.27.0)
+
+`src/mcp.cjs` tillhandahåller en valfri, läsande MCP-endpoint på appserverns `/mcp`. Den officiella MCP-SDK:n hanterar Streamable HTTP och protokollvalidering. Ett stateless transportobjekt skapas per begäran; JSON-svar och POST används. Endpointen är loopback-bunden med befintlig Host-kontroll, avvisar Origin-header och kräver en 256-bitars Bearer-nyckel. Nyckel och aktivering finns endast i minnet och återkallas vid stopp, ändrade behörigheter, nyckelbyte, företagsbyte, lyckad databasimport och programslut. En anslutningsidentifierare gör att en gammal nyckelvisning döljs efter uppdatering. Pågående begäranden kontrolleras på nytt innan läsning.
+
+`/api/mcp/*` använder appens vanliga Origin-, sessions- och tokenkontroller och kräver ansvarig operatör. Start/nyckelbyte kräver uttryckligt godkännande och minst en sparad behörighet. `mcp_config` och `mcp_event` ligger i `records` och omfattas av säkerhetskopior, utan anslutningsnyckel. Endast läsverktyg annonseras per tillåten kategori. Loggen sparar begärd/nekad/slutförd/misslyckad läsning, verktygsnamn, antal, operatör och anslutningsetikett, utan söktext eller innehåll. Dessa inställningar och loggar är undantagna från bokslutets källfingeravtryck.
+
+`public/mcp.js` erbjuder tvåspråkiga inställningar under AI-agent, konfigurationsexempel, nyckelbyte/återkallning och de senaste 100 logghändelserna. Den externa agentens betainställningar är separata. HTTP är lokalt, inte TLS-krypterad fjärrtrafik; klienten kan vidarebefordra data till en AI-tjänst. Inga verktyg för skrivning, personalprofiler eller lön finns. Schema 10 är oförändrat. Se [MCP-dokumentation](docs/MCP.md).

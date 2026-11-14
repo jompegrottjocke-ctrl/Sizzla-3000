@@ -1,17 +1,12 @@
-Sizzla 3000 0.26.1 för Windows 11 (x64): fruit-mode.
+Sizzla 3000 0.27.0 för Windows 11 (x64): lokal MCP-anslutning.
 
-Under **Utseende & läsbarhet** finns knappen **fruit-mode**. När den aktiveras får huvudflikar och underflikar små färgglada frukter bredvid namnen. Valet sparas per företagsdatabas och är avstängt som standard. Klicka igen för att stänga av.
+- AI-agent har underfliken MCP & anslutningar med en fungerande lokal MCP-server för betrodda klienter.
+- Välj läsbehörigheter för företagsuppgifter, kundnamn/fakturor, artiklar/lager och bokförda verifikationer.
+- Aktivera med uttrycklig bekräftelse. Slumpad anslutningsnyckel, kopierbart konfigurationsexempel, nyckelbyte och avstängning.
+- Servern är avstängd vid varje programstart och företagsbyte. Nycklar lagras inte i databasen eller säkerhetskopior.
+- Aktivitetslogg visar begärda, nekade och utförda läsningar utan att spara nycklar, söktexter eller svarsinnehåll.
+- Fruit-mode är rättat: 23 unika frukter på huvudflikarna, inga frukter på underflikarna.
 
-Återkommande fakturering från 0.26.0 ingår också:
-
-- Ny underflik under Fakturering med kundkopplade mallar för abonnemang, hyra och serviceavtal.
-- Vecka, varannan vecka, månad, kvartal, halvår och år, med datum som hanterar korta månader och skottår.
-- Granska en period och skapa ett vanligt redigerbart fakturautkast. Ett väntande utkast per mall och skydd mot dubbla perioder.
-- SEK, EUR och USD; kurs granskas för varje nytt utkast i utländsk valuta.
-- Pausa, återuppta, avsluta, hoppa över period och återta ännu inte utfärdat utkast med orsak och bevarad historik.
-- Avtalsperiod och länkar mellan mall och faktura, även på utskrift. Aktuella mallar visas på Översikt.
-- Svenska och engelska, mörkt läge och skalbar text med synliga åtgärdsknappar.
-
-Inget skickas, utfärdas eller bokförs automatiskt. Varje faktura granskas i det vanliga fakturaflödet. Hela mallbeloppet används per period; sista periodstart ger ingen automatisk proportionering. Kredit frigör inte en fakturerad period. Schema 10 är oförändrat. Se docs/ATERKOMMANDE_FAKTURERING.md för arbetssätt och begränsningar.
+MCP stöder lokal Streamable HTTP på 127.0.0.1 med Bearer-nyckel. Detta är lokal HTTP, inte TLS-krypterad fjärråtkomst. Den anslutna klienten kan föra data vidare till sin AI-tjänst. Inga verktyg för utkast, bokföring, betalningar eller lön finns. Extern AI-agent och molnserver återstår. Schema 10 är oförändrat. Se docs/MCP.md.
 
 Det här är en förhandsversion med osignerat installationsprogram. Ladda ned installationsfilen under Assets.

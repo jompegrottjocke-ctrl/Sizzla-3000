@@ -360,4 +360,8 @@ Utfärda och bokför via det vanliga fakturaflödet. Inget körs eller skickas a
 
 ## Fruit-mode (0.26.1)
 
-Knappen **fruit-mode** under **Utseende & läsbarhet** visar färgglada frukter bredvid huvudflikar och underflikar. Klicka igen för att stänga av. Avstängt som standard; valet sparas per företagsdatabas och följer med i säkerhetskopior.
+Knappen **fruit-mode** under **Utseende & läsbarhet** visar unika färgglada frukter bredvid huvudflikarna. Underflikar får inga frukter. Klicka igen för att stänga av. Avstängt som standard; valet sparas per företagsdatabas och följer med i säkerhetskopior.
+
+## Lokal MCP-server (0.27.0)
+
+Under **AI-agent → MCP & anslutningar** kan en betrodd MCP-klient ges läsåtkomst till aktiv företagsdatabas. Välj företag, försäljning, lager och/eller bokföring, aktivera och kopiera klientkonfigurationen. Servern kräver anslutningsnyckel och är avstängd vid varje start och företagsbyte. Nycklar lagras inte i databasen. Endast lokal Streamable HTTP på loopback stöds; det är ingen TLS-krypterad molnanslutning. Inga skrivverktyg finns. [Användning, protokoll och behörigheter](docs/MCP.md).

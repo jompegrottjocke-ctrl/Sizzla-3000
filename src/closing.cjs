@@ -8,7 +8,7 @@ const areas=['bank','receivables','payables','vat','payroll','assets','inventory
 function closingFingerprint(db){
   const hash=createHash('sha256');hash.update(require('../package.json').version);
   const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(r=>r.name).filter(n=>n==='settings'||n==='records'||/^(archive_(documents|metadata|links)$|ledger_(accounts|years|vouchers)$|purchase_|sales_|inventory_|employees$|payruns$|leaves$|time_)/.test(n)).filter(n=>!n.endsWith('_events'));
-  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime','ai_agent_config','ai_agent_event','agency_task','agency_event') ORDER BY kind,id").all():name==='archive_documents'?db.prepare('SELECT id,created,filename,mime,hash,size FROM archive_documents ORDER BY rowid').all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
+  for(const name of tables){hash.update(name);const rows=name==='records'?db.prepare("SELECT * FROM records WHERE kind NOT IN ('accounting_operator','accounting_runtime','ai_agent_config','ai_agent_event','mcp_config','mcp_event','agency_task','agency_event') ORDER BY kind,id").all():name==='archive_documents'?db.prepare('SELECT id,created,filename,mime,hash,size FROM archive_documents ORDER BY rowid').all():db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all();hash.update(JSON.stringify(rows));}
   return hash.digest('hex');
 }
 function initClosing(db,accounting){
