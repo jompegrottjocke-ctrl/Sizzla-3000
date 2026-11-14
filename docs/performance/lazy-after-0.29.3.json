@@ -1,0 +1,190 @@
+{
+  "version": "0.29.3",
+  "platform": "linux",
+  "arch": "x64",
+  "node": "v24.22.1",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "dataset": "Sizzla-3000-Stor-Testdatabas-0.29.1.sqlite",
+  "datasetSha256": "bbe9330c4cbc1d6f60c7450da312d82971a6c8e283eaefcc1b976eb6135c9e8d",
+  "measurements": {
+    "serverOpen": {
+      "samplesMs": [
+        39.9
+      ],
+      "medianMs": 39.9
+    },
+    "apiState": {
+      "samplesMs": [
+        2224.5,
+        1749.1,
+        1394.8
+      ],
+      "medianMs": 1749.1
+    },
+    "api.registers": {
+      "samplesMs": [
+        26.1,
+        23.5,
+        21.9
+      ],
+      "medianMs": 23.5
+    },
+    "api.overview": {
+      "samplesMs": [
+        173.5,
+        159.9,
+        156
+      ],
+      "medianMs": 159.9
+    },
+    "browserOpen": {
+      "samplesMs": [
+        508.9
+      ],
+      "medianMs": 508.9
+    },
+    "view.customers": {
+      "samplesMs": [
+        100.9,
+        83.3,
+        83.5
+      ],
+      "medianMs": 83.5
+    },
+    "search.customers": {
+      "samplesMs": [
+        82.9,
+        66.5,
+        66.9
+      ],
+      "medianMs": 66.9
+    },
+    "view.articles": {
+      "samplesMs": [
+        82.7,
+        100.2,
+        83.3
+      ],
+      "medianMs": 83.3
+    },
+    "search.articles": {
+      "samplesMs": [
+        83.1,
+        83.5,
+        83.5
+      ],
+      "medianMs": 83.5
+    },
+    "view.invoices": {
+      "samplesMs": [
+        2099.6,
+        66.5,
+        66.4
+      ],
+      "medianMs": 66.5
+    },
+    "view.accounting": {
+      "samplesMs": [
+        88,
+        78.6,
+        83.3
+      ],
+      "medianMs": 83.3
+    },
+    "search.accounting": {
+      "samplesMs": [
+        66.6,
+        83.6,
+        69.7
+      ],
+      "medianMs": 69.7
+    },
+    "view.projects": {
+      "samplesMs": [
+        96.3,
+        100.1,
+        99.6
+      ],
+      "medianMs": 99.6
+    },
+    "view.inventory": {
+      "samplesMs": [
+        100,
+        83.3,
+        83.4
+      ],
+      "medianMs": 83.4
+    },
+    "view.analysis": {
+      "samplesMs": [
+        116.6,
+        83.1,
+        100.3
+      ],
+      "medianMs": 100.3
+    },
+    "view.issuedInvoices": {
+      "samplesMs": [
+        88.1,
+        83.1,
+        83.4
+      ],
+      "medianMs": 83.4
+    },
+    "view.timeEntries": {
+      "samplesMs": [
+        100.7,
+        100,
+        100.2
+      ],
+      "medianMs": 100.2
+    },
+    "view.payments": {
+      "samplesMs": [
+        99.6,
+        83.3,
+        83.3
+      ],
+      "medianMs": 83.3
+    },
+    "report.trialBalance": {
+      "samplesMs": [
+        86.5,
+        83.3,
+        83.5
+      ],
+      "medianMs": 83.5
+    },
+    "activateLarge": {
+      "samplesMs": [
+        799.7
+      ],
+      "medianMs": 799.7
+    }
+  },
+  "rendererErrors": [],
+  "businessDigest": "6fc80ec036402fe1c9dae47c136df6d57be3ff3a764a1f9d82fb5d414c9e721c",
+  "businessDigestScope": "Company, registers, payroll, accounting, purchases, sales, inventory and time; runtime version audit events excluded, financial events included.",
+  "counts": {
+    "articles": 3000,
+    "customers": 1000,
+    "vouchers": 7900,
+    "invoices": 3000,
+    "timeEntries": 6000
+  },
+  "stateBytes": 36209214,
+  "viewBytes": {
+    "full": 36209214,
+    "registers": 972342,
+    "overview": 1267429
+  },
+  "browserStateRequests": [
+    "overview",
+    "full"
+  ],
+  "initialView": "overview",
+  "initialViewBytes": 1267429,
+  "firstFullModuleMs": 2099.6,
+  "businessDataPreserved": true,
+  "measuredAt": "2026-11-14T19:25:53.844Z"
+}

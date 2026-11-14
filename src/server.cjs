@@ -1,3 +1,4 @@
+const OverviewMath=require('../public/overview-math.js');
 const {installBundledDemo}=require('./bundled-demo.cjs');
 const {initMcp,McpError}=require('./mcp.cjs');
 const {initRecurring,RecurringError}=require('./recurring.cjs');
@@ -72,7 +73,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   let {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade,reminders,recurring,mcp}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
   let token=randomBytes(32).toString('hex'),databaseSession=randomUUID();
   const recordVersion=data=>createHash('sha256').update(data).digest('hex');
-  const all = kind => db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data), recordVersion:recordVersion(row.data) }));
+  const all = (kind,unissued=false) => db.prepare('SELECT id,data FROM records WHERE kind=?'+(unissued?' AND NOT EXISTS(SELECT 1 FROM sales_documents WHERE draft_id=records.id)':'')+' ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data), recordVersion:recordVersion(row.data) }));
   const get = (kind,id) => { const row = db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,id); return row ? { id, data: JSON.parse(row.data) } : null; };
   const settings = () => JSON.parse(db.prepare('SELECT data FROM settings WHERE id=1').get()?.data || '{}');
   const preferences = () => JSON.parse(db.prepare('SELECT data FROM preferences WHERE id=1').get()?.data || '{}');
@@ -98,6 +99,20 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(req.method==='GET'&&url.pathname==='/api/prints')return send(res,200,printing.list(Object.fromEntries(url.searchParams)));
       const pdfMatch=url.pathname.match(/^\/api\/prints\/([a-f0-9-]{36})\/pdf$/);
       if(req.method==='GET'&&pdfMatch){const doc=printing.document(pdfMatch[1]);if(!doc.pdf)return send(res,404,{error:'printPdfFailed'});res.setHeader('Content-Disposition',`inline; filename="Sizzla-${doc.id}.pdf"`);return send(res,200,doc.pdf,'application/pdf');}
+      if(req.method==='GET'&&url.pathname==='/api/state'){
+        if(req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
+        const view=url.searchParams.get('view')||'full';
+        if(!['full','registers','overview'].includes(view))return send(res,400,{error:'stateView'});
+        if(view!=='full'){
+          const company=settings(),securityData={...security.status(),automatic:automatic.status()};
+          const result={token,databaseSession,loadScope:view,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(),security:securityData,preferences:preferences(),company,companyVersion:recordVersion(JSON.stringify(company)),customers:all('customer'),articles:all('article'),articleLocks:db.prepare("SELECT a.id,COALESCE(s.enabled,0) AS enabled,COALESCE(m.revision,0) AS stockRevision FROM records a LEFT JOIN inventory_settings s ON s.article_id=a.id LEFT JOIN (SELECT article_id,MAX(id) AS revision FROM inventory_movements GROUP BY article_id) m ON m.article_id=a.id WHERE a.kind='article' AND (COALESCE(s.enabled,0)!=0 OR m.revision>0)").all()};
+          if(view==='overview'){
+            result.invoices=all('invoice',true);
+            result.overviewModel=OverviewMath.build({sales:sales.state(),purchases:purchases.state(),inventory:inventory.state(),trade:trade.state(),recurring:recurring.state(),bank:bank.state(),reminders:{holds:reminders.holds()},security:securityData},{today:new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Stockholm'})});
+          }
+          return send(res,200,result);
+        }
+      }
       if (req.method === 'GET' && url.pathname === '/api/state') {const accountingData=accounting.state(),salesData=sales.state(),issuedDrafts=new Set(salesData.documents.map(d=>d.draftId));return send(res,200,{ token, databaseSession,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(), security:{...security.status(),automatic:automatic.status()}, preferences:preferences(), assets:assets.state(), closing:closing.state(), agent:agent.state(),mcp:mcp.state(`http://127.0.0.1:${server.address().port}`), agency:agency.state(), archive:archive.summary(), sie:sie.state(), bank:bank.state(),trade:trade.state(),reminders:reminders.state(salesData,accountingData),recurring:recurring.state(), company:settings(),companyVersion:recordVersion(JSON.stringify(settings())), customers:all('customer'), articles:all('article'), invoices:all('invoice').filter(d=>!issuedDrafts.has(d.id)),...hr.state(),accounting:accountingData,purchases:purchases.state(),inventory:inventory.state(),sales:salesData,time:time.state() });}
       if(req.method==='POST'&&req.headers.origin===`http://127.0.0.1:${server.address().port}`&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
       if(req.method==='GET'&&url.pathname==='/api/assets/report'&&req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});

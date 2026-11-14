@@ -1,5 +1,7 @@
 # Prestandagenomgång 0.29.2
 
+Detta är jämförelsen för 0.29.2. Fortsättningen i 0.29.3 finns i [Selektiv datainläsning](SELEKTIV-DATA.md).
+
 Testdata: 3 000 artiklar, 1 000 kunder, 3 000 utfärdade kundfakturor, 7 900 bokförda verifikationer och 6 000 tidsrader. Jämförelsen använder ursprunglig 0.29.1-kod (`26bff6a`) och 0.29.2 i samma Linux-miljö med Node.js 24, Chromium, 1440 × 1000 och normal textstorlek. Varje körning använder en separat temporär kopia av samma publicerade SQLite-export. Inga användardatabaser berörs.
 
 ## Resultat

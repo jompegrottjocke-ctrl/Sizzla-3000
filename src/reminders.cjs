@@ -44,6 +44,6 @@ function initReminders(db,sales,accounting){
  }else if(route==='extra/handle'){const e=current('extra',b);if(e.status!=='open'||!['paid','waived'].includes(b.status))fail('reminderLocked');const when=date(b.date);if(when<get('letter',e.letterId).snapshot.date||when>today())fail('reminderDate');const reference=text(b.reference,'reminderExternalReference',true,500);save('extra',{...e,status:b.status,revision:e.revision+1,handledDate:when,reference,actor});event(e.invoiceId,'extra_'+b.status,actor,{extraId:e.id,reference});result={id:e.id};
  }else fail('reminderMissing',404);db.exec('COMMIT');return result;
  }catch(error){db.exec('ROLLBACK');throw error;}}
- return {state,handle};
+ return {state,handle,holds:()=>rows('hold')};
 }
 module.exports={initReminders,ReminderError,interestCalculation};

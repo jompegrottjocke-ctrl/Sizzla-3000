@@ -405,3 +405,11 @@ Från 0.29.2 visas kunder, artiklar, verifikationer, kundfakturor/kundreskontra,
 CSV-exporter, rapporter samt programmets lager- och tidsutskrifter använder hela urvalet. Endast den vanliga listvisningen sidindelas. Inga poster tas bort. Den inbyggda lärdemon och tidigare säkerhetskopior använder samma schema 10.
 
 Kör utvecklingsmätningen med `npm run benchmark -- /tmp/sizzla-resultat.json` (Node.js 24+, `npm ci` och Playwright Chromium; Linux kan använda `SIZZLA_CHROMIUM=/usr/bin/chromium`). Testet arbetar bara i temporära kopior av den publicerade syntetiska databasen, vägrar skriva över en befintlig resultatfil och kontrollerar affärsuppgifter före/efter företagsbyte. [Resultat, metod och begränsningar](docs/PRESTANDA.md).
+
+## Selektiv datainläsning från 0.29.3
+
+Översikt, Kunder och Artiklar läser in mindre svar i stället för hela företagets bokföring och historik. Översikten innehåller samma prioriterade uppgifter och länkar till underlagen. Kund- och artikelredigering, språk-/utseendeval samt artikelimport kan uppdateras utan full inläsning. Lagerbundna artikelnummer och enheter förblir låsta.
+
+Övriga moduler, rapporter och utskrifter använder tills vidare fullständiga underlag som hämtas när de behövs. En laddningsindikator visas under väntan, med **Försök igen** om inläsningen misslyckas. Ett nytt fakturautkast från översikten hämtar först sina fullständiga underlag. Företagsbyte, versionskontroll och skyddet för osparad redigering gäller även i de mindre vyerna.
+
+[Resultat, tester och avgränsning för selektiv inläsning](docs/SELEKTIV-DATA.md). Den tidigare genomgången i PRESTANDA.md gäller 0.29.2; den nya jämförelsen visar fortsättningen i 0.29.3.

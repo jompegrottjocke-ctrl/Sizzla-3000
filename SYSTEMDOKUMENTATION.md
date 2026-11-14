@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.29.2, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.29.3, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -287,3 +287,5 @@ Från 0.29.0 finns macOS-byggkonfiguration för Apple Silicon och Intel (mål ma
 Från 0.29.1 kan användaren skapa en separat demodatabas under Databaser. Installationen läser endast den medföljande fasta filen, verifierar SHA256 och vanliga backup-/schemakontroller och registrerar sedan företaget via databaslistans revisionskontroll. Fel rullar tillbaka den nya katalogen. Befintlig databas aktiveras eller skrivs inte om. Aktivering använder samma befintliga skydd för session, osparade ändringar och utskrift som andra företag. Inget hämtas från internet. Demokopior räknas mot max 10 databaser. Volymtestdatabasen distribueras separat och följer inte med appinstallationen.
 
 Från 0.29.2 hämtas lagersaldon/inställningar och aktiva bokföringskällor i samlade läsningar utan schemaändring. Betalnings-/kvittningssummering i försäljningsvyn sker per dokument i en genomgång. GET /api/state återanvänder samma försäljnings- och bokföringsobjekt när påminnelsevyn byggs, enbart under den synkrona inläsningen. Skrivkommandonas validering och revisionskontroller är oförändrade; inga affärsobjekt cachelagras över anrop. Listpositioner i klienten återställs vid sessions-/företagsbyte. Kunder, artiklar, verifikationer, kundfakturor/kundreskontra, lagersaldon och tidsrader sidindelas med 50 rader i listvisningen; rapporter, exporter och explicit lager-/tidsutskrift använder hela urvalet. GitHub-knappen under Licens & version är borttagen. Se docs/PRESTANDA.md för mätningar.
+
+Från 0.29.3 finns explicita läsvyer för översikt och grundregister. Utelämnade moduler saknas i svaret, i stället för att se ut som tomma register. Oförändrat GET /api/state ger fortsatt full modell för övriga moduler/rapporter/utskrifter. Klienten accepterar bara senaste läs-/navigeringsgeneration och rätt databas-session, ersätter hela tillståndet och hämtar fullständiga underlag innan en avancerad vy visas. Företagsbytesmeddelandet kan inte överskrivas av ett fördröjt svar; återinläsning av aktiv databas krävs. De nya läsvyerna avvisar gamla sessionstoken. Artikelspärrar för SKU/enhet finns även i det mindre svaret och valideras fortsatt vid skrivning. Inget schema eller backupformat ändras. Se docs/SELEKTIV-DATA.md för gränser, mätningar och tester.
