@@ -106,7 +106,7 @@ function renderHrEditor(){
  const form=document.querySelector('#hr-form');
  if(kind==='employee')bindHrPhoto(form,r);
  if(kind==='payrun')form.oninput=event=>{
-  const input=event.target;if(['taxConfirmed','contributionConfirmed'].includes(input.dataset.payKey))return;
+  const input=event.target;if(input.name==='note')return;if(['taxConfirmed','contributionConfirmed'].includes(input.dataset.payKey))return;
   const scope=input.closest('[data-employee]')||form;
   for(const checkbox of scope.querySelectorAll('[data-pay-key="taxConfirmed"],[data-pay-key="contributionConfirmed"]'))checkbox.checked=false;
  };

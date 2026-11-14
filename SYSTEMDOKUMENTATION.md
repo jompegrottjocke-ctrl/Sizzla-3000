@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.28.0, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.28.1, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -273,3 +273,11 @@ Den valfria booleska inställningen `preferences.fruitMode` sparas via befintlig
 `public/windows.js` erbjuder knappstyrd öppning, företagskontext, uppdateringsmeddelanden och sessionavgränsad BroadcastChannel för lyckade åtgärder. Fria vyer kan uppdateras automatiskt; formulär och öppna dialoger bevaras. Ett sekvensnummer hindrar äldre inläsningssvar från att ersätta senare begärda uppgifter. Kunder, artiklar, fakturautkast och företagsuppgifter får en beräknad `recordVersion` som redigeraren skickar vid sparande; versionsavvikelse ger HTTP 409 utan skrivning. Denna metadata lagras inte i affärsposterna. Befintliga revisions-, utfärdande- och bokföringsspärrar gäller parallellt.
 
 Schema 10 och backupformat är oförändrade. Fönsterplacering och öppna fönster sparas inte. Företagsbyte görs från huvudfönstret. En stängning kan avbrytas med osparad information kvar. Se [Separata fönster](docs/SEPARATA_FONSTER.md) för arbetsflöden, avgränsningar och intern API-kompatibilitet.
+
+## Formulärrättningar (0.28.1)
+
+`public/accessibility.css` tillämpar en gemensam skalningsanpassad dialoglayout: maximala mått anpassas efter textförstoring, innehållet rullas separat och rubrik/åtgärdsrad behålls åtkomliga. Detta rättar bland annat fält som täcktes av en klistrad åtgärdsrad.
+
+Företagets beräknade versionsmarkering returneras nu separat som `companyVersion` i `/api/state`, så att `company` fortsatt innehåller enbart företagets affärsuppgifter. Företagsformuläret skickar markeringen som `recordVersion` vid sparande; tidigare kontroll mot samtidiga ändringar kvarstår. Löneutkastens jämförelse mot företagets snapshot påverkas därmed inte av teknisk presentationsmetadata. Den allmänna löneanteckningen undantas från gränssnittets återställning av skatte-/avgiftsgranskning; ändringar av belopp och underlag återställer fortfarande granskningen och serverkontrollerna gäller som tidigare.
+
+Schema 10, sparade affärsposter och backupformat är oförändrade. Se [Formulärgranskning](docs/FORMULARGRANSKNING.md) för verifiering och avgränsning.

@@ -9,3 +9,14 @@ html[data-compact=true] aside nav{max-height:180px;overflow-y:auto;flex-shrink:0
 .auto-backup-actions{display:flex;flex-wrap:wrap;gap:12px}.auto-backup-actions button{white-space:normal}
 
 #automatic-backup-notice[hidden]{display:none}
+
+/* All editors must fit the physical window, including with enlarged UI text. */
+.editor[open]{display:flex;flex-direction:column;overflow:hidden;max-width:calc(94vw / var(--ui-scale,1));max-height:calc(90dvh / var(--ui-scale,1))}
+.editor>form{display:flex;flex-direction:column;min-height:0;max-height:inherit;overflow:hidden}
+.editor>.dialog-body,.editor>form>.dialog-body{min-height:0;overflow:auto;overscroll-behavior:contain}
+.editor>.dialog-head,.editor>.dialog-foot,.editor>form>.dialog-head,.editor>form>.dialog-foot{flex-shrink:0}
+.editor .dialog-foot{position:static;flex-wrap:wrap}
+.editor .dialog-foot>div{flex-wrap:wrap;justify-content:flex-end;min-width:0}
+.editor .dialog-foot button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.editor .dialog-head>div,.editor .dialog-head h2{min-width:0;overflow-wrap:anywhere}
+.editor .dialog-head .icon-button{flex-shrink:0}

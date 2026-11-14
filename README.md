@@ -369,3 +369,7 @@ Under **AI-agent → MCP & anslutningar** kan en betrodd MCP-klient ges läsåtk
 ## Separata modulfönster (0.28.0)
 
 Skrivbordsappen har **Öppna i eget fönster** vid varje huvudfliks rubrik. Använd exempelvis Bokföring på en skärm och Fakturering på en annan. Fönstren visar samma företag, med egna urval, uppdatering mellan fria vyer och skydd mot samtidiga överskrivningar i redigerarna. Osparade ändringar blockerar företagsbyte; efter lyckat byte stängs extrafönstren. **Visa huvudfönstret** går tillbaka till huvudfönstret. [Användning och gränser](docs/SEPARATA_FONSTER.md).
+
+## Formulärrättningar (0.28.1)
+
+Dialoger håller nu fält och sparknappar åtkomliga även med stor text. Lönekörningens granskning behålls vid oförändrat företag eller enbart ändrad allmän anteckning; ändrat löneunderlag kräver fortsatt ny granskning. [Formulärgranskning och kontroller](docs/FORMULARGRANSKNING.md).
