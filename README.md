@@ -413,3 +413,11 @@ Kör utvecklingsmätningen med `npm run benchmark -- /tmp/sizzla-resultat.json` 
 Övriga moduler, rapporter och utskrifter använder tills vidare fullständiga underlag som hämtas när de behövs. En laddningsindikator visas under väntan, med **Försök igen** om inläsningen misslyckas. Ett nytt fakturautkast från översikten hämtar först sina fullständiga underlag. Företagsbyte, versionskontroll och skyddet för osparad redigering gäller även i de mindre vyerna.
 
 [Resultat, tester och avgränsning för selektiv inläsning](docs/SELEKTIV-DATA.md). Den tidigare genomgången i PRESTANDA.md gäller 0.29.2; den nya jämförelsen visar fortsättningen i 0.29.3.
+
+## Personal & lön från 0.29.4
+
+Personalregistret hämtar anställda och profilbilder separat från lönehistorik och bokföring. Lönekörningar/AGI och Frånvaro hämtar sina kompletta underlag först när respektive del öppnas. Antalen löneutkast och ej betalda lönekörningar visas även i personalregistret.
+
+Sparande, arkivering, WhatsApp-val och uppdateringar från andra fönster använder rätt datainläsning. Ändrade anställningsvillkor kräver fortsatt ny granskning av berörda löneutkast; historiska lönesnapshots ändras inte. AGI-export och löneutskrifter använder hela det valda underlaget.
+
+[Avgränsning, verifiering och före-/eftermätning för Personal](docs/PERSONAL-DATA.md).

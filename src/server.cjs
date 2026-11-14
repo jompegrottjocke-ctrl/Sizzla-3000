@@ -102,10 +102,12 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(req.method==='GET'&&url.pathname==='/api/state'){
         if(req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
         const view=url.searchParams.get('view')||'full';
-        if(!['full','registers','overview'].includes(view))return send(res,400,{error:'stateView'});
+        if(!['full','registers','overview','employees','hr-runs','hr-leave'].includes(view))return send(res,400,{error:'stateView'});
         if(view!=='full'){
           const company=settings(),securityData={...security.status(),automatic:automatic.status()};
-          const result={token,databaseSession,loadScope:view,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(),security:securityData,preferences:preferences(),company,companyVersion:recordVersion(JSON.stringify(company)),customers:all('customer'),articles:all('article'),articleLocks:db.prepare("SELECT a.id,COALESCE(s.enabled,0) AS enabled,COALESCE(m.revision,0) AS stockRevision FROM records a LEFT JOIN inventory_settings s ON s.article_id=a.id LEFT JOIN (SELECT article_id,MAX(id) AS revision FROM inventory_movements GROUP BY article_id) m ON m.article_id=a.id WHERE a.kind='article' AND (COALESCE(s.enabled,0)!=0 OR m.revision>0)").all()};
+          const result={token,databaseSession,loadScope:view,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(),security:securityData,preferences:preferences(),company,companyVersion:recordVersion(JSON.stringify(company))};
+          if(['employees','hr-runs','hr-leave'].includes(view)){Object.assign(result,hr.view(view));return send(res,200,result);}
+          Object.assign(result,{customers:all('customer'),articles:all('article'),articleLocks:db.prepare("SELECT a.id,COALESCE(s.enabled,0) AS enabled,COALESCE(m.revision,0) AS stockRevision FROM records a LEFT JOIN inventory_settings s ON s.article_id=a.id LEFT JOIN (SELECT article_id,MAX(id) AS revision FROM inventory_movements GROUP BY article_id) m ON m.article_id=a.id WHERE a.kind='article' AND (COALESCE(s.enabled,0)!=0 OR m.revision>0)").all()});
           if(view==='overview'){
             result.invoices=all('invoice',true);
             result.overviewModel=OverviewMath.build({sales:sales.state(),purchases:purchases.state(),inventory:inventory.state(),trade:trade.state(),recurring:recurring.state(),bank:bank.state(),reminders:{holds:reminders.holds()},security:securityData},{today:new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Stockholm'})});

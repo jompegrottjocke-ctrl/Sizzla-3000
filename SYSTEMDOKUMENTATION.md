@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.29.3, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.29.4, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -289,3 +289,5 @@ Från 0.29.1 kan användaren skapa en separat demodatabas under Databaser. Insta
 Från 0.29.2 hämtas lagersaldon/inställningar och aktiva bokföringskällor i samlade läsningar utan schemaändring. Betalnings-/kvittningssummering i försäljningsvyn sker per dokument i en genomgång. GET /api/state återanvänder samma försäljnings- och bokföringsobjekt när påminnelsevyn byggs, enbart under den synkrona inläsningen. Skrivkommandonas validering och revisionskontroller är oförändrade; inga affärsobjekt cachelagras över anrop. Listpositioner i klienten återställs vid sessions-/företagsbyte. Kunder, artiklar, verifikationer, kundfakturor/kundreskontra, lagersaldon och tidsrader sidindelas med 50 rader i listvisningen; rapporter, exporter och explicit lager-/tidsutskrift använder hela urvalet. GitHub-knappen under Licens & version är borttagen. Se docs/PRESTANDA.md för mätningar.
 
 Från 0.29.3 finns explicita läsvyer för översikt och grundregister. Utelämnade moduler saknas i svaret, i stället för att se ut som tomma register. Oförändrat GET /api/state ger fortsatt full modell för övriga moduler/rapporter/utskrifter. Klienten accepterar bara senaste läs-/navigeringsgeneration och rätt databas-session, ersätter hela tillståndet och hämtar fullständiga underlag innan en avancerad vy visas. Företagsbytesmeddelandet kan inte överskrivas av ett fördröjt svar; återinläsning av aktiv databas krävs. De nya läsvyerna avvisar gamla sessionstoken. Artikelspärrar för SKU/enhet finns även i det mindre svaret och valideras fortsatt vid skrivning. Inget schema eller backupformat ändras. Se docs/SELEKTIV-DATA.md för gränser, mätningar och tester.
+
+Från 0.29.4 används separata läsvyer employees, hr-runs och hr-leave för Personal. Varje vy innehåller anställda med oförändrade revisioner/bilder, aktuellt företag och sammanfattande lönekörningsantal; körnings- respektive frånvarounderlag inkluderas endast i rätt vy. Ej inlästa moduler saknas. Godkännande, löneberäkning, källgranskning och revisions-/sessionskontroller ändras inte. Fullständigt tillstånd finns kvar för bokföring och utskrift. Se docs/PERSONAL-DATA.md för avgränsning, jämförelse och tester.

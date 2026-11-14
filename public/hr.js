@@ -20,7 +20,7 @@ function hrSelect(key,value,choices,required=false){return `<label class="field"
 const hrHeading=key=>`<h3 class="wide hr-form-heading">${ht(key)}</h3>`;
 const hrTotals=(entries,key)=>entries.reduce((s,e)=>s+(e[key]||0),0);
 function hrContent(){
- const stats=[[t('employeeCount'),state.employees.filter(p=>!p.archived).length],[t('draftRuns'),state.payruns.filter(r=>r.status==='draft').length],[t('unpaidRuns'),state.payruns.filter(r=>r.status==='approved').length]];
+ const stats=[[t('employeeCount'),state.employees.filter(p=>!p.archived).length],[t('draftRuns'),(state.hrSummary?.draftRuns??state.payruns.filter(r=>r.status==='draft').length)],[t('unpaidRuns'),(state.hrSummary?.unpaidRuns??state.payruns.filter(r=>r.status==='approved').length)]];
  return `<div class="hr-whatsapp-toolbar"><button type="button" class="secondary" id="hr-whatsapp-toggle" role="switch" aria-checked="${state.preferences.whatsappEnabled!==false}" aria-label="${t('waToggle')}" title="${t('waHelp')}">${t(state.preferences.whatsappEnabled===false?'waOff':'waOn')}</button></div><div class="hr-tabs" role="tablist">${[['employees','employeesTab'],['runs','runsTab'],['leave','leaveTab'],['agi','agiTab']].map(([id,key])=>`<button role="tab" aria-selected="${hrTab===id}" data-hr-tab="${id}">${ht(key)}</button>`).join('')}</div><div class="hr-stats">${stats.map(([label,n])=>`<div><strong>${n}</strong><span>${label}</span></div>`).join('')}</div>${hrTab==='employees'?hrEmployees():hrTab==='runs'?hrRuns():hrTab==='leave'?hrLeave():hrAgi()}`;
 }
 function hrEmployees(){
@@ -47,14 +47,14 @@ function hrAgi(){
  return `<div class="notice">${t('agiNotice')}</div><section class="panel"><div class="toolbar hr-toolbar"><label class="field"><span>${t('month')}</span><input type="month" id="hr-month" value="${hrMonth}" required></label><button class="secondary" id="hr-export" ${rows.length?'':'disabled'}>${t('exportCsv')}</button></div>${rows.length?`<div class="table-wrap"><table><thead><tr>${['employee','cashGross','benefits','taxable','tax','contribution','netPay'].map(k=>`<th>${ht(k)}</th>`).join('')}</tr></thead><tbody>${rows.map(e=>`<tr><td><strong>${esc(hrName(e.person))}</strong><small>#${e.person.number}</small></td>${['cashGross','benefits','taxable','tax','contribution','net'].map(k=>`<td>${money(e[k])}</td>`).join('')}</tr>`).join('')}<tr class="hr-total"><td>${t('total')}</td>${['cashGross','benefits','taxable','tax','contribution','net'].map(k=>`<td>${money(hrTotals(rows,k))}</td>`).join('')}</tr></tbody></table></div>`:`<div class="empty"><h3>${t('noRuns')}</h3></div>`}</section>`;
 }
 function hrError(error){const key=error.message;if(key==='bookPayrollPosted')return bt(key);if(words[lang][key])return ht(key);if(key==='personId')return t('validPersonId');return `${t('hrInvalid')} ${words[lang][key]||t('failed')}`;}
-async function hrAction(route,data){try{await post(route,data);editor=null;await load();render();toast(t('changesSaved'));}catch(e){toast(hrError(e));}}
+async function hrAction(route,data){try{await post(route,data);editor=null;await load(page==='payroll'?pageScope():'full');render();toast(t('changesSaved'));}catch(e){toast(hrError(e));}}
 function bindHr(){
  document.querySelectorAll('[data-employee-email]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{if(!window.sizzlaEmail){toast(t('emailRequired'));return;}const result=await window.sizzlaEmail.open(b.dataset.employeeEmail,state.token);if(result.status!=='opened')toast(t(result.status==='invalid'?'emailMissing':'emailRequired'));}catch(e){if(e.message.includes('dbChanged'))databaseStale();else toast(t('emailRequired'));}finally{b.disabled=false;}});
 
- const toggle=document.querySelector('#hr-whatsapp-toggle');if(toggle)toggle.onclick=async()=>{toggle.disabled=true;try{await post('preferences',{language:lang,theme,whatsappEnabled:state.preferences.whatsappEnabled===false});await load();render();}catch{toggle.disabled=false;toast(t('failed'));}};
+ const toggle=document.querySelector('#hr-whatsapp-toggle');if(toggle)toggle.onclick=async()=>{toggle.disabled=true;try{await post('preferences',{language:lang,theme,whatsappEnabled:state.preferences.whatsappEnabled===false});await load(page==='payroll'?pageScope():'full');render();}catch{toggle.disabled=false;toast(t('failed'));}};
  document.querySelectorAll('[data-whatsapp]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{if(!window.sizzlaWhatsApp){toast(t('waRequired'));return;}const result=await window.sizzlaWhatsApp.open(b.dataset.whatsapp,state.token);if(result.status!=='opened')toast(t({required:'waRequired',failed:'waFailed',disabled:'waDisabled',invalid:'waInvalid'}[result.status]||'waFailed'));}catch(e){if(e.message.includes('dbChanged'))databaseStale();else toast(t('waFailed'));}finally{b.disabled=false;}});
 
- document.querySelectorAll('[data-hr-tab]').forEach(el=>el.onclick=()=>{hrTab=el.dataset.hrTab;search='';render();});
+ document.querySelectorAll('[data-hr-tab]').forEach(el=>el.onclick=()=>{++navigationGeneration;hrTab=el.dataset.hrTab;pageLoadError=false;search='';render();});
  const filter=document.querySelector('#employee-filter');if(filter)filter.onchange=()=>{employeeFilter=filter.value;render();};
  document.querySelectorAll('[data-hr-run]').forEach(el=>el.onclick=()=>hrRunView(el.dataset.hrRun));
  document.querySelectorAll('[data-hr-leave]').forEach(el=>el.onclick=()=>hrOpen('leave',el.dataset.hrLeave));
@@ -62,6 +62,10 @@ function bindHr(){
  const exp=document.querySelector('#hr-export');if(exp)exp.onclick=hrExport;
 }
 function hrOpen(kind,id){
+ if(databaseSessionInvalid){databaseStale();return;}
+ const scope=kind==='payrun'?'hr-runs':kind==='leave'?'hr-leave':'employees',available=kind==='payrun'?state.payruns:kind==='leave'?state.leaves:state.employees;
+ if(!available){const target=page;load(scope).then(applied=>{if(applied&&page===target)hrOpen(kind,id);}).catch(error=>{if(error.message!=='dbChanged')toast(t('loadFailed'));});return;}
+
  if((kind==='payrun'||kind==='leave')&&!state.employees.some(p=>!p.archived)){toast(t('noEmployees'));return;}
  let r={};
  if(kind==='employee'){
@@ -116,7 +120,7 @@ function renderHrEditor(){
   event.preventDefault();if(editor.photoBusy){toast(t('photoBusy'));return;}captureHr();const body={...editor.record};
   if(kind==='leave'){body.start=body.leaveStart;body.end=body.leaveEnd;}
   const button=form.querySelector('[type=submit]');button.disabled=true;
-  try{const result=await post(kind==='employee'?'employees':kind==='payrun'?'payruns':'leaves',body);editor=null;await load();render();toast(t('saved'));if(kind==='payrun')hrRunView(result.id);}
+  try{const result=await post(kind==='employee'?'employees':kind==='payrun'?'payruns':'leaves',body);editor=null;await load(page==='payroll'?(kind==='payrun'?'hr-runs':kind==='leave'?'hr-leave':pageScope()):'full');render();toast(t('saved'));if(kind==='payrun')hrRunView(result.id);}
   catch(e){button.disabled=false;document.querySelector('#hr-error').textContent=hrError(e);}
  };
  const archive=document.querySelector('#hr-archive');if(archive)archive.onclick=async()=>{
@@ -131,7 +135,7 @@ function hrRunView(id){
  const root=document.querySelector('#modal-root');root.innerHTML=`<dialog class="editor large" aria-labelledby="hr-run-title"><div class="dialog-head"><div><span class="eyebrow">${t('payrollNumber')} #${r.number} · ${esc(r.period)}</span><h2 id="hr-run-title">${t('runsTab')} · <span class="hr-badge ${r.status}">${t(r.status)}</span></h2></div><button class="icon-button" id="hr-close" aria-label="${t('close')}">×</button></div><div class="dialog-body"><p>${t('payDate')}: <strong>${r.payDate}</strong></p><p class="muted">${t('historyNote')}</p>${r.entries.map(e=>`<section class="hr-slip-summary"><h3>${esc(hrName(e.person))} <small>#${e.person.number}</small></h3><div class="hr-summary-grid">${[['cashGross',e.cashGross],['taxable',e.taxable],['tax',e.tax],['contribution',e.contribution],['netPay',e.tax===null?null:e.net]].map(([key,v])=>`<div><span>${ht(key)}</span><strong>${v===null?t('notReviewed'):money(v)}</strong></div>`).join('')}</div>${e.tax===null||e.contribution===null||!e.taxConfirmed||!e.contributionConfirmed?`<p class="hr-error">${t('reviewMissing')}</p>`:''}<button class="text-button" data-slip="${e.employeeId}">${t('printPayslip')}</button></section>`).join('')}${r.cancelReason?`<p>${t('cancelReason')}: ${esc(r.cancelReason)}</p>`:''}<p class="print-note">${esc(r.note)}</p><p id="hr-action-error" class="hr-error" role="alert"></p></div><div class="dialog-foot"><div>${r.status==='draft'?`<button class="secondary" id="hr-edit-run">${t('editDraft')}</button>`:''}${['draft','approved'].includes(r.status)?`<button class="secondary" id="hr-cancel-run">${t('cancelRun')}</button>`:''}</div><div><button class="secondary" id="hr-print-run">${t('printRun')}</button>${r.status==='draft'?`<button class="primary" id="hr-approve">${t('approve')}</button>`:r.status==='approved'?`<button class="primary" id="hr-paid">${t('markPaid')}</button>`:''}</div></div></dialog>`;
  const dialog=root.querySelector('dialog');dialog.showModal();document.querySelector('#hr-close').onclick=()=>{dialog.close();root.innerHTML='';};
  let busy=false;
- const action=async(name,extra={})=>{if(busy)return;busy=true;const buttons=[...root.querySelectorAll('.dialog-foot button')];buttons.forEach(b=>b.disabled=true);try{await post('payruns/'+name,{id:r.id,revision:r.revision,...extra});await load();render();hrRunView(r.id);}catch(e){const error=document.querySelector('#hr-action-error');if(error)error.textContent=hrError(e);buttons.forEach(b=>b.disabled=false);}finally{busy=false;}};
+ const action=async(name,extra={})=>{if(busy)return;busy=true;const buttons=[...root.querySelectorAll('.dialog-foot button')];buttons.forEach(b=>b.disabled=true);try{await post('payruns/'+name,{id:r.id,revision:r.revision,...extra});await load(page==='payroll'?'hr-runs':'full');render();hrRunView(r.id);}catch(e){const error=document.querySelector('#hr-action-error');if(error)error.textContent=hrError(e);buttons.forEach(b=>b.disabled=false);}finally{busy=false;}};
  const edit=document.querySelector('#hr-edit-run');if(edit)edit.onclick=()=>hrOpen('payrun',r.id);
  const approve=document.querySelector('#hr-approve');if(approve)approve.onclick=()=>{if(confirm(t('approveConfirm')))action('approve');};
  const paid=document.querySelector('#hr-paid');if(paid)paid.onclick=()=>{if(confirm(t('paidConfirm')))action('paid');};

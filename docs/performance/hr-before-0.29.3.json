@@ -1,0 +1,261 @@
+{
+  "version": "0.29.3",
+  "platform": "linux",
+  "arch": "x64",
+  "node": "v24.22.1",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "dataset": "Sizzla-3000-Stor-Testdatabas-0.29.1.sqlite",
+  "datasetSha256": "bbe9330c4cbc1d6f60c7450da312d82971a6c8e283eaefcc1b976eb6135c9e8d",
+  "measurements": {
+    "serverOpen": {
+      "samplesMs": [
+        43.3
+      ],
+      "medianMs": 43.3
+    },
+    "apiState": {
+      "samplesMs": [
+        2428.2,
+        1585.5,
+        1612.5
+      ],
+      "medianMs": 1612.5
+    },
+    "api.registers": {
+      "samplesMs": [
+        31.6,
+        51.5,
+        24.8
+      ],
+      "medianMs": 31.6
+    },
+    "api.overview": {
+      "samplesMs": [
+        165.3,
+        164.1,
+        161.7
+      ],
+      "medianMs": 164.1
+    },
+    "api.employees": {
+      "samplesMs": [
+        1200,
+        1328.5,
+        1245
+      ],
+      "medianMs": 1245
+    },
+    "api.hr-runs": {
+      "samplesMs": [
+        1199.4,
+        1415,
+        1168.6
+      ],
+      "medianMs": 1199.4
+    },
+    "api.hr-leave": {
+      "samplesMs": [
+        1252.5,
+        1136.9,
+        1203.1
+      ],
+      "medianMs": 1203.1
+    },
+    "browserOpen": {
+      "samplesMs": [
+        483.8
+      ],
+      "medianMs": 483.8
+    },
+    "view.customers": {
+      "samplesMs": [
+        96.8,
+        82.7,
+        83.4
+      ],
+      "medianMs": 83.4
+    },
+    "search.customers": {
+      "samplesMs": [
+        83.3,
+        66.5,
+        66.7
+      ],
+      "medianMs": 66.7
+    },
+    "view.articles": {
+      "samplesMs": [
+        82.9,
+        83.4,
+        83.2
+      ],
+      "medianMs": 83.2
+    },
+    "search.articles": {
+      "samplesMs": [
+        83.6,
+        83.4,
+        83.1
+      ],
+      "medianMs": 83.4
+    },
+    "view.invoices": {
+      "samplesMs": [
+        1799.4,
+        67.3,
+        82.9
+      ],
+      "medianMs": 82.9
+    },
+    "view.accounting": {
+      "samplesMs": [
+        82.9,
+        83.4,
+        83.1
+      ],
+      "medianMs": 83.1
+    },
+    "search.accounting": {
+      "samplesMs": [
+        66.6,
+        66.6,
+        67.1
+      ],
+      "medianMs": 66.6
+    },
+    "view.projects": {
+      "samplesMs": [
+        116.2,
+        99.7,
+        117.1
+      ],
+      "medianMs": 116.2
+    },
+    "view.inventory": {
+      "samplesMs": [
+        99.8,
+        83.3,
+        83.2
+      ],
+      "medianMs": 83.3
+    },
+    "view.analysis": {
+      "samplesMs": [
+        116.1,
+        119.7,
+        97.1
+      ],
+      "medianMs": 116.1
+    },
+    "view.issuedInvoices": {
+      "samplesMs": [
+        88.1,
+        100.3,
+        82.6
+      ],
+      "medianMs": 88.1
+    },
+    "view.timeEntries": {
+      "samplesMs": [
+        96.2,
+        99.7,
+        116.7
+      ],
+      "medianMs": 99.7
+    },
+    "view.payments": {
+      "samplesMs": [
+        116.5,
+        99.9,
+        99.9
+      ],
+      "medianMs": 99.9
+    },
+    "report.trialBalance": {
+      "samplesMs": [
+        95.8,
+        82.5,
+        83.2
+      ],
+      "medianMs": 83.2
+    },
+    "hr.browserOpen": {
+      "samplesMs": [
+        1641.6
+      ],
+      "medianMs": 1641.6
+    },
+    "hr.runs": {
+      "samplesMs": [
+        108.8,
+        66,
+        66.8
+      ],
+      "medianMs": 66.8
+    },
+    "hr.leave": {
+      "samplesMs": [
+        83,
+        83.9,
+        150.2
+      ],
+      "medianMs": 83.9
+    },
+    "hr.agi": {
+      "samplesMs": [
+        82.7,
+        83.1,
+        66.4
+      ],
+      "medianMs": 82.7
+    },
+    "activateLarge": {
+      "samplesMs": [
+        835.3
+      ],
+      "medianMs": 835.3
+    }
+  },
+  "rendererErrors": [],
+  "businessDigest": "6fc80ec036402fe1c9dae47c136df6d57be3ff3a764a1f9d82fb5d414c9e721c",
+  "businessDigestScope": "Company, registers, payroll, accounting, purchases, sales, inventory and time; runtime version audit events excluded, financial events included.",
+  "counts": {
+    "articles": 3000,
+    "customers": 1000,
+    "vouchers": 7900,
+    "invoices": 3000,
+    "timeEntries": 6000
+  },
+  "stateBytes": 36209214,
+  "viewBytes": {
+    "full": 36209214,
+    "registers": 972342,
+    "overview": 1267429,
+    "employees": 36209214,
+    "hr-runs": 36209214,
+    "hr-leave": 36209214
+  },
+  "unsupportedViews": [
+    "employees",
+    "employees",
+    "employees",
+    "hr-runs",
+    "hr-runs",
+    "hr-runs",
+    "hr-leave",
+    "hr-leave",
+    "hr-leave"
+  ],
+  "browserStateRequests": [
+    "overview",
+    "full",
+    "full"
+  ],
+  "initialView": "overview",
+  "initialViewBytes": 1267429,
+  "hrInitialView": "full",
+  "hrInitialBytes": 36209214,
+  "firstFullModuleMs": 1799.4,
+  "businessDataPreserved": true,
+  "measuredAt": "2026-11-14T19:40:22.792Z"
+}

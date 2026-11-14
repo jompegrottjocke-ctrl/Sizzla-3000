@@ -72,6 +72,13 @@ function initHr(db, { payrollHasPosting = () => false } = {}) {
   const match=(items,body)=>{const row=items.find(e=>e.id===body.id);if(!row)throw new HrError('missing',404);if(row.revision!==body.revision)throw new HrError('conflict');return row;};
   return {
     state:()=>({employees:employees(),payruns:runs(),leaves:leaves()}),
+    view(scope){
+      const counts=new Map(db.prepare('SELECT status,COUNT(*) AS count FROM payruns GROUP BY status').all().map(r=>[r.status,r.count]));
+      const result={employees:employees(),hrSummary:{draftRuns:counts.get('draft')||0,unpaidRuns:counts.get('approved')||0}};
+      if(scope==='hr-runs')result.payruns=runs();
+      if(scope==='hr-leave')result.leaves=leaves();
+      return result;
+    },
     handle(route,body,company) {return transaction(()=>{
       if(route==='/api/employees') {
         const data=employee(body),all=employees(),old=body.id?match(all,body):null;

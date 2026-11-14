@@ -1,5 +1,7 @@
 # Selektiv datainläsning 0.29.3
 
+Fortsättningen för Personal & lön i 0.29.4 beskrivs i [Personal – datainläsning](PERSONAL-DATA.md).
+
 Första steget omfattar Översikt samt Kunder och Artiklar. Övriga moduler använder fortfarande den fullständiga inläsningen när de behövs. Alla API-svar är nya inläsningar från det aktiva företaget. Inga affärsobjekt cachelagras mellan anrop eller blandas ihop från olika svar.
 
 ## Resultat på den stora testdatabasen
