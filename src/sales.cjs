@@ -63,7 +63,14 @@ function initSales(db,accounting,{prepareDraft=(id,draft,computed)=>computed}={}
   if(v.sourceKind==='salesPayment'){const p=payments().find(p=>p.id===v.sourceId&&p.status==='posted');if(p){db.prepare("UPDATE sales_payments SET status='reversed',revision=revision+1,reversal_id=? WHERE id=?").run(reversal.id,p.id);bump(p.documentId);event('payment',p.id,'reversed',{reason,reversal:reversal.id});}}
   if(v.sourceKind==='salesAllocation'){const a=allocations().find(a=>a.id===v.sourceId&&a.status==='posted');if(a){db.prepare("UPDATE sales_allocations SET status='reversed',revision=revision+1,reversal_id=? WHERE id=?").run(reversal.id,a.id);bump(a.invoiceId);bump(a.creditId);event('allocation',a.id,'reversed',{reason,reversal:reversal.id});}}
  }
- function state(){const cash=payments(),offsets=allocations();return {nextNumber:nextNumber(),documents:documents().map(d=>{const balance=remaining(d,cash,offsets),v=source(d.id);return {...d,...balance,voucherId:v?.id||null,voucherNumber:v?.number||null,overdue:d.type==='invoice'&&balance.remaining>0&&d.due<today()};}),payments:cash,allocations:offsets,events:db.prepare('SELECT * FROM sales_events ORDER BY id DESC LIMIT 1000').all().map(r=>({...r,data:JSON.parse(r.data)}))};}
+ function state(){
+  const cash=payments(),offsets=allocations(),totals=new Map(),sources=new Map(accounting.sources('salesInvoice').map(v=>[v.sourceId,v])),when=today();
+  const total=id=>{if(!totals.has(id))totals.set(id,{paid:0,allocated:0,clearedSek:0});return totals.get(id);};
+  for(const p of cash)if(p.status==='posted'){const t=total(p.documentId);t.paid+=p.amount;t.clearedSek+=p.carryingAmount??p.amount;}
+  for(const a of offsets)if(a.status==='posted'){const invoice=total(a.invoiceId);invoice.allocated+=a.amount;invoice.clearedSek+=a.invoiceCarrying??a.amount;if(a.creditId!==a.invoiceId){const credit=total(a.creditId);credit.allocated+=a.amount;credit.clearedSek+=a.creditCarrying??a.amount;}}
+  return {nextNumber:nextNumber(),documents:documents().map(d=>{const sums=totals.get(d.id)||{paid:0,allocated:0,clearedSek:0},balance={paid:sums.paid,allocated:sums.allocated,remaining:d.total-sums.paid-sums.allocated,clearedSek:sums.clearedSek,remainingSek:currencyBase(d).total-sums.clearedSek},v=sources.get(d.id);return {...d,...balance,voucherId:v?.id||null,voucherNumber:v?.number||null,overdue:d.type==='invoice'&&balance.remaining>0&&d.due<when};}),payments:cash,allocations:offsets,events:db.prepare('SELECT * FROM sales_events ORDER BY id DESC LIMIT 1000').all().map(r=>({...r,data:JSON.parse(r.data)}))};
+ }
+
  function handle(route,body,company){db.exec('BEGIN IMMEDIATE');try{if(body.currency!==undefined&&!['SEK','EUR','USD'].includes(body.currency))bad('saleCurrency');let result;
   if(route==='/api/sales/numbering'){if(documents().length)throw new SalesError('saleLocked');if(!Number.isSafeInteger(body.nextNumber)||body.nextNumber<1||body.nextNumber>1000000000)bad('saleNumber');db.prepare('UPDATE sales_numbering SET next_number=? WHERE id=1').run(body.nextNumber);event('numbering','1','changed',{nextNumber:body.nextNumber});result={ok:true};
   }else if(route==='/api/sales/issue'){

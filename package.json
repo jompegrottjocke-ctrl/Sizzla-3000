@@ -1,6 +1,6 @@
 {
   "name": "sizzla-3000",
-  "version": "0.29.1",
+  "version": "0.29.2",
   "private": true,
   "description": "Sizzla 3000 – lokal företagsadministration",
   "main": "src/desktop.cjs",
@@ -12,7 +12,8 @@
     "test:ui": "playwright test",
     "dist:win": "electron-builder --win nsis --x64 --publish never",
     "dist:mac": "electron-builder --mac dmg zip --publish never",
-    "demo:large": "node scripts/build-scale-demo.cjs"
+    "demo:large": "node scripts/build-scale-demo.cjs",
+    "benchmark": "node scripts/benchmark.cjs"
   },
   "engines": {
     "node": ">=24"

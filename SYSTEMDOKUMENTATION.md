@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.29.1, databasschema 10. Uppdaterad 2026-11-14.
+Version 0.29.2, databasschema 10. Uppdaterad 2026-11-14.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -171,7 +171,7 @@ Schema 9 är oförändrat. Arbetslistor och hela historiken följer företagets 
 
 `public/version.js` visar verklig paketversion från `/api/state.application`, tillsammans med utgåva, målplattform och lokal supportinformation. Servern lämnar även `process.platform`, `process.arch` och databasens `PRAGMA user_version`. Ingen installationsdag, licensägare, giltighetstid eller senast lyckad uppdateringskontroll konstrueras. Versionen i sidofält/sidfot använder samma paketversion.
 
-Licensgränssnittet är en förhandsvisning med spärrat nyckelfält och spärrade aktiverings-/villkorsknappar. Ingen licens lagras eller valideras. Uppdateringsknappen ändrar endast lokal meddelandetext: ingen nätverksförfrågan görs och Inte kontrollerat ändras inte till en påstått utförd kontroll. GitHub-länken öppnar manuellt versionssidan i webbläsaren via befintlig hantering av HTTPS-länkar.
+Licensgränssnittet är en förhandsvisning med spärrat nyckelfält och spärrade aktiverings-/villkorsknappar. Ingen licens lagras eller valideras. Uppdateringsknappen ändrar endast lokal meddelandetext: ingen nätverksförfrågan görs och Inte kontrollerat ändras inte till en påstått utförd kontroll.
 
 Supporttexten innehåller endast produktnamn, version, utgåva, körmiljö, arkitektur, schema och lokalt driftläge. Urklippsåtkomst sker på uttryckligt knapptryck; vid fel markeras den skrivskyddade texten för manuell kopiering. Inga företagsuppgifter, personuppgifter, filsökvägar, nycklar eller sessionstoken ingår. Inga nya databasposter eller tabeller införs; schema 9 är oförändrat. Verklig licensvalidering, autentiserad uppdateringskälla, signaturkontroll och uppdateringsinstallation kräver framtida implementation.
 
@@ -285,3 +285,5 @@ Schema 10, sparade affärsposter och backupformat är oförändrade. Se [Formul�
 Från 0.29.0 finns macOS-byggkonfiguration för Apple Silicon och Intel (mål macOS 15+, CI macOS 15). Dataformat och lokalt loopback-API är gemensamma med Windows. På Mac avslutas appen med ⌘Q, inte när sista fönstret stängs; avslutsbackup följer faktisk avslutning. macOS-byggen är ännu osignerade och inte notarierade.
 
 Från 0.29.1 kan användaren skapa en separat demodatabas under Databaser. Installationen läser endast den medföljande fasta filen, verifierar SHA256 och vanliga backup-/schemakontroller och registrerar sedan företaget via databaslistans revisionskontroll. Fel rullar tillbaka den nya katalogen. Befintlig databas aktiveras eller skrivs inte om. Aktivering använder samma befintliga skydd för session, osparade ändringar och utskrift som andra företag. Inget hämtas från internet. Demokopior räknas mot max 10 databaser. Volymtestdatabasen distribueras separat och följer inte med appinstallationen.
+
+Från 0.29.2 hämtas lagersaldon/inställningar och aktiva bokföringskällor i samlade läsningar utan schemaändring. Betalnings-/kvittningssummering i försäljningsvyn sker per dokument i en genomgång. GET /api/state återanvänder samma försäljnings- och bokföringsobjekt när påminnelsevyn byggs, enbart under den synkrona inläsningen. Skrivkommandonas validering och revisionskontroller är oförändrade; inga affärsobjekt cachelagras över anrop. Listpositioner i klienten återställs vid sessions-/företagsbyte. Kunder, artiklar, verifikationer, kundfakturor/kundreskontra, lagersaldon och tidsrader sidindelas med 50 rader i listvisningen; rapporter, exporter och explicit lager-/tidsutskrift använder hela urvalet. GitHub-knappen under Licens & version är borttagen. Se docs/PRESTANDA.md för mätningar.

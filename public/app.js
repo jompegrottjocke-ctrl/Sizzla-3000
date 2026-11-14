@@ -14,7 +14,7 @@ let stateLoadedAt=null,loadGeneration=0;
 let page = WindowPages.includes(new URLSearchParams(location.search).get('page'))?new URLSearchParams(location.search).get('page'):'overview', state, search = '', editor = null;
 const t = key => words[lang][key] || key;
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money = value => new Intl.NumberFormat(lang === 'sv' ? 'sv-SE' : 'en-GB', {style:'currency',currency:'SEK'}).format((value || 0)/100);
+const money = value => currencyMoney(value,'SEK');
 const number = value => (value/100).toFixed(2);
 const icons = { versionSettings:'ⓘ', agent:'✧', appearanceSettings:'◐', cloud:'☁', databases:'▣',overview:'◫',customers:'♙',articles:'◇',invoices:'▤',security:'⚿',company:'▦',accounting:'≡',payments:'⇄',purchases:'↓',inventory:'▧',payroll:'♧',projects:'◷',documents:'▱',closing:'✓',analysis:'→',assets:'◈',group:'⊞',agency:'▥' };
 const beta = ['group'];
@@ -28,6 +28,16 @@ async function post(route, body) {
  const response = await fetch('/api/'+route,{method:'POST',headers:{'Content-Type':'application/json','X-Sizzla-Token':state.token},body:JSON.stringify(body)});
  if (!response.ok) {const data=await response.json().catch(()=>({error:'save'}));if(data.error==='dbChanged')databaseStale();const error=new Error(data.error||'save');error.details=data;throw error;} const result=await response.json();if(route!=='databases/activate')windowUpdates.postMessage({session:state.databaseSession});return result;
  }finally{windowRequests--;if(route==='databases/activate')windowActivationRequests--;}
+}
+// Only list positions are retained; business records always come from the current state.
+const listPositions=new Map();let listSession;
+function pageList(key,rows,filter=''){
+ if(listSession!==state.databaseSession){listPositions.clear();listSession=state.databaseSession;}
+ let position=listPositions.get(key);if(!position||position.filter!==filter){position={page:0,filter};listPositions.set(key,position);}
+ const size=50,pages=Math.max(1,Math.ceil(rows.length/size));position.page=Math.max(0,Math.min(position.page,pages-1));const start=position.page*size;
+ const label=lang==='sv'?`Visar ${start+1}–${Math.min(start+size,rows.length)} av ${rows.length}`:`Showing ${start+1}–${Math.min(start+size,rows.length)} of ${rows.length}`;
+ const controls=pages>1?`<div class="list-pagination"><span role="status">${label}</span><div><button class="secondary" data-list-page="${esc(key)}" data-list-step="-1" ${position.page===0?'disabled':''}>${lang==='sv'?'Föregående':'Previous'}</button><button class="secondary" data-list-page="${esc(key)}" data-list-step="1" ${position.page===pages-1?'disabled':''}>${lang==='sv'?'Nästa':'Next'}</button></div></div>`:'';
+ return {rows:rows.slice(start,start+size),controls};
 }
 function navItem(key) { return `<button class="nav-item ${page===key?'active':''}" data-page="${key}"><span class="nav-icon" aria-hidden="true">${icons[key]}</span><span>${t(key)}</span>${(beta.includes(key)||['cloud','agent','versionSettings'].includes(key))?'<span class="beta-tag" aria-hidden="true">β</span>':''}</button>`; }
 function render() {
@@ -64,17 +74,19 @@ function content() {
  if (beta.includes(page)) return `<section class="panel beta-panel"><span class="beta-symbol">${icons[page]}</span><span class="draft-badge">BETA</span><h2>${t('later')}</h2><p>${t('betaText')}</p><button class="secondary" data-page="overview">${t('overview')} →</button></section>`;
  if (page==='company') return `<section class="panel company-panel"><div class="panel-head"><h2>${t('company')}</h2><span class="draft-badge">SEK · Sverige / Sweden</span></div><form id="company-form"><div class="form-grid">${companyFields(state.company)}</div><div class="form-actions"><button class="primary" type="submit">${t('save')}</button></div><p class="muted">${t('privacy')}</p></form></section>`;
  const rows = state[page].filter(row=>JSON.stringify(row).toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+ const paged=pageList(page,rows,search);
  const toolbar = `<div class="toolbar"><label class="search"><span>⌕</span><input id="search" placeholder="${t('search')}" aria-label="${t('search')}" value="${esc(search)}"></label><span class="count">${rows.length} / ${state[page].length}</span></div>`;
  let table='';
  if (page==='invoices') table=invoiceTable(rows);
- else table=`<div class="table-wrap"><table><thead><tr>${(page==='customers'?['name','org','email','phone']:['name','sku','price','vat','unit']).map(key=>`<th>${t(key)}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map(row=>`<tr>${(page==='customers'?['name','org','email','phone']:['name','sku','price','vat','unit']).map(key=>`<td>${key==='name'?'<strong>':''}${key==='price'?money(row.price):key==='vat'?row.vat+' %':esc(row[key]||'—')}${key==='name'?'</strong>':''}</td>`).join('')}<td><button class="text-button" data-edit="${page==='customers'?'customer':'article'}" data-id="${esc(row.id)}">${t('edit')} →</button></td></tr>`).join('')}</tbody></table></div>`;
- return `${page==='invoices'?`<div class="notice">ⓘ <span>${t('draftNotice')}</span></div>`:''}<section class="panel">${toolbar}<div id="results">${rows.length?table:empty()}</div></section>`;
+ else table=`<div class="table-wrap"><table><thead><tr>${(page==='customers'?['name','org','email','phone']:['name','sku','price','vat','unit']).map(key=>`<th>${t(key)}</th>`).join('')}<th></th></tr></thead><tbody>${paged.rows.map(row=>`<tr>${(page==='customers'?['name','org','email','phone']:['name','sku','price','vat','unit']).map(key=>`<td>${key==='name'?'<strong>':''}${key==='price'?money(row.price):key==='vat'?row.vat+' %':esc(row[key]||'—')}${key==='name'?'</strong>':''}</td>`).join('')}<td><button class="text-button" data-edit="${page==='customers'?'customer':'article'}" data-id="${esc(row.id)}">${t('edit')} →</button></td></tr>`).join('')}</tbody></table></div>`;
+ return `${page==='invoices'?`<div class="notice">ⓘ <span>${t('draftNotice')}</span></div>`:''}<section class="panel">${toolbar}${paged.controls}<div id="results">${rows.length?table:empty()}</div></section>`;
 }
 function field(key,value='',options={}) {
  return `<label class="field ${options.wide?'wide':''}"><span>${t(key)} ${options.required?'<em>*</em>':''}</span><input name="${key}" value="${esc(value)}" ${options.required?'required':''} maxlength="${options.max||200}" ${options.type?`type="${options.type}"`:''} ${options.min!==undefined?`min="${options.min}"`:''} ${options.type==='number'?'step="0.01"':''}></label>`;
 }
 function companyFields(data) { return ['name','org','email','phone','address','postal','city','bankgiro','vatNumber'].map(key=>field(key,data[key],{required:key==='name',type:key==='email'?'email':'text'})).join(''); }
 function bind() {
+ document.querySelectorAll('[data-list-page]').forEach(button=>button.onclick=()=>{const key=button.dataset.listPage,position=listPositions.get(key);if(!position)return;position.page+=Number(button.dataset.listStep);const step=button.dataset.listStep;render();const buttons=[...document.querySelectorAll('[data-list-page]')].filter(b=>b.dataset.listPage===key&&!b.disabled);(buttons.find(b=>b.dataset.listStep===step)||buttons[0])?.focus();});
  document.querySelectorAll('[data-page]').forEach(el=>el.onclick=event=>{event.preventDefault();if(!databaseLeave())return;if(page==='overview'&&el.dataset.page==='invoices')salesTab='drafts';page=el.dataset.page;search='';editor=null;render();});
  document.querySelector('#language').onchange=async event=>{try{if(editor)captureEditor();await post('preferences',{language:event.target.value,theme});await load();localStorage.setItem('sizzla-language',lang);render();}catch{render();toast(t('failed'));}};
  const themePicker=document.querySelector('#theme');if(themePicker)themePicker.onchange=async event=>{try{await post('preferences',{language:lang,theme:event.target.value});await load();localStorage.setItem('sizzla-theme',theme);render();}catch{render();toast(t('failed'));}};

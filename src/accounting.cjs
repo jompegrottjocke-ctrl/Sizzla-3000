@@ -62,7 +62,8 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
   } catch(error) { db.exec('ROLLBACK'); throw error; }
   const accounts = () => db.prepare('SELECT * FROM ledger_accounts ORDER BY code').all().map(a=>({code:a.code,name:a.name,nameEn:a.name_en,active:!!a.active,type:accountType(a.code)}));
   const years = () => db.prepare('SELECT * FROM ledger_years ORDER BY start DESC').all().map(y=>({...JSON.parse(y.data),id:y.id,start:y.start,end:y.end,revision:y.revision}));
-  const vouchers = () => db.prepare('SELECT * FROM ledger_vouchers ORDER BY rowid DESC').all().map(v=>({...JSON.parse(v.data),id:v.id,yearId:v.year_id,number:v.number,status:v.status,revision:v.revision,corrects:v.corrects,reversedBy:v.reversed_by,sourceKind:v.source_kind,sourceId:v.source_id}));
+  const voucherData=v=>({...JSON.parse(v.data),id:v.id,yearId:v.year_id,number:v.number,status:v.status,revision:v.revision,corrects:v.corrects,reversedBy:v.reversed_by,sourceKind:v.source_kind,sourceId:v.source_id});
+  const vouchers = () => db.prepare('SELECT * FROM ledger_vouchers ORDER BY rowid DESC').all().map(voucherData);
   // A local declared operator is attribution, not authentication. Never backfill historical actors.
   const operator = () => JSON.parse(db.prepare("SELECT data FROM records WHERE kind='accounting_operator' AND id='active'").get()?.data || 'null');
   const requireOperator = () => {const actor=operator();if(!actor)throw new AccountingError('bookActorRequired',400);return actor;};
@@ -116,6 +117,7 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
       }event('year',year.id,'sieImported',{batchId,filename,hash,mappings});return mappings;
     },
     source:activeSource,
+    sources:kind=>db.prepare("SELECT * FROM ledger_vouchers WHERE source_kind=? AND reversed_by IS NULL AND status='posted'").all(kind).map(voucherData),
     postSource:(yearId,data,source)=>createPosted(yearById(yearId),data,source),
     reverseSource:(id,body,company)=>reversePosted(current(vouchers(),{id,revision:body.revision}),body,company),
     account:code=>accounts().find(a=>a.code===code&&a.active),

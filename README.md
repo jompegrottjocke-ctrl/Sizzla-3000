@@ -304,7 +304,7 @@ Datum och status anges manuellt. **Klar betyder inte att deklaration lämnats in
 
 Under **Inställningar → Licens & version** visas installerad version från programmets paketinformation, utgåva och målplattform Windows 11 (x64) och macOS 15+ (Apple Silicon/Intel). Sidofältets och sidfotens versionsnummer hämtas från samma källa.
 
-Licenshantering är ännu inte aktiverad: nyckelfält, aktivering och licensvillkorsknapp är spärrade. Inga licensuppgifter lagras eller skickas. **Sök efter uppdateringar** är en förhandsvisning och förklarar att ingen kontroll gjorts; statusen för senaste kontroll förblir Inte kontrollerat. Ingen nedladdning eller installation startas. En separat länk öppnar GitHubs versionssida för manuell hämtning.
+Licenshantering är ännu inte aktiverad: nyckelfält, aktivering och licensvillkorsknapp är spärrade. Inga licensuppgifter lagras eller skickas. **Sök efter uppdateringar** är en förhandsvisning och förklarar att ingen kontroll gjorts; statusen för senaste kontroll förblir Inte kontrollerat. Ingen nedladdning eller installation startas.
 
 **Support & felsökning** visar version, utgåva, körmiljö, arkitektur och databasformat. Kopieringsknappen kopierar bara den synliga tekniska texten till urklipp. Företags-/personuppgifter, filsökvägar, sessionstoken och licensnycklar ingår inte. Om automatisk kopiering inte fungerar kan texten markeras och kopieras manuellt. Ingen information skickas automatiskt till support.
 
@@ -397,3 +397,11 @@ Utveckling på Mac: `npm ci`, `npm run desktop`. Bygg med `npm run dist:mac -- -
 Från 0.29.1: välj **Inställningar → Databaser → Skapa demoföretag**. Ett separat demoföretag med påhittade kunder, personal, artiklar, fakturor, bokföring, lager och PDF-historik skapas lokalt utan internet. Välj därefter **Aktivera** i listan. Befintliga företagsuppgifter ersätts inte. Demo räknas mot gränsen på 10 företag; ytterligare en kopia får ett nytt namn.
 
 Övningsuppgifterna får inte användas för verkliga betalningar eller inlämningar. Stängda/låsta perioder i exemplet bevaras. Den mindre demon följer med appen; den större volymdatabasen hämtas separat. [Demo- och testdatabaser, nedladdningar och guider](examples/README.md).
+
+## Stora register och prestanda
+
+Från 0.29.2 visas kunder, artiklar, verifikationer, kundfakturor/kundreskontra, lagersaldon och tidsrader i sidor om 50 rader. **Föregående/Nästa** och radantal visas när urvalet har fler än 50 poster. Sökning/filter går igenom hela registret och börjar på första sidan när urvalet ändras. Sidpositionerna är tillfälliga och återställs vid företagsbyte.
+
+CSV-exporter, rapporter samt programmets lager- och tidsutskrifter använder hela urvalet. Endast den vanliga listvisningen sidindelas. Inga poster tas bort. Den inbyggda lärdemon och tidigare säkerhetskopior använder samma schema 10.
+
+Kör utvecklingsmätningen med `npm run benchmark -- /tmp/sizzla-resultat.json` (Node.js 24+, `npm ci` och Playwright Chromium; Linux kan använda `SIZZLA_CHROMIUM=/usr/bin/chromium`). Testet arbetar bara i temporära kopior av den publicerade syntetiska databasen, vägrar skriva över en befintlig resultatfil och kontrollerar affärsuppgifter före/efter företagsbyte. [Resultat, metod och begränsningar](docs/PRESTANDA.md).
