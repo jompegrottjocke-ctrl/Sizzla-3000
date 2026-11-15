@@ -1,5 +1,6 @@
-Sizzla 3000 0.32.0 – granskad WooCommerce-orderimport (beta).
+Sizzla 3000 0.32.1 – stabiliserat demotest och granskad WooCommerce-orderimport (beta).
 
+- Rättar ett tidsberoende fel i demotestet: testet väntar på appens första databasinläsning före sparande. Fördröjt startsvar har verifierats i åtta upprepade körningar.
 - Lager → Webbshop → WooCommerce → Importera webborders hämtar högst tio order per sida för processing eller on-hold.
 - Granska kund, leveransadress, rapporterad betalning, SKU, rader, moms och tillgängligt lager före import. Okänd SKU, brist och belopp som inte kan återges exakt blockerar import.
 - Import skapar kundkoppling och bekräftad kundorder med reservation i en transaktion. Butiksadress + internt order-ID skyddar mot dubbelimport även efter avslut, omstart och återställning.

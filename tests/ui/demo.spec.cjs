@@ -3,7 +3,12 @@ const {createApp}=require('../../src/server.cjs');
 test('offline demo creation is explicit, opens a separate company, preserves originals and works in both languages',async({page})=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-demo-ui-'));const app=createApp({dataDir:dir});await app.listen();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
-  await page.goto(app.url);await page.evaluate(async()=>{await post('company',{name:'My original business'});await post('customers',{name:'Original customer'});await load();});
+  // Navigation finishing does not mean the first asynchronous database read has finished.
+  let releaseStartup,arrived;const startupGate=new Promise(resolve=>releaseStartup=resolve),startupArrived=new Promise(resolve=>arrived=resolve);
+  await page.route('**/api/state?view=overview',async route=>{arrived();await startupGate;await route.continue();});
+  await page.goto(app.url);await startupArrived;expect(await page.evaluate(()=>typeof state)).toBe('undefined');
+  releaseStartup();await expect(page.locator('nav [data-page=databases]')).toBeVisible();await page.unroute('**/api/state?view=overview');
+  await page.evaluate(async()=>{await post('company',{name:'My original business'});await post('customers',{name:'Original customer'});await load();});
   await page.locator('nav').getByRole('button',{name:'Databaser',exact:true}).click();await expect(page.locator('#db-demo')).toHaveText('Skapa demoföretag');
   await page.locator('#db-demo').click();await expect(page.locator('[data-database]')).toHaveCount(2);await expect(page.locator('.company-chip')).toContainText('My original business');await expect(page.locator('[data-database]')).toContainText(['Företag 1','Demoföretag']);
   const demoId=await page.evaluate(()=>state.databases.entries.find(e=>!e.active).id);page.once('dialog',d=>d.accept());await page.locator('[data-db-activate="'+demoId+'"]').click();await expect(page.locator('.company-chip')).toContainText('DEMO Sizzla Handel AB');
