@@ -1,3 +1,4 @@
+const {initShopify}=require('./shopify.cjs');
 const {initWebshop,WebshopError}=require('./webshop.cjs');
 const {supplyView}=require('./supply-view.cjs');
 const {commerceView}=require('./commerce-view.cjs');
@@ -87,6 +88,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   }
   let closed=false;
   const backupTimer=setInterval(()=>automatic.due(),60000);backupTimer.unref();
+  const shopify=initShopify({context:()=>({session:databaseSession,items:inventory.summary().items}),audit:data=>inventory.recordWebshop(data)});
   const webshop=initWebshop({context:()=>({session:databaseSession,items:inventory.summary().items}),audit:data=>inventory.recordWebshop(data)});
   const server = http.createServer(async (req,res) => {
     try {
@@ -168,6 +170,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         }
         throw new DatabaseError('dbMissing',404);
       }
+      if(url.pathname.startsWith('/api/webshop/shopify/'))return send(res,200,await shopify.handle(url.pathname.slice('/api/webshop/shopify/'.length),body));
       if(url.pathname.startsWith('/api/webshop/'))return send(res,200,await webshop.handle(url.pathname.slice('/api/webshop/'.length),body));
       if(url.pathname.startsWith('/api/trade/'))return send(res,200,trade.handle(url.pathname.slice('/api/trade/'.length),body,settings()));
       if(url.pathname.startsWith('/api/security/auto/')){const route=url.pathname.slice('/api/security/auto/'.length);if(route==='configure')return send(res,200,automatic.configure(body));if(route==='run')return send(res,200,automatic.run());if(route==='verify')return send(res,200,automatic.verifyLast());if(route==='open')return send(res,200,await automatic.open());throw new BackupError('autoInvalid');}

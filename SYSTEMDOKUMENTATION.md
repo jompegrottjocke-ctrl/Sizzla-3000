@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.30.0, databasschema 10. Uppdaterad 2026-11-15.
+Version 0.31.0, databasschema 10. Uppdaterad 2026-11-15.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -301,3 +301,5 @@ Bokföringslistor använder verifikationshuvuden; rapportvyer hämtar bokförda 
 Tid & projekt använder selektiva listvyer med summerade timmar och projekt-/datumurval. Faktureringsdialoger hämtar fullständiga underlag före granskning. Se [TID-PROJEKT-DATA.md](docs/TID-PROJEKT-DATA.md).
 
 Lagerreservationer härleds från bekräftade kundorder och leveranser. WooCommerce-kopplingen är manuell beta med granskade saldosänkningar och krav på pausad kassa; ingen orderimport eller obevakad synk ingår. Se [WEBSHOP-OCH-RESERVATIONER.md](docs/WEBSHOP-OCH-RESERVATIONER.md).
+
+Shopify är ett separat manuellt plattformsval för saldosänkningar på vald lagerplats. Åtkomsttoken sparas inte. Se [SHOPIFY.md](docs/SHOPIFY.md) för samtidighetsskydd, begränsningar och testomfattning.

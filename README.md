@@ -445,3 +445,7 @@ Projektlistan hämtas utan alla tidsrader. Tidsregistreringar hämtas för valt 
 ### Lagerreservationer och WooCommerce i 0.30.0
 
 Bekräftade kundorder reserverar lager. Lagerlistan visar fysiskt, reserverat, tillgängligt och eventuell brist. Under Lager → Webbshop finns en manuell WooCommerce-koppling (beta) för granskade saldosänkningar med pausad kassa. Orderimport och automatisk synk ingår ännu inte. Se [funktion, begränsningar och verifiering](docs/WEBSHOP-OCH-RESERVATIONER.md).
+
+### Shopify i 0.31.0
+
+Lager → Webbshop har nu val mellan WooCommerce och Shopify. Shopify-kopplingen (manuell beta) hämtar lagerplatser och matchar lagerförda varianter via SKU, med granskade saldosänkningar. Ingen orderimport eller automatisk synk ingår. Se [funktion och verifieringsbegränsning](docs/SHOPIFY.md).
