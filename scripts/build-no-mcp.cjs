@@ -1,0 +1,20 @@
+// Deliberately separate diagnostic package; never modifies the normal source tree.
+const fs=require('node:fs'),path=require('node:path');
+const root=path.join(__dirname,'..'),out=path.join(root,'.local','no-mcp');
+fs.mkdirSync(path.dirname(out),{recursive:true});
+fs.rmSync(out,{recursive:true,force:true});fs.mkdirSync(out);
+for(const name of ['src','public','examples/demo'])fs.cpSync(path.join(root,name),path.join(out,name),{recursive:true});
+for(const name of ['src/mcp.cjs','src/mcp-oauth.cjs','public/mcp.js','public/mcp-oauth.js'])fs.unlinkSync(path.join(out,name));
+const rewrite=(name,fn)=>{const p=path.join(out,name);fs.writeFileSync(p,fn(fs.readFileSync(p,'utf8')));};
+rewrite('src/server.cjs',s=>s.replace("require('./mcp.cjs')","require('./build-features.cjs')").replace("'/mcp-oauth.js',",'').replace("'/mcp.js',","'/build-features.js',"));
+fs.writeFileSync(path.join(out,'src/build-features.cjs'),`class McpError extends Error{}\nfunction initMcp(){const unavailable=(req,res)=>{res.writeHead(404,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'MCP is not included in this diagnostic build'}));};return {state:()=>({enabled:false,included:false}),shutdown(){},handle(){const e=new McpError('MCP not included');e.status=404;throw e;},http:unavailable,oauthHttp:unavailable};}\nmodule.exports={initMcp,McpError};\n`);
+rewrite('public/index.html',s=>s.replace('/mcp.js','/build-features.js'));
+fs.writeFileSync(path.join(out,'public/build-features.js'),`let agentTab='legacy',mcpSecret=null;\nfunction agentContent(){return '<section class="panel"><h2>MCP-test / Diagnostic build</h2><p>MCP ingår inte i detta testbygge. MCP is not included in this diagnostic build.</p></section>'+agentLegacyContent();}\nfunction bindMcp(){}\n`);
+rewrite('src/desktop.cjs',s=>s.replace("app.setName('Sizzla 3000')","app.setName('Sizzla 3000 MCP-test')"));
+const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json')));
+pkg.name='sizzla-3000-no-mcp-test';pkg.version+='-no-mcp.1';
+pkg.build.productName='Sizzla 3000 MCP-test';pkg.build.appId='se.sizzla.desktop.nomcptest';
+pkg.build.artifactName='Sizzla-3000-${version}-Windows-test.${ext}';
+delete pkg.dependencies['@modelcontextprotocol/sdk'];delete pkg.dependencies.zod;
+fs.writeFileSync(path.join(out,'package.json'),JSON.stringify(pkg,null,2)+'\n');
+console.log('Diagnostic source prepared in '+out);

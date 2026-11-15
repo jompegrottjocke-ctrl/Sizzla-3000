@@ -1,0 +1,38 @@
+name: Windows diagnostic build without MCP
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/build-no-mcp.cjs
+      - scripts/check-no-mcp.cjs
+      - .github/workflows/no-mcp-test.yml
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/build-no-mcp.cjs
+      - name: Install diagnostic package dependencies
+        working-directory: .local/no-mcp
+        run: npm install
+      - run: npx playwright install chromium
+      - name: Verify MCP absence and ordinary application startup
+        run: node scripts/check-no-mcp.cjs
+      - name: Build separate diagnostic installer
+        working-directory: .local/no-mcp
+        run: npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Sizzla-3000-Windows-TEST-utan-MCP
+          path: .local/no-mcp/dist/*.exe
+          if-no-files-found: error
