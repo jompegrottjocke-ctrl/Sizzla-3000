@@ -441,3 +441,7 @@ Verifikationsrader hämtas när ett underlag öppnas. Rapportunderlag begränsas
 ### Tid & projekt i 0.29.8
 
 Projektlistan hämtas utan alla tidsrader. Tidsregistreringar hämtas för valt projekt och datumintervall, med kompletta urval för export och utskrift. Se [uppdelning och verifiering](docs/TID-PROJEKT-DATA.md).
+
+### Lagerreservationer och WooCommerce i 0.30.0
+
+Bekräftade kundorder reserverar lager. Lagerlistan visar fysiskt, reserverat, tillgängligt och eventuell brist. Under Lager → Webbshop finns en manuell WooCommerce-koppling (beta) för granskade saldosänkningar med pausad kassa. Orderimport och automatisk synk ingår ännu inte. Se [funktion, begränsningar och verifiering](docs/WEBSHOP-OCH-RESERVATIONER.md).

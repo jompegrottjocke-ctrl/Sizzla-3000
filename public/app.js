@@ -47,7 +47,7 @@ function pageList(key,rows,filter=''){
  return {rows:rows.slice(start,start+size),controls};
 }
 function navItem(key) { return `<button class="nav-item ${page===key?'active':''}" data-page="${key}"><span class="nav-icon" aria-hidden="true">${icons[key]}</span><span>${t(key)}</span>${(beta.includes(key)||['cloud','agent','versionSettings'].includes(key))?'<span class="beta-tag" aria-hidden="true">β</span>':''}</button>`; }
-const pageScope=(target=page)=>location.pathname==='/print'?'full':target==='projects'?(timeTab==='events'?'full':'time-'+timeTab):target==='accounting'?(['journals','accounts','years'].includes(bookTab)?'book-list':bookTab==='reports'?'book-report':'full'):target==='purchases'?(purchaseTab==='audit'?'full':'supply'):target==='inventory'?(inventoryTab==='movements'?'full':'stock'):target==='invoices'?(['drafts','issued','credits'].includes(salesTab)?'commerce':'full'):target==='payments'?(['customers','suppliers'].includes(paymentsTab)?'commerce':['history','events'].includes(paymentsTab)?'commerce-history':'full'):target==='payroll'?(hrTab==='employees'?'employees':hrTab==='leave'?'hr-leave':'hr-runs'):target==='overview'?'overview':['customers','articles'].includes(target)?'registers':'full';
+const pageScope=(target=page)=>location.pathname==='/print'?'full':target==='projects'?(timeTab==='events'?'full':'time-'+timeTab):target==='accounting'?(['journals','accounts','years'].includes(bookTab)?'book-list':bookTab==='reports'?'book-report':'full'):target==='purchases'?(purchaseTab==='audit'?'full':'supply'):target==='inventory'?(['movements','webshop'].includes(inventoryTab)?'full':'stock'):target==='invoices'?(['drafts','issued','credits'].includes(salesTab)?'commerce':'full'):target==='payments'?(['customers','suppliers'].includes(paymentsTab)?'commerce':['history','events'].includes(paymentsTab)?'commerce-history':'full'):target==='payroll'?(hrTab==='employees'?'employees':hrTab==='leave'?'hr-leave':'hr-runs'):target==='overview'?'overview':['customers','articles'].includes(target)?'registers':'full';
 const pageDataReady=()=>{const actual=state.loadScope,needed=pageScope();if(!actual)return true;if(needed==='time-projects')return ['time-projects','time-entries','time-batches'].includes(actual);if(needed==='time-entries')return actual==='time-entries'&&JSON.stringify(state.timeSelection)===JSON.stringify(timeSelection());if(needed==='book-list')return ['book-list','book-detail'].includes(actual);if(needed==='book-report')return actual==='book-report'&&JSON.stringify(state.accountingReport)===JSON.stringify(bookReportSelection());if(needed==='commerce-history'&&actual==='commerce-detail')return state.commerceDetails?.history===true;if(needed==='commerce')return ['commerce','commerce-history','commerce-detail'].includes(actual);if(needed==='registers')return ['registers','overview'].includes(actual);if(needed==='employees')return ['employees','hr-runs','hr-leave'].includes(actual);return actual===needed;};
 const editorDataScope=()=>{if(page==='payroll'&&['employee','payrun','leave'].includes(editor?.kind))return {employee:'employees',payrun:'hr-runs',leave:'hr-leave'}[editor.kind];return editor&&editor.kind!=='customer'&&editor.kind!=='article'?'full':pageScope();};
 let fullSourceOpening=false;
@@ -138,6 +138,7 @@ function openEditor(kind,id) {
  editor={kind,record};renderEditor();
 }
 function captureEditor() {
+ if(editor?.kind==='woo')return captureWoo();
  if(editor?.kind==='recurring')return captureRecurring();
  if(editor?.kind==='trade')return captureTrade();
  if(editor?.kind==='asset')return captureAssets();
@@ -154,6 +155,7 @@ function captureEditor() {
  editor.record={...editor.record,...data};
 }
 function renderEditor() {
+ if(editor.kind==='woo')return renderWoo();
  if(editor.kind==='recurring')return renderRecurringEditor();
  if(editor.kind==='trade')return renderTradeEditor();
  if(editor.kind==='asset')return renderAssetEditor();

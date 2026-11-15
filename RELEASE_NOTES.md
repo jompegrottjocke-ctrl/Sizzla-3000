@@ -1,11 +1,12 @@
-Sizzla 3000 0.29.8 – mindre inläsningar för Tid & projekt.
+Sizzla 3000 0.30.0 – lagerreservationer och manuell WooCommerce-koppling.
 
-- Projektlistan hämtar projekt och summerade timmar utan hela tidsregistret. Budgetutfall och sammanfattningar behåller samma betydelse.
-- Tidslistan hämtar hela urvalet för valt projekt och datumintervall. Status, sökning, CSV och utskrift använder hela detta urval oberoende av listsida.
-- Fakturaunderlagens listvy hämtar huvuden med aktuella fakturakopplingar. Detaljer, redigerare, fakturering och återtag använder fullständiga underlag där de behövs.
-- Befintliga gransknings- och revisionskontroller behålls. Osparad text bevaras när ett projekt hunnit ändras i en annan redigering.
-- Projektlistans JSON-svar är cirka 99,8 procent mindre än hela företagsvyn på den stora syntetiska databasen med 150 projekt och 6 000 tidsrader. Detta mäter datamängd, inte utlovad uppstartstid.
+- Bekräftade kundorder reserverar kvarvarande lagerförda antal. Delleverans förbrukar reservationen och avslut frigör resten.
+- Lagerlistan, CSV och utskrift visar fysiskt saldo, reserverat, tillgängligt och brist mot reservationer. Verklig inventeringsbrist kan registreras utan att döljas.
+- Orderbekräftelser och manuella uttag skyddar andra orderreservationer. Samtidiga bekräftelser kan inte reservera samma sista varor.
+- Lager → Webbshop innehåller en manuell WooCommerce-koppling (beta) med SKU-matchning, förhandsgranskning, engångsunderlag och kontroll av ändrade saldon.
+- Kopplingen sänker bara det granskade butikssaldot och kräver pausad kassa under överföringen. Den stöder enkla produkter med heltalssaldo, aktiv lagerhantering och inga restorder. Orderimport, påfyllning och automatisk synk ingår inte ännu.
+- Nycklar sparas inte i databasen. HTTPS används mot butiken och avbrutna skrivförsök markeras för manuell kontroll utan automatiskt återförsök.
 
-Se docs/TID-PROJEKT-DATA.md. Schema 10 och säkerhetskopieformat är oförändrade.
+Se docs/WEBSHOP-OCH-RESERVATIONER.md. WooCommerce har testats med simulerade svar, inte mot en riktig butik. Schema 10 och säkerhetskopieformat är oförändrade.
 
 Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.

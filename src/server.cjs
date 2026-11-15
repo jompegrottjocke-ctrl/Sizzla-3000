@@ -1,3 +1,4 @@
+const {initWebshop,WebshopError}=require('./webshop.cjs');
 const {supplyView}=require('./supply-view.cjs');
 const {commerceView}=require('./commerce-view.cjs');
 const OverviewMath=require('../public/overview-math.js');
@@ -86,6 +87,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   }
   let closed=false;
   const backupTimer=setInterval(()=>automatic.due(),60000);backupTimer.unref();
+  const webshop=initWebshop({context:()=>({session:databaseSession,items:inventory.summary().items}),audit:data=>inventory.recordWebshop(data)});
   const server = http.createServer(async (req,res) => {
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
@@ -166,6 +168,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         }
         throw new DatabaseError('dbMissing',404);
       }
+      if(url.pathname.startsWith('/api/webshop/'))return send(res,200,await webshop.handle(url.pathname.slice('/api/webshop/'.length),body));
       if(url.pathname.startsWith('/api/trade/'))return send(res,200,trade.handle(url.pathname.slice('/api/trade/'.length),body,settings()));
       if(url.pathname.startsWith('/api/security/auto/')){const route=url.pathname.slice('/api/security/auto/'.length);if(route==='configure')return send(res,200,automatic.configure(body));if(route==='run')return send(res,200,automatic.run());if(route==='verify')return send(res,200,automatic.verifyLast());if(route==='open')return send(res,200,await automatic.open());throw new BackupError('autoInvalid');}
       if(url.pathname.startsWith('/api/security/')){
@@ -253,7 +256,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       else if(error instanceof FileImportError)send(res,error.status,{error:error.message,...(error.details?{details:error.details}:{})});
       else if(error instanceof SyntaxError&&req.url.startsWith('/api/prints'))send(res,400,{error:'printInvalid'});
       else if(error instanceof PrintError)send(res,error.message==='printMissing'?404:400,{error:error.message});
-      else if (error instanceof ArchiveError || error instanceof AgencyError || error instanceof AgentError || error instanceof ClosingError || error instanceof AssetError || error instanceof TimeError || error instanceof DatabaseError || error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError || error instanceof InventoryError || error instanceof SalesError) send(res,error.status,{error:error.message});
+      else if (error instanceof WebshopError || error instanceof ArchiveError || error instanceof AgencyError || error instanceof AgentError || error instanceof ClosingError || error instanceof AssetError || error instanceof TimeError || error instanceof DatabaseError || error instanceof HrError || error instanceof AccountingError || error instanceof PurchaseError || error instanceof InventoryError || error instanceof SalesError) send(res,error.status,{error:error.message});
       else if (error instanceof ValidationError) send(res,400,{error:error.message});
       else { console.error(error); send(res,500,{error:'internal'}); }
     }

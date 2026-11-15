@@ -33,24 +33,31 @@ function initInventory(db){
   const old=knownArticles.find(a=>a.id===id);if(old&&(old.sku!==data.sku||old.unit!==data.unit)&&(settings(id).enabled||stockRevision(id)||openOrder(id)))throw new InventoryError('invArticleLocked');
   if(data.sku&&knownArticles.some(a=>a.id!==id&&settings(a.id).enabled&&a.sku.toLocaleUpperCase('sv-SE')===data.sku.toLocaleUpperCase('sv-SE')))throw new InventoryError('invSku');
  }
+ function reservations(excludeOrder){
+  const delivered=new Map();for(const row of db.prepare("SELECT data FROM records WHERE kind='trade_delivery' AND json_extract(data,'$.status')!='reversed'").all()){const d=JSON.parse(row.data);for(const l of d.lines){const key=d.orderId+':'+l.lineId;delivered.set(key,(delivered.get(key)||0)+l.quantity);}}
+  const result=new Map();for(const row of db.prepare("SELECT id,data FROM records WHERE kind='trade_order' AND json_extract(data,'$.status')='confirmed'").all()){if(row.id===excludeOrder)continue;const o=JSON.parse(row.data);for(const l of o.lines)if(l.articleId&&l.stockTracked){const n=Math.max(0,l.quantity-(delivered.get(row.id+':'+l.id)||0));result.set(l.articleId,(result.get(l.articleId)||0)+n);}}
+  return result;
+ }
+ function assertReservation(lines){const reserved=reservations(),demand=new Map();for(const l of lines)if(l.articleId&&l.stockTracked)demand.set(l.articleId,(demand.get(l.articleId)||0)+l.quantity);for(const [id,n] of demand)if(n>quantity(id)-(reserved.get(id)||0))throw new InventoryError('invReserved');}
  function checkBalance(id){const rows=db.prepare('SELECT quantity FROM inventory_movements WHERE article_id=? ORDER BY date,id').all(id);let balance=0;for(const r of rows){balance+=r.quantity;if(balance<0)throw new InventoryError('invNegative');if(!Number.isSafeInteger(balance)||balance>1000000000000)bad('invQuantityInvalid');}}
- function move({articleId,date,kind,quantity:qty,reference,reason,sourceKind=null,sourceId=null,sourceLine=null,reverses=null}){
+ function move({articleId,date,kind,quantity:qty,reference,reason,sourceKind=null,sourceId=null,sourceLine=null,reverses=null,reservationOrder=null}){
   requireActive(articleId);checkCountDate(articleId,date);if(!Number.isSafeInteger(qty)||qty===0)bad('invQuantityInvalid');stockDate(date);
   const id=Number(db.prepare('INSERT INTO inventory_movements(article_id,date,kind,quantity,reference,reason,snapshot,created,source_kind,source_id,source_line,reverses) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').run(articleId,date,kind,qty,reference,reason,JSON.stringify(snap(articleId)),new Date().toISOString(),sourceKind,sourceId,sourceLine,reverses).lastInsertRowid);
-  checkBalance(articleId);event('movement',id,kind,{articleId,quantity:qty});return id;
+  checkBalance(articleId);if(qty<0&&!['count','reverse'].includes(kind)&&quantity(articleId)<(reservations(reservationOrder).get(articleId)||0))throw new InventoryError('invReserved');event('movement',id,kind,{articleId,quantity:qty});return id;
  }
  function prepareOrderLines(lines){return lines.map(l=>{if(!l.articleId)return {...l,articleId:'',stockTracked:false};const a=article(l.articleId);if(a.unit!==l.unit)throw new InventoryError('invUnit');return {...l,stockTracked:!!settings(a.id).enabled};});}
  function assertOrderLines(lines){for(const l of lines){if(!l.articleId)continue;const a=article(l.articleId);if(a.unit!==l.unit||!!l.stockTracked!==!!settings(a.id).enabled)throw new InventoryError('invOrderChanged');}}
  function receive(order,receipt){for(const received of receipt.lines){const line=order.lines.find(l=>l.id===received.lineId);if(!line?.articleId||!line.stockTracked)continue;const a=article(line.articleId);if(a.unit!==line.unit)throw new InventoryError('invUnit');move({articleId:a.id,date:receipt.date,kind:'receipt',quantity:received.quantity,reference:receipt.reference,reason:'IO'+order.number,sourceKind:'receipt',sourceId:receipt.id,sourceLine:line.id});}}
  function reverseReceipt(receipt,reason){const rows=db.prepare("SELECT * FROM inventory_movements WHERE source_kind='receipt' AND source_id=? ORDER BY id").all(receipt.id);for(const r of rows){if(r.reversed_by)throw new InventoryError('invReversed');if(localToday()<r.date)bad('invDate');const id=move({articleId:r.article_id,date:localToday(),kind:'reverse',quantity:-r.quantity,reference:r.reference,reason,sourceKind:'receipt_reverse',sourceId:receipt.id,sourceLine:r.source_line,reverses:r.id});db.prepare('UPDATE inventory_movements SET reversed_by=? WHERE id=?').run(id,r.id);}}
- function deliverCustomer(order,delivery){for(const line of delivery.lines){const original=order.lines.find(l=>l.id===line.lineId);if(original?.articleId&&original.stockTracked)move({articleId:original.articleId,date:delivery.date,kind:'delivery',quantity:-line.quantity,reference:delivery.reference,reason:'KO'+order.number,sourceKind:'trade_delivery',sourceId:delivery.id,sourceLine:original.id});}}
+ function deliverCustomer(order,delivery){for(const line of delivery.lines){const original=order.lines.find(l=>l.id===line.lineId);if(original?.articleId&&original.stockTracked)move({articleId:original.articleId,date:delivery.date,kind:'delivery',quantity:-line.quantity,reference:delivery.reference,reason:'KO'+order.number,sourceKind:'trade_delivery',sourceId:delivery.id,sourceLine:original.id,reservationOrder:order.id});}}
  function reverseCustomerDelivery(delivery,date,reason){const movements=db.prepare("SELECT * FROM inventory_movements WHERE source_kind='trade_delivery' AND source_id=? ORDER BY id").all(delivery.id);for(const r of movements){if(r.reversed_by)throw new InventoryError('invReversed');const id=move({articleId:r.article_id,date,kind:'reverse',quantity:-r.quantity,reference:r.reference,reason,sourceKind:'trade_delivery_reverse',sourceId:delivery.id,sourceLine:r.source_line,reverses:r.id});db.prepare('UPDATE inventory_movements SET reversed_by=? WHERE id=?').run(id,r.id);}}
  const counts=()=>db.prepare('SELECT * FROM inventory_counts ORDER BY number DESC').all().map(r=>({...r,...JSON.parse(r.data),data:undefined}));
  function currentCount(body){const row=counts().find(c=>c.id===body.id);if(!row)throw new InventoryError('invMissing');if(row.revision!==body.revision||row.status!=='draft')throw new InventoryError('invConflict');return row;}
  function items(){
   const configurations=new Map(db.prepare('SELECT * FROM inventory_settings').all().map(s=>[s.article_id,s]));
   const stock=new Map(db.prepare("SELECT article_id,SUM(CASE WHEN date<='9999-12-31' THEN quantity ELSE 0 END) AS quantity,MAX(id) AS revision FROM inventory_movements GROUP BY article_id").all().map(s=>[s.article_id,s]));
-  return articles().map(a=>{const config=configurations.get(a.id)||{enabled:0,minimum:0,location:'',revision:0},balance=stock.get(a.id);return {...a,enabled:!!config.enabled,minimum:config.minimum,location:config.location,revision:config.revision,quantity:balance?.quantity||0,stockRevision:balance?.revision||0};});
+  const reserved=reservations();
+  return articles().map(a=>{const config=configurations.get(a.id)||{enabled:0,minimum:0,location:'',revision:0},balance=stock.get(a.id);return {...a,enabled:!!config.enabled,minimum:config.minimum,location:config.location,revision:config.revision,quantity:balance?.quantity||0,reserved:reserved.get(a.id)||0,available:Math.max(0,(balance?.quantity||0)-(reserved.get(a.id)||0)),shortfall:Math.max(0,(reserved.get(a.id)||0)-(balance?.quantity||0)),stockRevision:balance?.revision||0};});
  }
  function state(){return {items:items(),movements:db.prepare('SELECT * FROM inventory_movements ORDER BY date DESC,id DESC').all().map(r=>({...r,articleId:r.article_id,sourceKind:r.source_kind,sourceId:r.source_id,reversedBy:r.reversed_by,...JSON.parse(r.snapshot),snapshot:undefined})),counts:counts(),events:db.prepare('SELECT * FROM inventory_events ORDER BY id DESC LIMIT 500').all().map(r=>({...r,data:JSON.parse(r.data)}))};}
  function summary(){return {items:items(),counts:db.prepare("SELECT id,number,revision,status,date,reference,reason,json_array_length(data,'$.lines') AS lineCount FROM inventory_counts ORDER BY number DESC").all()};}
@@ -90,6 +97,6 @@ function initInventory(db){
    db.exec('COMMIT');return result;
   }catch(error){db.exec('ROLLBACK');throw error;}
  }
- return {state,summary,handle,configure,createCountDraft,assertArticleChange,prepareOrderLines,assertOrderLines,receive,reverseReceipt,deliverCustomer,reverseCustomerDelivery};
+ return {state,summary,reservations,assertReservation,recordWebshop:data=>event('webshop',data.id||'sync',data.action,data),handle,configure,createCountDraft,assertArticleChange,prepareOrderLines,assertOrderLines,receive,reverseReceipt,deliverCustomer,reverseCustomerDelivery};
 }
 module.exports={initInventory,InventoryError,stockDate};
