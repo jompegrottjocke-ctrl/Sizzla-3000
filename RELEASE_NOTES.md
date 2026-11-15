@@ -1,10 +1,11 @@
-Sizzla 3000 0.29.6 – mindre inläsningar för Inköp och Lager.
+Sizzla 3000 0.29.7 – mindre inläsningar för Bokföring och rapporter.
 
-- Inköpslistorna hämtar leverantörer, aktuella dokumentbelopp, saldon och status utan kompletta fakturarader och historik.
-- Lagersaldo och inventeringslistor hämtar saldon, revisioner och inventeringshuvuden utan hela rörelsehistoriken.
-- Detaljer, redigerare, historik och utskrifter använder fortsatt fullständiga underlag. Historiska lagersaldon och revisionskontroller behålls.
-- På den stora syntetiska testdatabasen är listornas JSON-svar cirka 98 procent mindre än fullständig företagsvy. Detta är ett mått på datamängd, inte utlovad uppstartstid.
+- Verifikationslistan hämtar huvuden med belopp, status, revisioner och rättelsekopplingar. Rader hämtas när verifikationen öppnas.
+- Rapportfliken hämtar bokförda poster från valt räkenskapsår till valt slutdatum. Tidigare poster behålls för rätt ingående saldo vid periodens start.
+- Saldolista, resultat, balans och huvudbok behåller befintliga beräkningar. CSV och utskrift omfattar hela urvalet.
+- Redigering, rättelser, lönebokföring, SIE och behandlingshistorik använder fullständiga underlag där de behövs.
+- På den stora testdatabasen är verifikationslistans JSON-svar cirka 86 procent mindre än komplett företagsvy. Detta är ett mått på datamängd, inte utlovad uppstartstid.
 
-Se docs/INKOP-LAGER-DATA.md. Databasschema 10 är oförändrat.
+Se docs/BOKFORING-DATA.md. Databasschema 10 och säkerhetskopieformat är oförändrade.
 
 Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.

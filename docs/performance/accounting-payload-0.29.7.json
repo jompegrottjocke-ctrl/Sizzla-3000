@@ -1,0 +1,24 @@
+{
+  "version": "0.29.7",
+  "datasetSha256": "bbe9330c4cbc1d6f60c7450da312d82971a6c8e283eaefcc1b976eb6135c9e8d",
+  "node": "v24.22.1",
+  "platform": "linux",
+  "bytes": {
+    "full": 36209214,
+    "book-list": 4946627,
+    "book-detail": 4947077,
+    "book-report": 3497552
+  },
+  "counts": {
+    "vouchers": 7900,
+    "summaryRows": 7900,
+    "detailRows": 1,
+    "reportVouchers": 2829
+  },
+  "report": {
+    "year": "2025 TEST",
+    "from": "2025-12-31",
+    "to": "2025-12-31"
+  },
+  "accountingUnchanged": true
+}

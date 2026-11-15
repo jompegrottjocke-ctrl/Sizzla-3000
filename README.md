@@ -433,3 +433,7 @@ Betalningshistoriken hämtas när den öppnas och visar 50 rader per sida. Sökn
 ### Inköp och Lager i 0.29.6
 
 Listorna hämtar mindre datamängder. Detaljer och historik hämtas när de behövs. Se [avgränsning och verifiering](docs/INKOP-LAGER-DATA.md).
+
+### Bokföring och rapporter i 0.29.7
+
+Verifikationsrader hämtas när ett underlag öppnas. Rapportunderlag begränsas till valt räkenskapsår och slutdatum med bibehållet ingående saldo. Se [uppdelning och verifiering](docs/BOKFORING-DATA.md).

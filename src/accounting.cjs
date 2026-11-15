@@ -116,6 +116,24 @@ function initAccounting(db, { beforeReverse = () => {}, afterReverse = () => {} 
         const posted=createPosted(yearById(yearId),{date:v.date,description:v.description||`SIE ${v.series} ${v.number}`,reference,lines:v.lines.filter(l=>l.amount).map(l=>({account:l.account,debit:Math.max(0,l.amount),credit:Math.max(0,-l.amount),note:l.note})),company,importSource},{sourceKind:'sie',sourceId:batchId+':'+i});mappings.push({series:v.series,number:v.number,...posted});
       }event('year',year.id,'sieImported',{batchId,filename,hash,mappings});return mappings;
     },
+    view:(scope,selection={})=>{
+      const context={accounts:accounts(),years:years(),operator:operator()};
+      if(scope==='book-report'){
+        const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Stockholm'});
+        const year=context.years.find(y=>y.id===selection.year)||(!selection.year?context.years.find(y=>y.start<=today&&y.end>=today)||context.years[0]:null);
+        if(selection.year&&!year)throw new AccountingError('bookMissing',404);
+        const from=selection.from||year?.start||'',to=selection.to||year?.end||'';
+        // Earlier posts establish the period opening balance; do not filter them out by 'from'.
+        let rows=[];if(year&&from&&to){validDate(from);validDate(to);if(from>=year.start&&to<=year.end&&from<=to)rows=db.prepare("SELECT * FROM ledger_vouchers WHERE year_id=? AND status='posted' AND json_extract(data,'$.date')<=? ORDER BY rowid DESC").all(year.id,to).map(voucherData);}
+        return {accounting:{...context,vouchers:rows},accountingReport:{year:year?.id||'',from,to}};
+      }
+      const rows=db.prepare("SELECT *,json_remove(data,'$.lines','$.company') AS data,(SELECT COALESCE(SUM(json_extract(value,'$.debit')),0) FROM json_each(ledger_vouchers.data,'$.lines')) AS debitTotal FROM ledger_vouchers ORDER BY rowid DESC").all().map(r=>({...voucherData(r),debitTotal:r.debitTotal}));
+      if(scope==='book-detail'){
+        const selected=db.prepare('SELECT * FROM ledger_vouchers WHERE id=?').get(selection.id);if(!selected)throw new AccountingError('bookMissing',404);
+        const i=rows.findIndex(r=>r.id===selected.id);rows[i]=voucherData(selected);
+      }
+      return {accounting:{...context,vouchers:rows}};
+    },
     context:()=>({accounts:accounts(),years:years(),operator:operator()}),
     source:activeSource,
     sources:kind=>db.prepare("SELECT * FROM ledger_vouchers WHERE source_kind=? AND reversed_by IS NULL AND status='posted'").all(kind).map(voucherData),

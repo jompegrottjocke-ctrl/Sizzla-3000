@@ -9,6 +9,7 @@ const bookYear=()=>state.accounting.years.find(y=>y.id===bookYearId);
 const bookStatus=v=>v.status==='posted'&&v.reversedBy?'reversed':v.status;
 const bookNumber=v=>v.number?`A${v.number}`:bt(v.status);
 function bookRange(){const y=bookYear();return y&&bookFrom>=y.start&&bookTo<=y.end&&bookFrom<=bookTo&&/^\d{4}-\d{2}-\d{2}$/.test(bookFrom)&&/^\d{4}-\d{2}-\d{2}$/.test(bookTo);}
+function bookReportSelection(){const years=state?.accounting?.years||[],y=years.find(y=>y.id===bookYearId)||years.find(y=>y.start<=today()&&y.end>=today())||years[0];const current=years.some(y=>y.id===bookYearId);return {year:y?.id||'',from:(current&&bookFrom)||y?.start||'',to:(current&&bookTo)||y?.end||''};}
 function accountingContent(){
  const b=state.accounting;
  if(!bookYear()){bookYearId=b.years.find(y=>y.start<=today()&&y.end>=today())?.id||b.years[0]?.id||'';bookFrom='';bookTo='';}
@@ -18,7 +19,7 @@ function accountingContent(){
 function bookJournals(){
  const y=bookYear(),rows=state.accounting.vouchers.filter(v=>v.yearId===y.id&&[v.description,v.reference,v.number?`A${v.number}`:''].join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())).sort((a,b)=>(b.number||0)-(a.number||0));
  const paged=pageList('journals',rows,y.id+'|'+search);
- return `${y.lockedThrough?`<div class="notice">${bt('lockedThrough')}: ${y.lockedThrough}</div>`:''}<section class="panel"><div class="toolbar hr-toolbar"><label class="search"><input id="search" aria-label="${bt('search')}" placeholder="${bt('search')}" value="${esc(search)}"></label><button class="primary" data-book-new="voucher" ${y.closed?'disabled':''}>＋ ${bt('newVoucher')}</button></div>${paged.controls}${rows.length?`<div class="table-wrap"><table><thead><tr>${['number','date','description','reference','debit'].map(k=>`<th>${bt(k)}</th>`).join('')}<th>${t('status')}</th><th></th></tr></thead><tbody>${paged.rows.map(v=>`<tr><td><strong>${bookNumber(v)}</strong></td><td>${v.date}</td><td>${esc(v.description)}</td><td>${esc(v.reference)}</td><td>${money(v.lines.reduce((s,l)=>s+l.debit,0))}</td><td><span class="hr-badge ${v.status}">${bt(bookStatus(v))}</span></td><td><button class="text-button" data-book-view="${v.id}">${bt('open')} →</button></td></tr>`).join('')}</tbody></table></div>`:bookEmpty()}</section>`;
+ return `${y.lockedThrough?`<div class="notice">${bt('lockedThrough')}: ${y.lockedThrough}</div>`:''}<section class="panel"><div class="toolbar hr-toolbar"><label class="search"><input id="search" aria-label="${bt('search')}" placeholder="${bt('search')}" value="${esc(search)}"></label><button class="primary" data-book-new="voucher" ${y.closed?'disabled':''}>＋ ${bt('newVoucher')}</button></div>${paged.controls}${rows.length?`<div class="table-wrap"><table><thead><tr>${['number','date','description','reference','debit'].map(k=>`<th>${bt(k)}</th>`).join('')}<th>${t('status')}</th><th></th></tr></thead><tbody>${paged.rows.map(v=>`<tr><td><strong>${bookNumber(v)}</strong></td><td>${v.date}</td><td>${esc(v.description)}</td><td>${esc(v.reference)}</td><td>${money(v.debitTotal??v.lines.reduce((s,l)=>s+l.debit,0))}</td><td><span class="hr-badge ${v.status}">${bt(bookStatus(v))}</span></td><td><button class="text-button" data-book-view="${v.id}">${bt('open')} →</button></td></tr>`).join('')}</tbody></table></div>`:bookEmpty()}</section>`;
 }
 const bookEmpty=()=>`<div class="empty"><p>${bt('noRows')}</p></div>`;
 function bookAccounts(){return `<div class="notice">${bt('accountNotice')}</div><section class="panel"><div class="panel-head"><h2>${bt('accounts')}</h2><button class="primary" data-book-new="account">＋ ${bt('newAccount')}</button></div><div class="table-wrap"><table><thead><tr>${['code','name','type','active'].map(k=>`<th>${bt(k)}</th>`).join('')}<th></th></tr></thead><tbody>${state.accounting.accounts.map(a=>`<tr><td>${a.code}</td><td>${esc(bn(a))}</td><td>${bt(a.type)}</td><td>${bt(a.active?'active':'inactive')}</td><td><button class="text-button" data-book-account="${a.code}">${bt('open')}</button></td></tr>`).join('')}</tbody></table></div></section>`;}
@@ -44,13 +45,13 @@ function bookPayroll(){return `<div class="notice">${bt('payrollNotice')}</div><
 function bookAudit(){return `<button class="secondary" id="book-audit-export">${cl('auditExport')}</button><section class="panel"><div class="table-wrap"><table><thead><tr>${['dateTime','object','action'].map(k=>`<th>${bt(k)}</th>`).join('')}<th>${cl('operator')}</th><th>${cl('program')}</th></tr></thead><tbody>${state.accounting.events.map(e=>{const v=state.accounting.vouchers.find(v=>v.id===e.entityId),y=state.accounting.years.find(y=>y.id===e.entityId);const action={opening:'openingEvent',draft:'draftEvent',posted:'postedEvent',discarded:'discardedEvent',reversed:'reversedEvent',locked:'lockedEvent',closed:'closedEvent',carried:'carriedEvent'}[e.action]||e.action;return `<tr><td>${esc(new Date(e.at).toLocaleString(lang==='sv'?'sv-SE':'en-GB'))}</td><td>${esc(v?bookNumber(v):y?y.name:e.entityId)}</td><td>${esc(bt(action))}</td><td>${esc(e.actor?.name||cl('operatorUnknown'))}</td><td>${esc(e.programVersion||'—')}</td></tr>`;}).join('')}</tbody></table></div></section>`;}
 function bindAccounting(){
  document.querySelector('#book-audit-export')?.addEventListener('click',()=>closingDownload({company:state.company,exported:new Date().toISOString(),events:state.accounting.events},'sizzla-bokforingshistorik.json'));
- document.querySelectorAll('[data-book-tab]').forEach(b=>b.onclick=()=>{bookTab=b.dataset.bookTab;search='';render();});
+ document.querySelectorAll('[data-book-tab]').forEach(b=>b.onclick=()=>{++navigationGeneration;pageLoadError=false;bookTab=b.dataset.bookTab;search='';render();});
  document.querySelectorAll('[data-book-new]').forEach(b=>b.onclick=()=>bookOpen(b.dataset.bookNew));
  document.querySelectorAll('[data-book-view]').forEach(b=>b.onclick=()=>bookView(b.dataset.bookView));
  document.querySelectorAll('[data-book-account]').forEach(b=>b.onclick=()=>bookOpen('account',state.accounting.accounts.find(a=>a.code===b.dataset.bookAccount)));
  document.querySelectorAll('[data-book-payroll]').forEach(b=>b.onclick=()=>bookOpen('payroll',{runId:b.dataset.bookPayroll}));
- const y=document.querySelector('#book-year');if(y)y.onchange=()=>{bookYearId=y.value;bookFrom='';bookTo='';search='';render();};
- for(const [id,key]of [['book-report','report'],['book-from','from'],['book-to','to'],['book-ledger','ledger']]){const el=document.getElementById(id);if(el)el.onchange=()=>{if(key==='report')bookReport=el.value;if(key==='from')bookFrom=el.value;if(key==='to')bookTo=el.value;if(key==='ledger')bookLedger=el.value;render();};}
+ const y=document.querySelector('#book-year');if(y)y.onchange=()=>{++navigationGeneration;pageLoadError=false;bookYearId=y.value;bookFrom='';bookTo='';search='';render();};
+ for(const [id,key]of [['book-report','report'],['book-from','from'],['book-to','to'],['book-ledger','ledger']]){const el=document.getElementById(id);if(el)el.onchange=()=>{++navigationGeneration;pageLoadError=false;if(key==='report')bookReport=el.value;if(key==='from')bookFrom=el.value;if(key==='to')bookTo=el.value;if(key==='ledger')bookLedger=el.value;render();};}
  const exp=document.querySelector('#book-export');if(exp)exp.onclick=bookExport;
  const print=document.querySelector('#book-print-report');if(print){appendSourceHistory('#book-print-report',{kind:'report',yearId:bookYearId});print.onclick=()=>bookPrintOpen({type:'report',yearId:bookYearId,report:bookReport,from:bookFrom,to:bookTo,account:bookLedger});}
 }
@@ -59,6 +60,7 @@ function bookSelect(name,label,value,options,required=true){return `<label class
 const bookChooseAccount=(name,label,value='',types=null)=>bookSelect(name,label,value,[['','—'],...state.accounting.accounts.filter(a=>a.active&&(!types||types.includes(a.type))).map(a=>[a.code,`${a.code} ${bn(a)}`])]);
 function bookDateInYear(y,value=today()){return value<y.start?y.start:value>y.end?y.end:value;}
 function bookOpen(mode,initial={}){
+ if(state.loadScope)return openFullSource(()=>{render();bookOpen(mode,mode==='voucher'&&initial.id?state.accounting.vouchers.find(v=>v.id===initial.id)||initial:initial);});
  const y=bookYear(),r=structuredClone(initial);
  if(mode==='year')Object.assign(r,{name:String(new Date().getFullYear()),start:`${new Date().getFullYear()}-01-01`,end:`${new Date().getFullYear()}-12-31`});
  if(mode==='voucher'){r.yearId=r.yearId||y.id;r.date=r.date||bookDateInYear(y);r.lines=r.lines?r.lines.map(l=>({...l,debit:number(l.debit),credit:number(l.credit)})):[{account:'',debit:'0',credit:'0'},{account:'',debit:'0',credit:'0'}];}
@@ -110,6 +112,7 @@ function renderBookEditor(){
 }
 function bookLineTable(v){return `<div class="table-wrap"><table><thead><tr>${['account','lineNote','debit','credit'].map(k=>`<th>${bt(k)}</th>`).join('')}</tr></thead><tbody>${v.lines.map(l=>`<tr><td>${l.account} ${esc(bn(l))}</td><td>${esc(l.note)}</td><td>${money(l.debit)}</td><td>${money(l.credit)}</td></tr>`).join('')}<tr class="hr-total"><td colspan="2">${t('total')}</td><td>${money(v.lines.reduce((s,l)=>s+l.debit,0))}</td><td>${money(v.lines.reduce((s,l)=>s+l.credit,0))}</td></tr></tbody></table></div>`;}
 function bookView(id){
+ if(state.loadScope&&(state.loadScope==='book-report'||!state.accounting?.vouchers?.find(v=>v.id===id)?.lines)){if(page!=='accounting'||bookTab!=='journals')return openFullSource(()=>{render();bookView(id);});return bookLoadDetail(id);}
  editor=null;const v=state.accounting.vouchers.find(v=>v.id===id),y=state.accounting.years.find(y=>y.id===v.yearId),root=document.querySelector('#modal-root');
  root.innerHTML=`<dialog class="editor large" aria-labelledby="book-view-title"><div class="dialog-head"><div><span class="eyebrow">${esc(y.name)} · ${bt(bookStatus(v))}</span><h2 id="book-view-title">${bookNumber(v)} · ${esc(v.description)}</h2></div><button class="icon-button" id="book-close" aria-label="${t('close')}">×</button></div><div class="dialog-body"><p>${bt('date')}: ${v.date}<br>${bt('reference')}: ${esc(v.reference)}<br>${cl('posted')}: ${esc(v.actor?.name||cl('operatorUnknown'))}<br>${cl('registered')}: ${esc(v.posted||v.created)}</p>${v.corrects?`<p>${bt('corrects')}: ${bookNumber(state.accounting.vouchers.find(j=>j.id===v.corrects))}</p>`:''}${v.reversedBy?`<p>${bt('reversed')}: ${bookNumber(state.accounting.vouchers.find(j=>j.id===v.reversedBy))}</p>`:''}${bookLineTable(v)}<p class="hr-error" role="alert" id="book-error"></p></div><div class="dialog-foot"><div>${v.status==='draft'?`<button class="secondary" id="book-edit">${bt('edit')}</button><button class="secondary" id="book-discard">${bt('discard')}</button>`:''}${v.status==='posted'&&!v.reversedBy&&!v.corrects?`<button class="secondary" id="book-reverse">${bt('reverse')}</button>`:''}</div><div><button class="secondary" id="book-print">${bt('print')}</button>${v.status==='draft'?`<button class="primary" id="book-post">${bt('post')}</button>`:''}</div></div></dialog>`;
  const dialog=root.querySelector('dialog');dialog.showModal();document.querySelector('#book-close').onclick=()=>{dialog.close();root.innerHTML='';};
@@ -137,3 +140,9 @@ function bookExport(){
 }
 
 bookWords.sv.sie='SIE-import & export';bookWords.en.sie='SIE import & export';
+
+async function bookLoadDetail(id){
+ if(fullSourceOpening)return;fullSourceOpening=true;const target=page,navigation=navigationGeneration;
+ try{if(await load('book-detail',{id})&&!databaseSessionInvalid&&page===target&&navigation===navigationGeneration){render();bookView(id);}}
+ catch(error){if(error.message!=='dbChanged')toast(t('loadFailed'));}finally{fullSourceOpening=false;}
+}
