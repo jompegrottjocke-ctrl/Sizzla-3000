@@ -1,39 +1,48 @@
+const {initLocalOAuth}=require('./mcp-oauth.cjs');
 const {randomBytes,randomUUID,timingSafeEqual}=require('node:crypto');
 const {text}=require('./domain.cjs');
 const scopes=['company','sales','inventory','accounting'];
 class McpError extends Error{constructor(code,status=400){super(code);this.status=status;}}
-function initMcp(db,accounting,{sales,inventory}){
- let key=null,operator=null,connectionId=null;
- const config=()=>JSON.parse(db.prepare("SELECT data FROM records WHERE kind='mcp_config' AND id='active'").get()?.data||JSON.stringify({revision:0,clientName:'',permissions:Object.fromEntries(scopes.map(s=>[s,false]))}));
+function initMcp(db,accounting,{sales,inventory,now=Date.now}){
+ let key=null,operator=null,connectionId=null,expiresAt=null,manual=null;
+ const storedConfig=()=>JSON.parse(db.prepare("SELECT data FROM records WHERE kind='mcp_config' AND id='active'").get()?.data||JSON.stringify({revision:0,clientName:'',permissions:Object.fromEntries(scopes.map(s=>[s,false]))}));
+ const config=()=>({authMethod:'bearer',lifetime:3600,...storedConfig()});
+ const active=()=>{if(connectionId&&expiresAt<=now()){key=null;manual=null;operator=null;connectionId=null;oauth.reset();}return !!connectionId&&(!!key||['oauth','both'].includes(config().authMethod));};
+ const oauth=initLocalOAuth({active:()=>active()&&['oauth','both'].includes(config().authMethod),permissions:()=>config().permissions,expiry:()=>expiresAt,generation:()=>connectionId,actor:()=>accounting.requireOperator(),event:(...args)=>event(...args),now});
  const event=(action,data={})=>db.prepare('INSERT INTO records VALUES(?,?,?)').run('mcp_event',randomUUID(),JSON.stringify({at:new Date().toISOString(),action,actor:operator||accounting.operator(),programVersion:require('../package.json').version,...data}));
  const save=c=>db.prepare("INSERT INTO records VALUES('mcp_config','active',?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data").run(JSON.stringify(c));
- const shutdown=()=>{key=null;operator=null;connectionId=null;};
- function state(url){return {config:config(),enabled:!!key,connectionId,url:url?url+'/mcp':null,transport:'streamable-http',readOnly:true,history:db.prepare("SELECT id,data FROM records WHERE kind='mcp_event' ORDER BY rowid DESC LIMIT 100").all().map(r=>({id:r.id,...JSON.parse(r.data)}))};}
- function handle(route,b){const c=config();if(c.revision!==b.revision)throw new McpError('mcpConflict',409);const actor=accounting.requireOperator();let next={...c,revision:c.revision+1},newKey=null;
+ const shutdown=()=>{key=null;operator=null;connectionId=null;expiresAt=null;manual=null;oauth.reset();};
+ function state(url){const o=oauth.state(),m=active()&&key?{...manual,authMethod:'bearer',clientName:config().clientName,scopes:scopes.filter(s=>config().permissions[s]),expiresAt}:null;return {manual:m,clients:[...(m?[m]:[]),...o.clients],config:config(),enabled:active(),connectionId,expiresAt,authMethods:{bearer:config().authMethod!=='oauth',oauth:['oauth','both'].includes(config().authMethod)},oauth:o,url:url?url+'/mcp':null,transport:'streamable-http',readOnly:true,history:db.prepare("SELECT id,data FROM records WHERE kind='mcp_event' ORDER BY rowid DESC LIMIT 100").all().map(r=>({id:r.id,...JSON.parse(r.data)}))};}
+ function handle(route,b){if(!b||typeof b!=='object'||Array.isArray(b))throw new McpError('mcpInvalid');const c=config();if(c.revision!==b.revision)throw new McpError('mcpConflict',409);const actor=accounting.requireOperator();if(route.startsWith('oauth/')){try{oauth.decide(route.slice(6),b);}catch(e){throw new McpError(e.message,409);}return {ok:true};}if(route==='kick'){if(!manual||b.id!==manual.id)throw new McpError('mcpOAuthMissing',409);key=null;manual=null;event('client_kicked',{actor,clientName:c.clientName,authMethod:'bearer'});return {ok:true};}if(route==='key/rotate'){if(!active()||c.authMethod==='oauth'||b.reviewed!==true)throw new McpError('mcpReview');key=randomBytes(32).toString('hex');manual={id:randomUUID(),createdAt:now(),lastSeenAt:null,sourceAddress:null,software:null,requests:0};event('key_rotated',{actor,clientName:c.clientName,authMethod:'bearer'});return {ok:true,key,connectionId,manualId:manual.id,expiresAt};}let next={...c,revision:c.revision+1},newKey=null;
   if(route==='config'){
    if(typeof b.clientName!=='string'||!b.permissions||typeof b.permissions!=='object'||Array.isArray(b.permissions)||Object.keys(b.permissions).length!==scopes.length||scopes.some(s=>typeof b.permissions[s]!=='boolean'))throw new McpError('mcpInvalid');
-   next={...next,clientName:text(b.clientName,'mcpName',false,80),permissions:Object.fromEntries(scopes.map(s=>[s,b.permissions[s]]))};
+   if(!['bearer','oauth','both'].includes(b.authMethod??'bearer')||![900,3600,28800].includes(b.lifetime??3600))throw new McpError('mcpInvalid');
+   next={...next,authMethod:b.authMethod??'bearer',lifetime:b.lifetime??3600,clientName:text(b.clientName,'mcpName',false,80),permissions:Object.fromEntries(scopes.map(s=>[s,b.permissions[s]]))};
   }else if(route==='start'||route==='rotate'){
+   if(!['bearer','oauth','both'].includes(c.authMethod)||![900,3600,28800].includes(c.lifetime)||!c.permissions||Object.keys(c.permissions).length!==scopes.length||scopes.some(s=>typeof c.permissions[s]!=='boolean'))throw new McpError('mcpInvalid');
    if(b.reviewed!==true||!c.clientName||!scopes.some(s=>c.permissions[s]))throw new McpError('mcpReview');
-   if(route==='start'&&key||route==='rotate'&&!key)throw new McpError('mcpConflict',409);
+   if(route==='start'&&active()||route==='rotate'&&!active())throw new McpError('mcpConflict',409);
    newKey=randomBytes(32).toString('hex');
   }else if(route!=='stop')throw new McpError('mcpMissing',404);
-  db.exec('BEGIN IMMEDIATE');try{save(next);event(route,{actor,clientName:next.clientName,permissions:next.permissions});db.exec('COMMIT');}catch(error){db.exec('ROLLBACK');throw error;}
-  shutdown();if(newKey){key=newKey;operator=actor;connectionId=randomUUID();}return {ok:true,...(newKey?{key:newKey,connectionId}:{})};
+  db.exec('BEGIN IMMEDIATE');try{save(next);event(route,{actor,clientName:next.clientName,permissions:next.permissions,authMethod:next.authMethod,lifetime:next.lifetime});db.exec('COMMIT');}catch(error){db.exec('ROLLBACK');throw error;}
+  shutdown();if(newKey){key=next.authMethod==='oauth'?null:newKey;operator=actor;connectionId=randomUUID();expiresAt=now()+next.lifetime*1000;if(key)manual={id:randomUUID(),createdAt:now(),lastSeenAt:null,sourceAddress:null,software:null,requests:0};}return {ok:true,...(key?{key,connectionId,manualId:manual.id}:{}),expiresAt};
  }
- const authenticated=header=>{if(!key||typeof header!=='string'||!/^Bearer [a-f0-9]{64}$/.test(header))return false;return timingSafeEqual(Buffer.from(header.slice(7),'hex'),Buffer.from(key,'hex'));};
+ const authentication=header=>{if(!active()||typeof header!=='string')return null;const match=/^Bearer +([a-f0-9]{64})$/i.exec(header);if(!match||match[1]!==match[1].toLowerCase())return null;const value=match[1];if(key&&timingSafeEqual(Buffer.from(value,'hex'),Buffer.from(key,'hex')))return {id:manual.id,generation:connectionId,clientName:config().clientName,permissions:config().permissions,actor:operator};return oauth.authorised(value);};
  const rows=kind=>db.prepare('SELECT id,data FROM records WHERE kind=? ORDER BY rowid DESC').all(kind).map(r=>({id:r.id,...JSON.parse(r.data)}));
  async function http(req,res,isCurrent=()=>true){
   const reply=(status,message)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:message}));};
-  if(!key)return reply(404,'MCP is disabled');
+  if(!isCurrent()||!active())return reply(404,'MCP is disabled or expired');
   if(req.headers.origin!==undefined||!['127.0.0.1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress))return reply(403,'Local non-browser clients only');
-  if(!authenticated(req.headers.authorization))return reply(401,'Invalid connection key');
+  const auth=authentication(req.headers.authorization);if(!auth){res.setHeader('WWW-Authenticate','Bearer realm="sizzla-3000"'+(req.headers.authorization?', error="invalid_token"':'')+(['oauth','both'].includes(config().authMethod)?', resource_metadata="http://'+req.headers.host+'/.well-known/oauth-protected-resource/mcp"':''));return reply(401,'Invalid or expired access token');}
   if(req.method!=='POST'){res.setHeader('Allow','POST');return reply(405,'Only stateless MCP POST is supported');}
-  if(!req.headers['content-type']?.startsWith('application/json'))return reply(415,'application/json required');
-  const requestKey=key;let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>32768)return reply(413,'MCP request too large');}
-  if(!isCurrent()||key!==requestKey||!authenticated(req.headers.authorization))return reply(401,'Connection was revoked');
+  if((req.headers['content-type']||'').split(';')[0].trim().toLowerCase()!=='application/json')return reply(415,'application/json required');
+  const requestGeneration=connectionId;let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>32768)return reply(413,'MCP request too large');}
+  if(!isCurrent()||connectionId!==requestGeneration||!authentication(req.headers.authorization))return reply(401,'Connection was revoked');
   let body;try{body=JSON.parse(raw);}catch{return reply(400,'Invalid JSON');}
   if(!body||typeof body!=='object'||Array.isArray(body))return reply(400,'One JSON-RPC message per request is required');
+  const declared=body.method==='initialize'&&body.params?.clientInfo,cleanText=(v,max)=>typeof v==='string'?v.replace(/[\x00-\x1f\x7f]/g,' ').slice(0,max):'';
+  const activity={lastSeenAt:now(),sourceAddress:req.socket.remoteAddress==='::ffff:127.0.0.1'?'127.0.0.1':req.socket.remoteAddress,sourcePort:req.socket.remotePort,software:declared?{name:cleanText(declared.name,80),version:cleanText(declared.version,40)}:null};
+  if(auth.clientId)oauth.touch(auth.id,activity);else if(manual?.id===auth.id)manual={...manual,...activity,software:activity.software||manual.software,requests:manual.requests+1};
   const {McpServer}=require('@modelcontextprotocol/sdk/server/mcp.js');
   const {StreamableHTTPServerTransport}=require('@modelcontextprotocol/sdk/server/streamableHttp.js');
   const {z}=require('zod');
@@ -47,16 +56,16 @@ function initMcp(db,accounting,{sales,inventory}){
    {name:'sizzla_stock',scope:'inventory',description:'Read product codes, names, stock balances, units and reorder points. Quantities are integer hundredths.',schema:paging,read:a=>page(inventory.state().items.map(i=>({id:i.id,sku:i.sku,name:i.name,unit:i.unit,stockTracked:i.enabled,quantity:i.quantity,minimum:i.minimum})),a)},
    {name:'sizzla_vouchers',scope:'accounting',description:'Read posted journals including correction entries. Returns SEK integer ore. No drafts, employee profiles or payroll tools.',schema:paging,read:a=>page(accounting.state().vouchers.filter(v=>v.status==='posted').map(v=>({id:v.id,number:v.number,yearId:v.yearId,date:v.date,corrects:v.corrects,reversedBy:v.reversedBy,description:v.description,reference:v.reference,lines:v.lines.map(l=>({account:l.account,debit:l.debit,credit:l.credit,note:l.note||''}))})),a)}
   ];
-  const c=config(),allowed=definitions.filter(d=>c.permissions[d.scope]);
-  if(body.method==='tools/call')event(allowed.some(d=>d.name===body.params?.name)?'tool_requested':'tool_denied',{tool:definitions.some(d=>d.name===body.params?.name)?body.params.name:'unknown',clientName:c.clientName});
+  const c={...config(),clientName:auth.clientName},allowed=definitions.filter(d=>auth.permissions[d.scope]);
+  if(body.method==='tools/call')event(allowed.some(d=>d.name===body.params?.name)?'tool_requested':'tool_denied',{tool:definitions.some(d=>d.name===body.params?.name)?body.params.name:'unknown',clientName:c.clientName,actor:auth.actor});
   for(const d of allowed)server.registerTool(d.name,{description:d.description,inputSchema:d.schema,annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false}},args=>{
-   if(!isCurrent()||key!==requestKey)throw new Error('MCP connection revoked');
-   try{const data=d.read(args);event('tool_read',{tool:d.name,clientName:c.clientName,count:data.items?.length??1});return {content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data};}catch(error){event('tool_failed',{tool:d.name,clientName:c.clientName});throw new Error('Unable to read this source');}
+   if(!isCurrent()||connectionId!==requestGeneration||!authentication(req.headers.authorization))throw new Error('MCP connection revoked');
+   try{const data=d.read(args);event('tool_read',{tool:d.name,clientName:c.clientName,actor:auth.actor,count:data.items?.length??1});return {content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data};}catch(error){event('tool_failed',{tool:d.name,clientName:c.clientName,actor:auth.actor});throw new Error('Unable to read this source');}
   });
   const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});
   res.setHeader('Cache-Control','no-store');res.once('close',()=>{server.close().catch(()=>{});});
   await server.connect(transport);await transport.handleRequest(req,res,body);
  }
- return {state,handle,http,shutdown};
+ return {state,handle,http,shutdown,oauthHttp:(req,res,isCurrent)=>oauth.http(req,res,'http://'+req.headers.host,isCurrent)};
 }
 module.exports={initMcp,McpError};

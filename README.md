@@ -457,3 +457,7 @@ Lager → Webbshop → WooCommerce har manuell orderimport med granskning, kundo
 ### Shopify-orderimport i 0.33.0
 
 Lager → Webbshop → Shopify har nu manuell orderimport med lagerplatsval, granskning, kundorder, reservation och dubblettskydd. Första versionen stöder hela olevererade svenska SEK-order tilldelade en aktiv lagerplats. Inga finansiella dokument eller Shopify-leveranser skapas. Se [funktion och avgränsning](docs/SHOPIFY-ORDERIMPORT.md).
+
+### MCP-autentisering och klientlista i 0.34.0
+
+Under **AI-agent → MCP & anslutningar** finns valbar lokal OAuth med PKCE S256 och uttryckligt godkännande per klient, tidsbegränsade manuella nycklar samt **Klienter & senaste aktivitet**. Se behörigheter, senaste anrop, verklig källadress och självdeklarerat klientprogram, och återkalla en klients åtkomst. Övriga OAuth-klienter kan behålla sin åtkomst vid byte av manuell nyckel. Endast lokal loopback; direkt molnanslutning till ChatGPT ingår inte. [Instruktioner och gränser](docs/MCP.md).
