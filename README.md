@@ -100,7 +100,7 @@ Flödet gäller vanliga svenska fakturor i **SEK enligt fakturametoden**. Andra 
 8. Sök och filtrera lagerlistan, visa artiklar under beställningspunkten och filtrera rörelsehistoriken på artikel, typ och datum. **Uppdatera** läser aktuella uppgifter om en annan vy har ändrat lagret. Lagerhantering kan avaktiveras först när saldo är noll och utfärdade lagerkopplade order avslutats.
 9. Lagerlistor, rörelser och inventeringar kan skrivas ut till PDF med den befintliga utskriftshistoriken. Aktuellt urval kan exporteras som CSV. PDF-kopior, lagerdata och historik ingår i databasens säkerhetskopior.
 
-Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Fakturautkast och utfärdade kundfakturor drar inte lager; registrera utleverans manuellt med referens. Leverantörsfakturor/krediter ändrar inte antal. Reservationer, flera lager, lagerflyttar, batch-/serienummer, FIFO/medelpris och automatisk koppling till kundorder ingår inte i denna version.
+Lagermodulen hanterar **antal**, inte automatisk lagervärdering eller lagerbokföring. Fristående fakturautkast och kundfakturor drar inte lager. Kundorderleveranser drar däremot lager automatiskt när artikeln lagerförs; registrera inte ett extra manuellt uttag för samma leverans. Leverantörsfakturor/krediter ändrar inte antal. Bekräftade kundorder reserverar lager och kopplade orderleveranser uppdaterar antal. Flera lager, lagerflyttar, batch-/serienummer och automatisk FIFO-/medelprisvärdering ingår inte.
 
 Version 0.11 använder fortsatt **schema 8**. Befintliga uppgifter och PDF-historik bevaras vid uppgradering eller import av kompletta schema 4/5/6/7-kopior från 0.5–0.9-serien. Äldre programversioner ska inte användas mot den uppgraderade databasen.
 
@@ -461,3 +461,5 @@ Lager → Webbshop → Shopify har nu manuell orderimport med lagerplatsval, gra
 ### MCP-autentisering och klientlista i 0.34.0
 
 Under **AI-agent → MCP & anslutningar** finns valbar lokal OAuth med PKCE S256 och uttryckligt godkännande per klient, tidsbegränsade manuella nycklar samt **Klienter & senaste aktivitet**. Se behörigheter, senaste anrop, verklig källadress och självdeklarerat klientprogram, och återkalla en klients åtkomst. Övriga OAuth-klienter kan behålla sin åtkomst vid byte av manuell nyckel. Endast lokal loopback; direkt molnanslutning till ChatGPT ingår inte. [Instruktioner och gränser](docs/MCP.md).
+
+Sammanhängande kontroll av inköp, leveranser, krediter, betalningar, bokföring och återställning: [kontrollrapport och kvarstående manuella steg](docs/FORETAGSFLODE-KONTROLL.md).

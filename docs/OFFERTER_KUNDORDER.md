@@ -1,6 +1,6 @@
 # Offerter, kundorder och leveranser
 
-Version 0.22.0. Flikarna **Offerter** och **Kundorder** finns under **Fakturering**. Stödet gäller SEK. Välj ansvarig i panelen före registrering; namnet sparas med händelserna. Det är en lokal ansvarsuppgift, inte en autentiserad inloggning.
+Granskad mot version 0.34.0. Flikarna **Offerter** och **Kundorder** finns under **Fakturering**. Valutaflöden beskrivs separat i [Valuta](VALUTA.md); flödeskontrollen nedan gäller SEK. Välj ansvarig i panelen före registrering; namnet sparas med händelserna. Det är en lokal ansvarsuppgift, inte en autentiserad inloggning.
 
 ## Från offert till order
 
@@ -17,7 +17,7 @@ Företagsnamn och organisationsnummer behövs. Organisationsnumret skyddas efter
 
 Registrera faktiskt levererat eller utfört antal med datum och referens. Noll utesluter raden. Delleveranser stöds; antalet får inte överstiga vad som återstår på ordern. Tjänster måste också registreras som utförda före fakturaunderlag. Leveransen får UL-nummer och kan skrivas ut som följesedel utan priser.
 
-Lagerföring bestäms när ordern bekräftas. För en lagerförd artikel skapas negativa lagerrörelser i samma databastransaktion som leveransen. Negativt saldo, ändrad lagerinställning/enhet och konflikter med senare inventering stoppas av lagerkontrollerna. Ingen reservation görs vid offert/order. Ingen automatisk kostnads- eller lagerbokföring sker. En fristående kundfaktura ändrar fortfarande inte lager; registrera inte dessutom ett manuellt uttag för en redan lagerförd orderleverans.
+Lagerföring bestäms när ordern bekräftas. För en lagerförd artikel skapas negativa lagerrörelser i samma databastransaktion som leveransen. Negativt saldo, ändrad lagerinställning/enhet och konflikter med senare inventering stoppas av lagerkontrollerna. En bekräftad kundorder reserverar återstående lagerfört antal. Offert och orderutkast reserverar inget. Delleverans minskar reservationen och avslut frigör återstående reservation; verklig inventeringsbrist visas separat. Ingen automatisk kostnads- eller lagerbokföring sker. En fristående kundfaktura ändrar fortfarande inte lager; registrera inte dessutom ett manuellt uttag för en redan lagerförd orderleverans.
 
 En felregistrerad, ännu inte fakturerad leverans kan återtas med datum och orsak. Kopplade lagerrörelser rättas med motsatta rörelser och originalen bevaras. Ett öppet fakturaunderlag måste först återtas. Utfärdad faktura rättas med kreditfaktura, och eventuell fysisk kundretur hanteras separat i lager. Kredit eller motbokning frigör inte automatiskt orderantal för ny fakturering.
 
@@ -41,4 +41,6 @@ Offert, order, leverans, fakturaunderlag och faktura har länkar mellan sig. Lag
 
 Skrivåtgärder använder databassession och revisionskontroll. Leverans, lagerändring, fakturaunderlag och återtagning sparas atomiskt; fel rullar tillbaka hela åtgärden. Kontrollerad överföring skyddar mot dubbel fakturering av samma leverans inom orderflödet, men kan inte upptäcka en separat manuellt skapad faktura för samma affär.
 
-Förskott, flera valutor, automatisk e-post, elektronisk signering, lagerreservationer och automatisk returhantering ingår inte i denna version. Funktionen ersätter inte företagets rutiner för avtalsgranskning, dokumentleverans, bokföring eller underlagsförvaring.
+Förskott, automatisk e-post, elektronisk signering och automatisk returhantering ingår inte i denna version. Funktionen ersätter inte företagets rutiner för avtalsgranskning, dokumentleverans, bokföring eller underlagsförvaring.
+
+Se [sammanhängande företagsflödeskontroll](FORETAGSFLODE-KONTROLL.md) för avstämda exempel och manuella moment.
