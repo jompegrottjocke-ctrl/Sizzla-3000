@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.34.0, databasschema 10. Uppdaterad 2026-11-15.
+Version 0.34.1, databasschema 10. Uppdaterad 2026-11-15.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -309,3 +309,5 @@ WooCommerce-orderimport skapar atomiskt kundkoppling och bekräftad kundorder me
 Shopify-orderimport använder plattforms- och företagsbundna granskningsunderlag, kontrollerar vald lagerplats/hela återstående antal och skapar lokala kundorder atomiskt utan finansiella dokument. Äldre WooCommerce-kopplingar behålls. Se [SHOPIFY-ORDERIMPORT.md](docs/SHOPIFY-ORDERIMPORT.md).
 
 MCP 0.34.0 har valbar lokal OAuth Authorization Code + PKCE S256, tidsbegränsad aktivering och en klientlista med selektiv återkallelse. Klientnamn är självdeklarerade; källadresser och aktivitet finns endast i minnet. Ingen fjärrserver eller verifierad personinloggning ingår. Se [MCP-dokumentationen](docs/MCP.md).
+
+I 0.34.1 spärras bokslutspanelernas knappar och urval medan ansvarig operatör sparas. Efter lyckad sparning ritas aktuell vy om; vid fel återaktiveras tidigare tillgängliga kontroller och felet visas. Det skyddar dialogöppning mot att bli överkörd av sparandets omritning.

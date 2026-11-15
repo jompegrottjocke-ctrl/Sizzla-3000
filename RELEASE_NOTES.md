@@ -1,11 +1,10 @@
-Sizzla 3000 0.34.0 – MCP-autentisering och klientkontroll.
+Sizzla 3000 0.34.1 – stabilare bokslutsdialog vid val av ansvarig.
 
-- Valbar manuell Bearer-nyckel, lokal OAuth Authorization Code + PKCE S256 eller båda.
-- Aktivering i 15 minuter, 1 timme (standard) eller 8 timmar. OAuth kräver uttryckligt godkännande av klient och behörigheter i Sizzla.
-- Klientlista med behörigheter, senaste aktivitet, verklig källadress och självdeklarerat klientprogram. Kasta ut en klient utan att återkalla andra OAuth-klienter.
-- Byte av enbart manuell nyckel kan behålla OAuth-klienter. Global återställning, avstängning, företagsbyte och omstart återkallar allt.
-- Hemliga autentiseringsuppgifter och klientaktivitet finns endast i minnet. Verktygen är fortsatt endast läsande.
+- Bokslutets åtgärder väntar medan ansvarig operatör sparas. Det förhindrar att en ny dialog stängs när sparandet ritar om sidan.
+- Vid misslyckad sparning blir knapparna tillgängliga igen och felmeddelandet visas.
+- Regressionstest med uttryckligt fördröjt svar och misslyckad sparning; det tidigare bokslutstestet väntar på slutförd sparning.
+- Sammanhängande företagsflödeskontroll omfattar inköp, leveranser, returer, krediter, betalningar, moms, manuell lagervärdering och databasåterställning. Se docs/FORETAGSFLODE-KONTROLL.md.
 
-MCP är endast tillgängligt lokalt på 127.0.0.1. Ingen publik server, TLS-brygga eller direkt anslutning från ChatGPT i molnet ingår. Namn verifierar inte en persons identitet; program som delar manuell nyckel kan inte särskiljas. Se docs/MCP.md.
+Databasschema 10 är oförändrat. MCP-funktionerna från 0.34.0 finns kvar i ordinarie version. Testbygget utan MCP är separat. Denna rättning avser bokslutsgränssnittet och löser inte en bekräftad orsak till Chromes nedladdningsvarning.
 
-Schema 10 och säkerhetskopieformat är oförändrade. Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.
+Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.
