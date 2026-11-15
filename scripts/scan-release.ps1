@@ -1,12 +1,12 @@
 $ErrorActionPreference = 'Stop'
 $report = Join-Path $env:RUNNER_TEMP 'sizzla-security-report'
 New-Item -ItemType Directory -Force -Path $report | Out-Null
-$file = Join-Path $report 'Sizzla.3000.Setup.0.5.3.exe'
-$expected = '02955729c976279af31c1ed213bf2c06b50a5ef80cc7893281426303b2d926a9'
+$file = Join-Path $report 'Sizzla.3000.Setup.0.34.0.exe'
+$expected = 'fc408b0f6080a5be55571e8742244d0bc7de06663f075031df525503a877e3b7'
 try {
-    Invoke-WebRequest -Uri 'https://github.com/jompegrottjocke-ctrl/Sizzla-3000/releases/download/v0.5.3/Sizzla.3000.Setup.0.5.3.exe' -OutFile $file
+    Invoke-WebRequest -Uri 'https://github.com/jompegrottjocke-ctrl/Sizzla-3000/releases/download/v0.34.0/Sizzla.3000.Setup.0.34.0.exe' -OutFile $file
     $actual = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
-    "Release: v0.5.3`nSHA256: $actual`nExpected: $expected" | Set-Content (Join-Path $report 'identity.txt')
+    "Release: v0.34.0`nSHA256: $actual`nExpected: $expected" | Set-Content (Join-Path $report 'identity.txt')
     if ($actual -ne $expected) { throw 'Published installer hash does not match the pinned release hash.' }
     Get-AuthenticodeSignature -LiteralPath $file | Select-Object Status, StatusMessage, Path | Format-List | Out-String | Set-Content (Join-Path $report 'signature.txt')
     $scanner = Get-ChildItem "$env:ProgramData\Microsoft\Windows Defender\Platform\*\MpCmdRun.exe" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
