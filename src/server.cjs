@@ -1,3 +1,4 @@
+const {initShopifyOrders}=require('./shopify-orders.cjs');
 const {initWooOrders}=require('./woo-orders.cjs');
 const {initShopify}=require('./shopify.cjs');
 const {initWebshop,WebshopError}=require('./webshop.cjs');
@@ -89,6 +90,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   }
   let closed=false;
   const backupTimer=setInterval(()=>automatic.due(),60000);backupTimer.unref();
+  const shopifyOrders=initShopifyOrders({context:()=>({session:databaseSession}),lookup:source=>trade.webOrderLookup(source),review:source=>trade.webOrderReview(source,settings()),commit:(source,expected)=>trade.importWebOrder(source,expected,settings())});
   const wooOrders=initWooOrders({context:()=>({session:databaseSession}),review:source=>trade.webOrderReview(source,settings()),commit:(source,expected)=>trade.importWebOrder(source,expected,settings())});
   const shopify=initShopify({context:()=>({session:databaseSession,items:inventory.summary().items}),audit:data=>inventory.recordWebshop(data)});
   const webshop=initWebshop({context:()=>({session:databaseSession,items:inventory.summary().items}),audit:data=>inventory.recordWebshop(data)});
@@ -152,7 +154,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       const requestToken=token;
       let raw = '';
-      for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (['/api/security/import','/api/security/verify'].includes(url.pathname)?360*1024*1024:url.pathname==='/api/archive/upload'?15*1024*1024:['/api/sie/preview','/api/bank/read'].includes(url.pathname)?8*1024*1024:url.pathname.startsWith('/api/file-import/')?8*1024*1024:url.pathname==='/api/webshop/woo-orders/import'?1024*1024:262144)) return send(res,413,{error:'size'}); }
+      for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (['/api/security/import','/api/security/verify'].includes(url.pathname)?360*1024*1024:url.pathname==='/api/archive/upload'?15*1024*1024:['/api/sie/preview','/api/bank/read'].includes(url.pathname)?8*1024*1024:url.pathname.startsWith('/api/file-import/')?8*1024*1024:['/api/webshop/woo-orders/import','/api/webshop/shopify-orders/import'].includes(url.pathname)?1024*1024:262144)) return send(res,413,{error:'size'}); }
       if(requestToken!==token)return send(res,409,{error:'dbChanged'});
       let body;
       try { body = JSON.parse(raw); } catch { return send(res,400,{error:'json'}); }
@@ -172,6 +174,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         }
         throw new DatabaseError('dbMissing',404);
       }
+      if(url.pathname.startsWith('/api/webshop/shopify-orders/'))return send(res,200,await shopifyOrders.handle(url.pathname.slice('/api/webshop/shopify-orders/'.length),body));
       if(url.pathname.startsWith('/api/webshop/woo-orders/'))return send(res,200,await wooOrders.handle(url.pathname.slice('/api/webshop/woo-orders/'.length),body));
       if(url.pathname.startsWith('/api/webshop/shopify/'))return send(res,200,await shopify.handle(url.pathname.slice('/api/webshop/shopify/'.length),body));
       if(url.pathname.startsWith('/api/webshop/'))return send(res,200,await webshop.handle(url.pathname.slice('/api/webshop/'.length),body));

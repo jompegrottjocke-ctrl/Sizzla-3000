@@ -19,7 +19,7 @@ function normalizeOrder(o,site){
    lines.push({kind,sku:kind==='item'?text(l.sku||'','webSKU'): '',description:text(kind==='shipping'?l.method_title||'Shipping':l.name,'webAmounts'),quantity,price:net/quantity,vat,net,tax});
   }
   if(lines.length>100)fail('webAmounts');const net=lines.reduce((n,l)=>n+l.net,0),tax=lines.reduce((n,l)=>n+l.tax,0),total=decimal(o.total,'webAmounts',{max:10000000000});if(total<=0||net+tax!==total||tax!==decimal(o.total_tax,'webAmounts',{max:10000000000})||lines.filter(l=>l.kind==='shipping').reduce((n,l)=>n+l.net,0)!==decimal(o.shipping_total,'webAmounts',{max:10000000000}))fail('webAmounts');
-  return {site,id:o.id,number:text(String(o.number||o.id),'webInvalid'),status:o.status,modified:text(o.date_modified_gmt||'','webInvalid'),date:when,currency:'SEK',paid:!!(o.date_paid_gmt||o.date_paid),paymentMethod:text(o.payment_method_title||'','webInvalid',false),customerId:o.customer_id,customer,shipping,lines,net,tax,total};
+  return {platform:'woocommerce',site,id:o.id,number:text(String(o.number||o.id),'webInvalid'),status:o.status,modified:text(o.date_modified_gmt||'','webInvalid'),date:when,currency:'SEK',paid:!!(o.date_paid_gmt||o.date_paid),paymentMethod:text(o.payment_method_title||'','webInvalid',false),customerId:o.customer_id,customer,shipping,lines,net,tax,total};
  }catch(e){if(e instanceof WebshopError)throw e;fail(['webCustomer','webSKU','webQuantity','webTax'].includes(e.message)?e.message:'webAmounts');}
 }
 function initWooOrders({context,review,commit,request=requestJSON,now=Date.now}){

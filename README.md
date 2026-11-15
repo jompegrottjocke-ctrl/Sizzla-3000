@@ -453,3 +453,7 @@ Lager → Webbshop har nu val mellan WooCommerce och Shopify. Shopify-kopplingen
 ### WooCommerce-orderimport i 0.32.0
 
 Lager → Webbshop → WooCommerce har manuell orderimport med granskning, kundorder, lagerreservation och skydd mot dubbelimport. Inga fakturor eller betalningar skapas. Första versionen stöder utvalda svenska SEK-order; se [arbetsflöde, begränsningar och verifiering](docs/WOOCOMMERCE-ORDERIMPORT.md).
+
+### Shopify-orderimport i 0.33.0
+
+Lager → Webbshop → Shopify har nu manuell orderimport med lagerplatsval, granskning, kundorder, reservation och dubblettskydd. Första versionen stöder hela olevererade svenska SEK-order tilldelade en aktiv lagerplats. Inga finansiella dokument eller Shopify-leveranser skapas. Se [funktion och avgränsning](docs/SHOPIFY-ORDERIMPORT.md).

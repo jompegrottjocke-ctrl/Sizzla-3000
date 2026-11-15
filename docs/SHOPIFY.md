@@ -44,3 +44,5 @@ Officiella referenser:
 - https://shopify.dev/docs/api/admin-graphql/2026-10/queries/inventoryItems
 - https://shopify.dev/docs/api/admin-graphql/2026-10/queries/locations
 - https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/inventorySetQuantities
+
+Sedan 0.33.0 finns även en separat manuell Shopify-orderimport. Se [SHOPIFY-ORDERIMPORT.md](SHOPIFY-ORDERIMPORT.md) för aktuellt arbetsflöde. Saldosynk är fortsatt manuell.
