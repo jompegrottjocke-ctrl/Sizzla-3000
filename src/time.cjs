@@ -18,7 +18,7 @@ function initTime(db){
  PRAGMA user_version=8;`);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}
  const projects=()=>db.prepare('SELECT * FROM time_projects ORDER BY code').all().map(r=>({...JSON.parse(r.data),id:r.id,code:r.code,revision:r.revision,status:r.status}));
  const entries=()=>db.prepare('SELECT * FROM time_entries ORDER BY rowid DESC').all().map(r=>({...JSON.parse(r.data),id:r.id,projectId:r.project_id,revision:r.revision,status:r.status,batchId:r.batch_id}));
- const batches=()=>db.prepare('SELECT * FROM time_batches ORDER BY number DESC').all().map(r=>{const issued=db.prepare('SELECT id,number FROM sales_documents WHERE draft_id=?').get(r.invoice_id),draft=db.prepare("SELECT data FROM records WHERE kind='invoice' AND id=?").get(r.invoice_id);return {...JSON.parse(r.data),id:r.id,number:r.number,projectId:r.project_id,invoiceId:r.invoice_id,revision:r.revision,status:r.status==='cancelled'?'cancelled':issued?'issued':'draft',saleId:issued?.id||null,saleNumber:issued?.number||null,invoiceUpdated:draft?JSON.parse(draft.data).updated:null};});
+ const batches=(summary=false)=>db.prepare(`SELECT b.*,${summary?"json_remove(b.data,'$.entries','$.invoice','$.company')":"b.data"} AS data,s.id AS sale_id,s.number AS sale_number,json_extract(r.data,'$.updated') AS invoice_updated FROM time_batches b LEFT JOIN sales_documents s ON s.draft_id=b.invoice_id LEFT JOIN records r ON r.kind='invoice' AND r.id=b.invoice_id ORDER BY b.number DESC`).all().map(r=>({...JSON.parse(r.data),id:r.id,number:r.number,projectId:r.project_id,invoiceId:r.invoice_id,revision:r.revision,status:r.status==='cancelled'?'cancelled':r.sale_id?'issued':'draft',saleId:r.sale_id||null,saleNumber:r.sale_number||null,invoiceUpdated:r.invoice_updated??null}));
  const event=(entity,id,action,data={})=>db.prepare('INSERT INTO time_events(at,entity,entity_id,action,data) VALUES(?,?,?,?,?)').run(new Date().toISOString(),entity,id,action,JSON.stringify(data));
  const current=(list,body)=>{const row=list.find(r=>r.id===body.id);if(!row)throw new TimeError('timeMissing',404);if(row.revision!==body.revision)throw new TimeError('timeConflict');return row;};
  const getCustomer=id=>{if(!id)return null;const row=db.prepare("SELECT data FROM records WHERE kind='customer' AND id=?").get(id);if(!row)bad('timeCustomer');return {id,data:JSON.parse(row.data)};};
@@ -54,6 +54,22 @@ function initTime(db){
   }else throw new TimeError('timeMissing',404);
   db.exec('COMMIT');return result;
  }catch(e){db.exec('ROLLBACK');throw e;}}
- return {handle,state:()=>({projects:projects(),entries:entries(),batches:batches(),events:db.prepare('SELECT * FROM time_events ORDER BY id DESC LIMIT 1000').all().map(e=>({...e,data:JSON.parse(e.data)}))})};
+ function view(scope,selection={}){
+  const summary={registered:0,approvedHours:0,readyHours:0,readyValue:0,approvedByProject:{}};
+  for(const e of db.prepare("SELECT project_id,status,batch_id,json_extract(data,'$.quantity') AS quantity,json_extract(data,'$.rate') AS rate,json_extract(data,'$.billable') AS billable FROM time_entries").all()){
+   if(e.status!=='cancelled')summary.registered+=e.quantity;
+   if(e.status==='approved'){summary.approvedHours+=e.quantity;summary.approvedByProject[e.project_id]=(summary.approvedByProject[e.project_id]||0)+e.quantity;if(e.billable&&!e.batch_id){summary.readyHours+=e.quantity;summary.readyValue+=Math.round(e.quantity*e.rate/100);}}
+  }
+  const result={time:{projects:projects()},timeSummary:summary};
+  if(scope==='time-batches'||scope==='time-entries')result.time.batches=batches(true);
+  if(scope==='time-entries'){
+   const filter={project:selection.project||'',from:selection.from||'',to:selection.to||''},clauses=[],params=[];
+   if(filter.project){clauses.push('project_id=?');params.push(filter.project);}
+   for(const [key,op] of [['from','>='],['to','<=']])if(filter[key]){date(filter[key],'timeDate');clauses.push("json_extract(data,'$.date')"+op+'?');params.push(filter[key]);}
+   result.time.entries=db.prepare('SELECT * FROM time_entries'+(clauses.length?' WHERE '+clauses.join(' AND '):'')+' ORDER BY rowid DESC').all(...params).map(r=>({...JSON.parse(r.data),id:r.id,projectId:r.project_id,revision:r.revision,status:r.status,batchId:r.batch_id}));result.timeSelection=filter;
+  }
+  return result;
+ }
+ return {handle,view,state:()=>({projects:projects(),entries:entries(),batches:batches(),events:db.prepare('SELECT * FROM time_events ORDER BY id DESC LIMIT 1000').all().map(e=>({...e,data:JSON.parse(e.data)}))})};
 }
 module.exports={initTime,TimeError};

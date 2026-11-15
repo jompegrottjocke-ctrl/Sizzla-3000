@@ -104,10 +104,11 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if(req.method==='GET'&&url.pathname==='/api/state'){
         if(req.headers['x-sizzla-token']&&req.headers['x-sizzla-token']!==token)return send(res,409,{error:'dbChanged'});
         const view=url.searchParams.get('view')||'full';
-        if(!['full','registers','overview','employees','hr-runs','hr-leave','commerce','commerce-history','commerce-detail','supply','stock','book-list','book-detail','book-report'].includes(view))return send(res,400,{error:'stateView'});
+        if(!['full','registers','overview','employees','hr-runs','hr-leave','commerce','commerce-history','commerce-detail','supply','stock','book-list','book-detail','book-report','time-projects','time-entries','time-batches'].includes(view))return send(res,400,{error:'stateView'});
         if(view!=='full'){
           const company=settings(),securityData={...security.status(),automatic:automatic.status()};
           const result={token,databaseSession,loadScope:view,application:{name:'Sizzla 3000',version:require('../package.json').version,channel:'preview',platform:process.platform,arch:process.arch,schemaVersion:db.prepare('PRAGMA user_version').get().user_version},databases:databases.state(),security:securityData,preferences:preferences(),company,companyVersion:recordVersion(JSON.stringify(company))};
+          if(['time-projects','time-entries','time-batches'].includes(view)){Object.assign(result,time.view(view,Object.fromEntries([...url.searchParams].filter(([k])=>k!=='view'))));return send(res,200,result);}
           if(['book-list','book-detail','book-report'].includes(view)){Object.assign(result,accounting.view(view,Object.fromEntries([...url.searchParams].filter(([k])=>k!=='view'))));return send(res,200,result);}
           if(view==='stock'){result.inventory=inventory.summary();return send(res,200,result);}
           if(view==='supply'){result.purchases=supplyView(purchases.state());return send(res,200,result);}

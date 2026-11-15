@@ -437,3 +437,7 @@ Listorna hämtar mindre datamängder. Detaljer och historik hämtas när de beh�
 ### Bokföring och rapporter i 0.29.7
 
 Verifikationsrader hämtas när ett underlag öppnas. Rapportunderlag begränsas till valt räkenskapsår och slutdatum med bibehållet ingående saldo. Se [uppdelning och verifiering](docs/BOKFORING-DATA.md).
+
+### Tid & projekt i 0.29.8
+
+Projektlistan hämtas utan alla tidsrader. Tidsregistreringar hämtas för valt projekt och datumintervall, med kompletta urval för export och utskrift. Se [uppdelning och verifiering](docs/TID-PROJEKT-DATA.md).

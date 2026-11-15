@@ -1,0 +1,25 @@
+{
+  "version": "0.29.8",
+  "datasetSha256": "bbe9330c4cbc1d6f60c7450da312d82971a6c8e283eaefcc1b976eb6135c9e8d",
+  "platform": "linux",
+  "node": "v24.22.1",
+  "bytes": {
+    "full": 36209214,
+    "time-projects": 89578,
+    "time-entries": 3758651,
+    "time-batches": 89590,
+    "time-entries-filtered": 90319
+  },
+  "counts": {
+    "projects": 150,
+    "entries": 6000,
+    "batches": 0,
+    "filteredEntries": 1
+  },
+  "filter": {
+    "project": "9953d55e-68a3-4f18-aeb2-420cdcd75cb2",
+    "from": "2024-04-09",
+    "to": "2024-04-09"
+  },
+  "timeAndAccountingUnchanged": true
+}
