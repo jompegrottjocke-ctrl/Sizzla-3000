@@ -449,3 +449,7 @@ Bekräftade kundorder reserverar lager. Lagerlistan visar fysiskt, reserverat, t
 ### Shopify i 0.31.0
 
 Lager → Webbshop har nu val mellan WooCommerce och Shopify. Shopify-kopplingen (manuell beta) hämtar lagerplatser och matchar lagerförda varianter via SKU, med granskade saldosänkningar. Ingen orderimport eller automatisk synk ingår. Se [funktion och verifieringsbegränsning](docs/SHOPIFY.md).
+
+### WooCommerce-orderimport i 0.32.0
+
+Lager → Webbshop → WooCommerce har manuell orderimport med granskning, kundorder, lagerreservation och skydd mot dubbelimport. Inga fakturor eller betalningar skapas. Första versionen stöder utvalda svenska SEK-order; se [arbetsflöde, begränsningar och verifiering](docs/WOOCOMMERCE-ORDERIMPORT.md).

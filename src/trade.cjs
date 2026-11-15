@@ -1,3 +1,4 @@
+const {hash:webHash}=require('./woo-orders.cjs');
 const {snapshot:currencySnapshot}=require('./currency.cjs');
 const {randomUUID}=require('node:crypto');
 const {text,date,invoice,decimal}=require('./domain.cjs');
@@ -33,6 +34,24 @@ function initTrade(db,accounting,inventory){
  }
  function assertIssue(invoiceId,draft,computed){return protectDraft(invoiceId,computed,null,{});}
  function state(){const ds=deliveries(),bs=batches();return {quotes:rows('quote'),orders:rows('order').map(o=>({...o,lines:amounts(o,ds,bs)})),deliveries:ds,batches:bs,events:rows('event').slice(0,200)};}
+ function webOrderReview(source,c){
+  const existing=db.prepare("SELECT id FROM records WHERE kind='trade_order' AND json_extract(data,'$.webSource.site')=? AND json_extract(data,'$.webSource.id')=? LIMIT 1").get(source.site,source.id);if(existing)return {existing:existing.id,issues:[]};
+  const issues=[];try{accounting.requireOperator();}catch{issues.push('webOperator');}const bindingId=webHash([source.site,source.customerId?'customer:'+source.customerId:'guest-order:'+source.id]),binding=db.prepare("SELECT data FROM records WHERE kind='web_customer' AND id=?").get(bindingId),bound=binding?JSON.parse(binding.data):null;
+  const customerRow=bound?db.prepare("SELECT data FROM records WHERE kind='customer' AND id=?").get(bound.customerId):null,customerData=customerRow?JSON.parse(customerRow.data):source.customer;
+  if(bound&&!customerRow)issues.push('webCustomerChanged');if(customerRow&&['name','email','phone','address','postal','city'].some(k=>customerData[k]!==source.customer[k]))issues.push('webCustomerChanged');
+  const articles=db.prepare("SELECT id,data FROM records WHERE kind='article'").all().map(r=>({id:r.id,...JSON.parse(r.data)})),stock=new Map(inventory.summary().items.map(a=>[a.id,a])),demand=new Map();
+  const lines=source.lines.map(l=>{if(l.kind!=='item')return {...l,unit:'st',stockTracked:false};const matches=articles.filter(a=>a.sku===l.sku);if(matches.length!==1){issues.push('webSKU');return {...l};}const a=matches[0],s=stock.get(a.id);if(s.enabled)demand.set(a.id,(demand.get(a.id)||0)+l.quantity*100);return {...l,articleId:a.id,unit:a.unit,stockTracked:s.enabled,articleVersion:webHash(a),available:s.available,stockRevision:s.stockRevision,settingsRevision:s.revision};});
+  for(const [id,n] of demand)if(n>stock.get(id).available)issues.push('webStock');
+  try{identity(c);stockDate(source.date);}catch{issues.push('webCompany');}
+  return {issues:[...new Set(issues)],bindingId,customerId:bound?.customerId||null,customer:customerData,company:c,lines};
+ }
+ function importWebOrder(source,expected,c){db.exec('BEGIN IMMEDIATE');try{
+  const actor=accounting.requireOperator(),check=webOrderReview(source,c);if(check.existing){db.exec('COMMIT');return {id:check.existing,duplicate:true};}if(check.issues.length)fail(check.issues[0]);if(webHash(check)!==webHash(expected))fail('webLocalChanged',409);
+  const customerId=check.customerId||randomUUID();if(!check.customerId){db.prepare("INSERT INTO records VALUES('customer',?,?)").run(customerId,JSON.stringify(check.customer));db.prepare("INSERT INTO records VALUES('web_customer',?,?)").run(check.bindingId,JSON.stringify({customerId,site:source.site,externalCustomerId:source.customerId,guestOrderId:source.customerId?null:source.id}));}
+  const input={customerId,date:source.date,currency:'SEK',lines:check.lines.map(l=>({...l,quantity:String(l.quantity),price:cents(l.price)})),reference:'WooCommerce #'+source.number,note:'WooCommerce #'+source.number+' / '+(source.paid?'Betald i webbshoppen (ej bokförd här)':'Betalning ej rapporterad')+' / Leverans: '+[source.shipping.name,source.shipping.address,source.shipping.postal,source.shipping.city].join(', ')};
+  const data=itemData(input,c);if(data.net!==source.net||data.tax!==source.tax||data.total!==source.total)fail('webAmounts');const prepared=prepareOrder(data,c);inventory.assertReservation(prepared.lines);
+  const id=randomUUID(),n=number('order'),order={...prepared,id,number:n,revision:1,status:'confirmed',requestedDate:'',created:new Date().toISOString(),confirmedAt:new Date().toISOString(),webSource:source};save('order',order);event('order',id,'webImported',actor,{site:source.site,externalId:source.id,number:source.number,paid:source.paid});db.exec('COMMIT');return {id,number:n};
+ }catch(e){db.exec('ROLLBACK');throw e;}}
  function handle(route,b,c){db.exec('BEGIN IMMEDIATE');try{
   const actor=accounting.requireOperator();let result;
   if(route==='quotes/save'||route==='orders/save'){
@@ -54,12 +73,12 @@ function initTrade(db,accounting,inventory){
    const d=current('order',b);if(!['draft','confirmed'].includes(d.status))fail('tradeLocked');const why=reason(b),hasDelivery=deliveries().some(x=>x.orderId===d.id&&x.status!=='reversed');save('order',{...d,status:hasDelivery?'closed':'cancelled',revision:d.revision+1,reason:why});event('order',d.id,hasDelivery?'closed':'cancelled',actor,{reason:why});result={id:d.id};
   }else if(route==='deliveries/create'){
    const o=current('order',b);if(o.status!=='confirmed')fail('tradeLocked');reviewed(b);sameCompany(o.company,c);inventory.assertOrderLines(o.lines);const when=stockDate(b.date);if(when<o.date)fail('tradeDate');const lines=selection(b.lines,amounts(o).map(l=>({...l,available:l.quantity-l.delivered}))),id=randomUUID(),n=number('delivery');
-   const d={id,revision:1,number:n,orderId:o.id,orderNumber:o.number,status:'delivered',date:when,reference:text(b.reference,'tradeReference'),lines,company:o.company,customer:o.customer,created:new Date().toISOString()};save('delivery',d);inventory.deliverCustomer(o,d);save('order',{...o,revision:o.revision+1});event('delivery',id,'delivered',actor,{orderId:o.id,number:n});result={id};
+   const d={id,revision:1,number:n,orderId:o.id,orderNumber:o.number,status:'delivered',date:when,reference:text(b.reference,'tradeReference'),lines,company:o.company,customer:o.customer,...(o.webSource?{shipping:o.webSource.shipping,webOrderNumber:o.webSource.number}:{}),created:new Date().toISOString()};save('delivery',d);inventory.deliverCustomer(o,d);save('order',{...o,revision:o.revision+1});event('delivery',id,'delivered',actor,{orderId:o.id,number:n});result={id};
   }else if(route==='deliveries/reverse'){
    const d=current('delivery',b),o=get('order',d.orderId);if(d.status!=='delivered'||b.orderRevision!==o.revision)fail('tradeConflict');if(batches().some(x=>x.status!=='cancelled'&&x.deliveryIds.includes(d.id)))fail('tradeDeliveryBilled');const why=reason(b),when=stockDate(b.date);if(when<d.date)fail('tradeDate');
    inventory.reverseCustomerDelivery(d,when,why);save('delivery',{...d,status:'reversed',revision:d.revision+1,reversalDate:when,reason:why});save('order',{...o,revision:o.revision+1});event('delivery',d.id,'reversed',actor,{reason:why,date:when});result={id:d.id};
   }else if(route==='batches/create'){
-   const o=current('order',b);if(!['confirmed','closed'].includes(o.status))fail('tradeLocked');reviewed(b);sameCompany(o.company,c);const prior=batches().filter(x=>x.orderId===o.id&&x.status!=='cancelled');if(prior.some(x=>x.status==='draft'))fail('tradePendingDraft');
+   const o=current('order',b);if(o.webSource)fail('webBilling');if(!['confirmed','closed'].includes(o.status))fail('tradeLocked');reviewed(b);sameCompany(o.company,c);const prior=batches().filter(x=>x.orderId===o.id&&x.status!=='cancelled');if(prior.some(x=>x.status==='draft'))fail('tradePendingDraft');
    if(!Array.isArray(b.deliveryIds)||!b.deliveryIds.length||b.deliveryIds.length>100||b.deliveryIds.some(id=>typeof id!=='string')||new Set(b.deliveryIds).size!==b.deliveryIds.length)fail('tradeSelection');const ds=b.deliveryIds.map(id=>get('delivery',id));if(ds.some(d=>d.orderId!==o.id||d.status!=='delivered'||prior.some(x=>x.deliveryIds.includes(d.id))))fail('tradeSelection');
    const latestDelivery=ds.map(d=>d.date).sort().at(-1),invoiceDate=stockDate(b.date),due=date(b.due);if(invoiceDate<latestDelivery||due<invoiceDate)fail('tradeDate');const quant=amounts(o);const quantities=o.lines.map(l=>({lineId:l.id,quantity:ds.flatMap(d=>d.lines).filter(x=>x.lineId===l.id).reduce((n,x)=>n+x.quantity,0)})).filter(x=>x.quantity);
    const lines=quantities.map(q=>{const l=quant.find(x=>x.id===q.lineId);if(l.billed+q.quantity>l.quantity)fail('tradeQuantity');const net=proportional(l.net,l.billed+q.quantity,l.quantity)-proportional(l.net,l.billed,l.quantity),tax=proportional(l.tax,l.billed+q.quantity,l.quantity)-proportional(l.tax,l.billed,l.quantity);return {...l,quantity:q.quantity,net,tax,delivered:undefined,billed:undefined,stockTracked:undefined};});
@@ -71,6 +90,6 @@ function initTrade(db,accounting,inventory){
   }else fail('tradeMissing',404);
   db.exec('COMMIT');return result;
  }catch(error){db.exec('ROLLBACK');throw error;}}
- return {state,handle,protectDraft,assertIssue};
+ return {state,handle,protectDraft,assertIssue,webOrderReview,importWebOrder};
 }
 module.exports={initTrade,TradeError};

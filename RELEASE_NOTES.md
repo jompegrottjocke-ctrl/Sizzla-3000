@@ -1,11 +1,12 @@
-Sizzla 3000 0.31.0 – Shopify under Lager → Webbshop.
+Sizzla 3000 0.32.0 – granskad WooCommerce-orderimport (beta).
 
-- Plattformsväljare för WooCommerce och Shopify.
-- Shopify hämtar aktiva lagerplatser och matchar lagerförda produktvarianter med exakt SKU. Varianten måste neka restorder och ha heltalssaldo på vald lagerplats.
-- Manuell granskning och överföring av sänkt eller oförändrat saldo. Endast vald lagerplats ändras.
-- Skrivningen använder jämförelsevärde och idempotensnyckel. Ändrade saldon, lagerplatser, företag och granskade underlag avvisas. Osäkra resultat kontrolleras manuellt utan automatisk omsändning.
-- Åtkomsttoken är maskerat och sparas inte i databasen. Historiken skiljer på Shopify och WooCommerce.
+- Lager → Webbshop → WooCommerce → Importera webborders hämtar högst tio order per sida för processing eller on-hold.
+- Granska kund, leveransadress, rapporterad betalning, SKU, rader, moms och tillgängligt lager före import. Okänd SKU, brist och belopp som inte kan återges exakt blockerar import.
+- Import skapar kundkoppling och bekräftad kundorder med reservation i en transaktion. Butiksadress + internt order-ID skyddar mot dubbelimport även efter avslut, omstart och återställning.
+- Leverans och följesedel använder webbshopens leveransadress. Faktureringskundens adress bevaras separat.
+- Inga fakturor, betalningar eller verifikationer skapas. Importerade webborders kan inte skapa nya fakturautkast från Sizzlas orderflöde och visas inte som faktureringsuppgifter på översikten.
+- Nycklar sparas inte. Ändrad webborder eller lokalt underlag kräver ny granskning.
 
-Manuell beta: registrera webborders i Sizzla och pausa kassan under överföringen. Orderimport, automatisk synk, tokenförnyelse och saldohöjningar ingår inte. Testad med simulerade svar, inte mot riktig butik. API-dokumentationen kunde inte nås från miljön; prova i testbutik före skarp användning. Se docs/SHOPIFY.md.
+Manuell beta för svenska SEK-order med stödda moms-/avrundningsregler. Ingen automatisk orderuppdatering, återbetalningshantering, Shopify-orderimport eller bakgrundssynk ingår. Försäljning och betalningar behöver fortfarande bokföras separat. Testad med simulerad WooCommerce-transport och riktig lokal databas, inte mot riktig butik. Se docs/WOOCOMMERCE-ORDERIMPORT.md.
 
 Schema 10 och säkerhetskopieformat är oförändrade. Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.

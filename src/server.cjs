@@ -1,3 +1,4 @@
+const {initWooOrders}=require('./woo-orders.cjs');
 const {initShopify}=require('./shopify.cjs');
 const {initWebshop,WebshopError}=require('./webshop.cjs');
 const {supplyView}=require('./supply-view.cjs');
@@ -88,6 +89,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   }
   let closed=false;
   const backupTimer=setInterval(()=>automatic.due(),60000);backupTimer.unref();
+  const wooOrders=initWooOrders({context:()=>({session:databaseSession}),review:source=>trade.webOrderReview(source,settings()),commit:(source,expected)=>trade.importWebOrder(source,expected,settings())});
   const shopify=initShopify({context:()=>({session:databaseSession,items:inventory.summary().items}),audit:data=>inventory.recordWebshop(data)});
   const webshop=initWebshop({context:()=>({session:databaseSession,items:inventory.summary().items}),audit:data=>inventory.recordWebshop(data)});
   const server = http.createServer(async (req,res) => {
@@ -95,7 +97,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
       if(url.pathname==='/mcp'){const active=mcp;return await active.http(req,res,()=>mcp===active&&!closed);}
-      if (req.method === 'GET' && ['/','/window-pages.js','/windows.js','/windows.css','/mcp.js','/app.js','/recurring.js','/recurring.css','/overview.js','/overview-math.js','/overview.css','/reminders.js','/reminders.css','/currency.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/web-orders.js','/window-pages.js','/windows.js','/windows.css','/mcp.js','/app.js','/recurring.js','/recurring.css','/overview.js','/overview-math.js','/overview.css','/reminders.js','/reminders.css','/currency.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
@@ -150,7 +152,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       if (req.method !== 'POST' || req.headers['x-sizzla-token'] !== token || req.headers.origin !== `http://127.0.0.1:${server.address().port}` || !req.headers['content-type']?.startsWith('application/json')) return send(res,403,{ error:'access' });
       const requestToken=token;
       let raw = '';
-      for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (['/api/security/import','/api/security/verify'].includes(url.pathname)?360*1024*1024:url.pathname==='/api/archive/upload'?15*1024*1024:['/api/sie/preview','/api/bank/read'].includes(url.pathname)?8*1024*1024:url.pathname.startsWith('/api/file-import/')?8*1024*1024:262144)) return send(res,413,{error:'size'}); }
+      for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > (['/api/security/import','/api/security/verify'].includes(url.pathname)?360*1024*1024:url.pathname==='/api/archive/upload'?15*1024*1024:['/api/sie/preview','/api/bank/read'].includes(url.pathname)?8*1024*1024:url.pathname.startsWith('/api/file-import/')?8*1024*1024:url.pathname==='/api/webshop/woo-orders/import'?1024*1024:262144)) return send(res,413,{error:'size'}); }
       if(requestToken!==token)return send(res,409,{error:'dbChanged'});
       let body;
       try { body = JSON.parse(raw); } catch { return send(res,400,{error:'json'}); }
@@ -170,6 +172,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
         }
         throw new DatabaseError('dbMissing',404);
       }
+      if(url.pathname.startsWith('/api/webshop/woo-orders/'))return send(res,200,await wooOrders.handle(url.pathname.slice('/api/webshop/woo-orders/'.length),body));
       if(url.pathname.startsWith('/api/webshop/shopify/'))return send(res,200,await shopify.handle(url.pathname.slice('/api/webshop/shopify/'.length),body));
       if(url.pathname.startsWith('/api/webshop/'))return send(res,200,await webshop.handle(url.pathname.slice('/api/webshop/'.length),body));
       if(url.pathname.startsWith('/api/trade/'))return send(res,200,trade.handle(url.pathname.slice('/api/trade/'.length),body,settings()));

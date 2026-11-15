@@ -35,3 +35,5 @@ Reservationstester omfattar dubblettrader, samtidiga bekräftelser, återstart, 
 WooCommerce-tester använder simulerad transport för förhandsgranskning, saldosänkning, oförändrat saldo, ändrade reservationer/produkter/företag, manipulerade underlag, dubbel användning och avbrutna skrivningar. De kontrollerar också nekade privata adresser/URL:er, produkttyper, restorder, fraktionella antal och att nycklar inte hamnar i resultat eller loggdata. HTTP-tester verifierar lokal åtkomst och att lämnade nycklar inte sparas. Gränssnittstestet använder simulerade API-svar och verifierar granskning, kassapaus, temabyte, maskerade/rensade nycklar och engelska.
 
 Ingen riktig WooCommerce-butik eller riktiga kunduppgifter har använts i testerna. En egen testbutik bör användas före användning mot skarp butik. API-referens: https://woocommerce.github.io/woocommerce-rest-api-docs/#products
+
+Sedan 0.32.0 finns en separat manuell WooCommerce-orderimport. Se [WOOCOMMERCE-ORDERIMPORT.md](WOOCOMMERCE-ORDERIMPORT.md) för aktuellt arbetsflöde. Saldosynk är fortsatt manuell.

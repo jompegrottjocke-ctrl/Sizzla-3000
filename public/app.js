@@ -138,6 +138,7 @@ function openEditor(kind,id) {
  editor={kind,record};renderEditor();
 }
 function captureEditor() {
+ if(editor?.kind==='wooOrders')return captureWooOrders();
  if(editor?.kind==='woo')return captureWoo();
  if(editor?.kind==='recurring')return captureRecurring();
  if(editor?.kind==='trade')return captureTrade();
@@ -155,6 +156,7 @@ function captureEditor() {
  editor.record={...editor.record,...data};
 }
 function renderEditor() {
+ if(editor.kind==='wooOrders')return renderWooOrders();
  if(editor.kind==='woo')return renderWoo();
  if(editor.kind==='recurring')return renderRecurringEditor();
  if(editor.kind==='trade')return renderTradeEditor();
