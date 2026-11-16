@@ -30,8 +30,17 @@ jobs:
           retention-days: 14
       - run: npx playwright install chromium
       - run: npm run test:ui
+        id: ui
         env:
           SIZZLA_TEST_DATA: '${{ runner.temp }}/sizzla-ui'
+      - name: Retain failed UI test context
+        if: failure() && steps.ui.outcome == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: Sizzla-ui-failure-Windows
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 14
       - run: node tests/desktop-smoke.cjs
       - run: npm run dist:win
         env:
@@ -71,8 +80,17 @@ jobs:
           retention-days: 14
       - run: npx playwright install chromium
       - run: npm run test:ui
+        id: ui
         env:
           SIZZLA_TEST_DATA: '${{ runner.temp }}/sizzla-ui'
+      - name: Retain failed UI test context
+        if: failure() && steps.ui.outcome == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: Sizzla-ui-failure-macOS-${{ matrix.arch }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 14
       - run: npm run dist:mac -- --${{ matrix.arch }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

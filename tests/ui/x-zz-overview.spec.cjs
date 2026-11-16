@@ -1,5 +1,7 @@
+const {resetDisplay}=require('../helpers/display.cjs');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+test.beforeEach(async({request})=>resetDisplay(request));
 test('work overview opens the correct sources, filters without financial writes, refreshes backup status and respects company isolation',async({page},testInfo)=>{
  const errors=[],backupDirectory=fs.mkdtempSync(path.join(os.tmpdir(),'sizzla-overview-ui-'));page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await expect(page.locator('nav')).toBeVisible();
  let ids;

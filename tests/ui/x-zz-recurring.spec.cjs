@@ -1,4 +1,6 @@
+const {resetDisplay}=require('../helpers/display.cjs');
 const {test,expect}=require('@playwright/test');
+test.beforeEach(async({request})=>resetDisplay(request));
 test('recurring template creates reviewed editable drafts, keeps issued period links, supports withdrawal and accessible bilingual controls',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await expect(page.locator('nav')).toBeVisible();
  const ids=await page.evaluate(async()=>{const org=state.company.org||'559123-4567';await post('company',{...state.company,name:state.company.name||'Avtal AB',org,vatNumber:'SE'+org.replace('-','')+'01',address:'Gatan 1',postal:'11122',city:'Stockholm',bankgiro:'123-4567'});await post('accounting/operator',{name:'Avtalsansvarig'});const year=await post('accounting/years',{name:'2011',start:'2011-01-01',end:'2011-12-31'}),customer=await post('customers',{name:'Avtalskund UI',address:'Kundgatan 1',postal:'22233',city:'Malmö'});return {year:year.id,customer:customer.id};});await page.reload();
