@@ -66,3 +66,7 @@ Använd en ny separat SIZZLA_TEST_DATA-katalog vid gränssnittskörningen. Vid k
 - Testet är inte en fullständig årsredovisning, skatteberäkning, lönekörning eller en bedömning av laguppfyllelse. Andra tester ersätter inte expertgranskning.
 
 Nästa rekommenderade produktförbättring är ett granskat returflöde som knyter fysisk retur till ursprunglig leverans och eventuellt kreditunderlag, med dubblettskydd och tydlig skillnad mellan prisrättelse och varuretur. Därefter bör redovisningskunnig person granska testunderlaget och arbetsflödena före skarp användning.
+
+## Uppdatering 2026-11-16, 0.35.0
+
+Företagsflödestestet registrerar nu kundreturen via `trade/returns/create` och kopplar den utfärdade krediten via `trade/returns/link`. Kundens fysiska retur kräver alltså ingen fristående manuell lagerinleverans. Förväntade slutsaldon är oförändrade. Leverantörsretur och lagervärdering är fortfarande manuella. Det tidigare rekommenderade kundreturflödet finns nu beskrivet i [Kundreturer](KUNDRETURER.md); nästa motsvarande produktsteg är leverantörsreturer. De äldre testantalen ovan avser kontrollen den 15 november.

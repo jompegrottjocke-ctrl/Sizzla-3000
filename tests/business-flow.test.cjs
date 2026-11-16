@@ -51,7 +51,9 @@ test('whole business cycle reconciles receipts, returns, credits, settlements, V
   assert.equal((await latest('sales','documents',invoice.id)).total,150000);
   let d=await latest('sales','documents',invoice.id);s=await state();
   const credit=await run('sales/credit',{id:d.id,revision:d.revision,expectedNumber:s.sales.nextNumber,date:'2026-11-07',lines:[{index:0,quantity:'1'}],reason:'DEMO kundretur',yearId:year.id,reviewed:true});
-  assert.equal((await item()).quantity,200);await move('in','1','DEMO kundretur kredit '+credit.number,'2026-11-07');
+  assert.equal((await item()).quantity,200);
+  const returned=await run('trade/returns/create',{id:delivery.id,revision:(await latest('trade','deliveries',delivery.id)).revision,orderRevision:(await latest('trade','orders',order.id)).revision,date:'2026-11-07',reference:'DEMO kundretur',reason:'DEMO fysisk retur',lines:[{lineId:deliveryBody.lines[0].lineId,quantity:'1'}],reviewed:true});
+  await run('trade/returns/link',{id:returned.id,revision:1,orderRevision:(await latest('trade','orders',order.id)).revision,creditId:credit.id,reason:'DEMO kredit för den mottagna varan',reviewed:true});
   d=await latest('sales','documents',invoice.id);const c=await latest('sales','documents',credit.id);
   await run('sales/allocations',{invoiceId:d.id,creditId:c.id,invoiceRevision:d.revision,creditRevision:c.revision,amount:'250',date:'2026-11-07',yearId:year.id,reference:'DEMO kvittning',reviewed:true});
   const payCustomer=async(amount,reference)=>{const d=await latest('sales','documents',invoice.id);return run('sales/payments',{id:d.id,revision:d.revision,date:'2026-11-08',amount,reference,yearId:year.id,reviewed:true,bank:'1930'});};

@@ -463,3 +463,7 @@ Lager → Webbshop → Shopify har nu manuell orderimport med lagerplatsval, gra
 Under **AI-agent → MCP & anslutningar** finns valbar lokal OAuth med PKCE S256 och uttryckligt godkännande per klient, tidsbegränsade manuella nycklar samt **Klienter & senaste aktivitet**. Se behörigheter, senaste anrop, verklig källadress och självdeklarerat klientprogram, och återkalla en klients åtkomst. Övriga OAuth-klienter kan behålla sin åtkomst vid byte av manuell nyckel. Endast lokal loopback; direkt molnanslutning till ChatGPT ingår inte. [Instruktioner och gränser](docs/MCP.md).
 
 Sammanhängande kontroll av inköp, leveranser, krediter, betalningar, bokföring och återställning: [kontrollrapport och kvarstående manuella steg](docs/FORETAGSFLODE-KONTROLL.md).
+
+### Kundreturer i 0.35.0
+
+Under Fakturering → Kundorder kan mottagna lagerförda varor registreras mot ursprunglig leverans. Returantal kontrolleras, lagret uppdateras atomiskt och datum, orsak och ansvarig bevaras. Befintlig kredit kan kopplas utan dubbel lagerändring; felregistrering rättas med motsatt rörelse. [Arbetsflöde och gränser](docs/KUNDRETURER.md).

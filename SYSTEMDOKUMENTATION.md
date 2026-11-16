@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.34.2, databasschema 10. Uppdaterad 2026-11-15.
+Version 0.35.0, databasschema 10. Uppdaterad 2026-11-16.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -313,3 +313,5 @@ MCP 0.34.0 har valbar lokal OAuth Authorization Code + PKCE S256, tidsbegränsad
 I 0.34.1 spärras bokslutspanelernas knappar och urval medan ansvarig operatör sparas. Efter lyckad sparning ritas aktuell vy om; vid fel återaktiveras tidigare tillgängliga kontroller och felet visas. Det skyddar dialogöppning mot att bli överkörd av sparandets omritning.
 
 I 0.34.2 fångas öppna register-/fakturautkasts fält före språk- eller temabyte. Appens kontroller väntar under sparning och återläsning, även vid samtidig omritning, så att sena svar inte stänger ett nyöppnat formulär. Efter svar eller fel återställs kontrollerna. Detta är en tillfällig gränssnittsspärr, inte programlåsning eller en autentiseringsfunktion.
+
+Kundreturer i 0.35.0 lagras som `trade_return` i records, med separat KR-serie och händelsehistorik. Ursprunglig leverans och order revideras atomiskt med returens lagerrörelser. Returens ursprungsuppgifter och radering skyddas av triggers; rättelser och kreditreferenser bevaras som händelser. Returer ändrar inte orderns levererade/fakturerade antal eller finansiella dokument. Se [Kundreturer](docs/KUNDRETURER.md).

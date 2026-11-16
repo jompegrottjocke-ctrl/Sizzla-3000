@@ -1,11 +1,11 @@
-Sizzla 3000 0.34.2 – stabila språk- och temabyten.
+Sizzla 3000 0.35.0 – leveranskopplade kundreturer.
 
-- Under sparandet av språk eller tema väntar övriga formuläråtgärder. Det hindrar att en ny dialog öppnas innan språkbytet ritar om sidan och stänger den igen.
-- Osparade uppgifter bevaras vid språk- och temabyte, även när sparandet misslyckas. Kontroller återaktiveras efter svar.
-- Regressionstest håller kvar inställningssvaret, kontrollerar en samtidig omritning och provar både fel och lyckad sparning.
-- Valuta-, arbetsöversikts- och återkommande faktureringstester sätter egna startinställningar, så att ett tidigare avbrott inte lämnar fel språk.
-- GitHub behåller felkontext från misslyckade gränssnittstester som en separat artefakt för Windows respektive Mac-arkitektur.
+- Fakturering → Kundorder → Registrera kundretur tar emot faktiskt återkomna lagerförda varor mot ursprunglig leverans.
+- Kontrollerar återstående returantal, datum, returreferens och granskad revision. Lager och retur sparas atomiskt, med KR-nummer och ansvarig.
+- Koppla eller ändra befintlig bokförd kredit från samma leverans med kontroll av kreditens antal. Kopplingen skapar inga nya lagerrörelser eller finansiella dokument.
+- Rätta felregistrering med motsatt lagerrörelse och bevarat original. Förbrukat/reserverat lager och inventeringar skyddas.
+- Svenska/engelska, orderhistorik och länk från lagerhistoriken till returens order. Export/import och företagsisolering omfattar returerna.
 
-Rättningen av bokslutets operatörssparning från 0.34.1 ingår. Databasschema 10 är oförändrat. MCP finns kvar i ordinarie version; testbygget utan MCP är separat. Denna rättning gäller gränssnitt och tester och är inte en lösning på Chromes nedladdningsvarning.
+Prisavdrag utan fysisk retur ska inte ändra lager. Inga automatiska kreditfakturor, återbetalningar, nya reservationer, externa webbshopsändringar eller kostnadsbokföring skapas. Skadat gods/karantän och leverantörsreturer ingår inte i detta steg. Se docs/KUNDRETURER.md.
 
-Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.
+Databasschema 10 är oförändrat. Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple. Denna version innebär ingen bekräftad lösning på Chromes nedladdningsvarning.
