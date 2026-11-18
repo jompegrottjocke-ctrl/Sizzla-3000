@@ -1,3 +1,4 @@
+const {photoMetadata}=require('./article-photo.cjs');
 const {randomUUID}=require('node:crypto');
 const {text,decimal}=require('./domain.cjs');
 class InventoryError extends Error{constructor(code,status=409){super(code);this.status=status;}}
@@ -58,8 +59,8 @@ function initInventory(db){
  function items(){
   const configurations=new Map(db.prepare('SELECT * FROM inventory_settings').all().map(s=>[s.article_id,s]));
   const stock=new Map(db.prepare("SELECT article_id,SUM(CASE WHEN date<='9999-12-31' THEN quantity ELSE 0 END) AS quantity,MAX(id) AS revision FROM inventory_movements GROUP BY article_id").all().map(s=>[s.article_id,s]));
-  const reserved=reservations();
-  return articles().map(a=>{const config=configurations.get(a.id)||{enabled:0,minimum:0,location:'',revision:0},balance=stock.get(a.id);return {...a,enabled:!!config.enabled,minimum:config.minimum,location:config.location,revision:config.revision,quantity:balance?.quantity||0,reserved:reserved.get(a.id)||0,available:Math.max(0,(balance?.quantity||0)-(reserved.get(a.id)||0)),shortfall:Math.max(0,(reserved.get(a.id)||0)-(balance?.quantity||0)),stockRevision:balance?.revision||0};});
+  const reserved=reservations(),photos=photoMetadata(db);
+  return articles().map(a=>{const config=configurations.get(a.id)||{enabled:0,minimum:0,location:'',revision:0},balance=stock.get(a.id);return {...a,...(photos.get(a.id)||{hasPhoto:false,photoVersion:''}),enabled:!!config.enabled,minimum:config.minimum,location:config.location,revision:config.revision,quantity:balance?.quantity||0,reserved:reserved.get(a.id)||0,available:Math.max(0,(balance?.quantity||0)-(reserved.get(a.id)||0)),shortfall:Math.max(0,(reserved.get(a.id)||0)-(balance?.quantity||0)),stockRevision:balance?.revision||0};});
  }
  function state(){return {items:items(),movements:db.prepare('SELECT * FROM inventory_movements ORDER BY date DESC,id DESC').all().map(r=>({...r,articleId:r.article_id,sourceKind:r.source_kind,sourceId:r.source_id,reversedBy:r.reversed_by,...JSON.parse(r.snapshot),snapshot:undefined})),counts:counts(),events:db.prepare('SELECT * FROM inventory_events ORDER BY id DESC LIMIT 500').all().map(r=>({...r,data:JSON.parse(r.data)}))};}
  function summary(){return {items:items(),counts:db.prepare("SELECT id,number,revision,status,date,reference,reason,json_array_length(data,'$.lines') AS lineCount FROM inventory_counts ORDER BY number DESC").all()};}

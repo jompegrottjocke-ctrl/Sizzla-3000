@@ -1,3 +1,4 @@
+const {photoMetadata,readPhoto,writePhoto,validatePhoto}=require('./article-photo.cjs');
 const {initShopifyOrders}=require('./shopify-orders.cjs');
 const {initWooOrders}=require('./woo-orders.cjs');
 const {initShopify}=require('./shopify.cjs');
@@ -79,7 +80,7 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
   let {db,hr,accounting,purchases,inventory,sales,time,printing,security,imports,assets,closing,agent,agency,archive,sie,bank,automatic,trade,reminders,recurring,mcp}=openDatabase(databases.directory(databases.activeId),openDataDirectory);
   let token=randomBytes(32).toString('hex'),databaseSession=randomUUID();
   const recordVersion=data=>createHash('sha256').update(data).digest('hex');
-  const all = (kind,unissued=false) => db.prepare('SELECT id,data FROM records WHERE kind=?'+(unissued?' AND NOT EXISTS(SELECT 1 FROM sales_documents WHERE draft_id=records.id)':'')+' ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data), recordVersion:recordVersion(row.data) }));
+  const all = (kind,unissued=false) => {const photos=kind==='article'?photoMetadata(db):null;return db.prepare('SELECT id,data FROM records WHERE kind=?'+(unissued?' AND NOT EXISTS(SELECT 1 FROM sales_documents WHERE draft_id=records.id)':'')+' ORDER BY rowid DESC').all(kind).map(row => ({ id: row.id, ...JSON.parse(row.data), recordVersion:recordVersion(row.data),...(photos?photos.get(row.id)||{hasPhoto:false,photoVersion:''}:{}) }));};
   const get = (kind,id) => { const row = db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get(kind,id); return row ? { id, data: JSON.parse(row.data) } : null; };
   const settings = () => JSON.parse(db.prepare('SELECT data FROM settings WHERE id=1').get()?.data || '{}');
   const preferences = () => JSON.parse(db.prepare('SELECT data FROM preferences WHERE id=1').get()?.data || '{}');
@@ -98,9 +99,16 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
     try {
       if (req.headers.host !== `127.0.0.1:${server.address().port}`) return send(res,403,{ error:'host' });
       const url = new URL(req.url, 'http://localhost');
+      if(req.method==='GET'&&url.pathname.startsWith('/api/article-photo/')){
+        if(url.searchParams.get('session')!==databaseSession)return send(res,409,{error:'dbChanged'});
+        if(req.headers.origin!==undefined&&req.headers.origin!==`http://${req.headers.host}`)return send(res,403,{error:'access'});
+        const id=decodeURIComponent(url.pathname.slice('/api/article-photo/'.length)),photo=readPhoto(db,id);if(!photo)return send(res,404,{error:'missing'});
+        if(url.searchParams.get('v')!==photo.version)return send(res,409,{error:'recordConflict'});
+        res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');return send(res,200,Buffer.from(photo.photo.slice(23),'base64'),'image/jpeg');
+      }
       if(url.pathname.startsWith('/oauth/')||['/.well-known/oauth-protected-resource/mcp','/.well-known/oauth-authorization-server'].includes(url.pathname)){const active=mcp;return await active.oauthHttp(req,res,()=>mcp===active&&!closed);}
       if(url.pathname==='/mcp'){const active=mcp;return await active.http(req,res,()=>mcp===active&&!closed);}
-      if (req.method === 'GET' && ['/','/mcp-oauth.js','/web-orders.js','/window-pages.js','/windows.js','/windows.css','/mcp.js','/app.js','/recurring.js','/recurring.css','/overview.js','/overview-math.js','/overview.css','/reminders.js','/reminders.css','/currency.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
+      if (req.method === 'GET' && ['/','/article-photo.js','/article-photo.css','/mcp-oauth.js','/web-orders.js','/window-pages.js','/windows.js','/windows.css','/mcp.js','/app.js','/recurring.js','/recurring.css','/overview.js','/overview-math.js','/overview.css','/reminders.js','/reminders.css','/currency.js','/trade.js','/trade.css','/bank.js','/bank.css','/sie.js','/sie.css','/archive.js','/archive.css','/version.js','/version.css','/agency.js','/agency.css','/agent.js','/agent.css','/closing.js','/closing.css','/assets.js','/assets.css','/file-import.js','/file-import.css','/appearance.js','/analysis.js','/analysis-math.js','/analysis.css','/themes.css','/cloud.js','/cloud.css','/time.css','/time.js','/databases.js','/sales.js','/sales.css','/inventory.js','/inventory.css','/printing.js','/printing.css','/security.js','/accessibility.css','/hr.js','/whatsapp-phone.js','/accounting.js','/purchases.js','/purchases.css','/ledger-math.js','/style.css','/hr.css','/accounting.css','/dark.css','/print'].includes(url.pathname)) {
         const file = url.pathname === '/' || url.pathname === '/print' ? 'index.html' : url.pathname.slice(1);
         return send(res,200,fs.readFileSync(path.join(__dirname,'..','public',file)),file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
       }
@@ -252,7 +260,8 @@ function createApp({ dataDir = process.env.SIZZLA_DATA_DIR || path.join(__dirnam
       const id = body.id === undefined ? randomUUID() : text(body.id,'id');
       if (body.id && !get(kind,id)) return send(res,404,{error:'missing'});
       if(kind==='article')inventory.assertArticleChange(id,data);
-      db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));
+      let photo;if(kind==='article'&&body.photo!==undefined){photo=validatePhoto(body.photo);const current=photoMetadata(db).get(id)?.photoVersion||'';if((body.photoVersion??'')!==current)throw new DatabaseError('recordConflict',409);}
+      db.exec('BEGIN IMMEDIATE');try{db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data').run(kind,id,JSON.stringify(data));if(photo!==undefined)writePhoto(db,id,photo);db.exec('COMMIT');}catch(error){db.exec('ROLLBACK');throw error;}
       send(res,200,{id});
     } catch (error) {
       if(error instanceof McpError)send(res,error.status,{error:error.message});

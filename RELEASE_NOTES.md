@@ -1,11 +1,10 @@
-Sizzla 3000 0.35.0 – leveranskopplade kundreturer.
+Sizzla 3000 0.36.0 – valfria artikelbilder.
 
-- Fakturering → Kundorder → Registrera kundretur tar emot faktiskt återkomna lagerförda varor mot ursprunglig leverans.
-- Kontrollerar återstående returantal, datum, returreferens och granskad revision. Lager och retur sparas atomiskt, med KR-nummer och ansvarig.
-- Koppla eller ändra befintlig bokförd kredit från samma leverans med kontroll av kreditens antal. Kopplingen skapar inga nya lagerrörelser eller finansiella dokument.
-- Rätta felregistrering med motsatt lagerrörelse och bevarat original. Förbrukat/reserverat lager och inventeringar skyddas.
-- Svenska/engelska, orderhistorik och länk från lagerhistoriken till returens order. Export/import och företagsisolering omfattar returerna.
+- Välj, byt eller ta bort bild i artikelprofilen. Ändringen sparas med Spara och kan avbrytas.
+- Miniatyr i Artiklar & tjänster och Lager, med klick för större visning.
+- JPEG, PNG eller WebP upp till 10 MB förminskas automatiskt till högst 384 × 384 och sparas som JPEG, högst 150 KiB. Originalfilen sparas inte.
+- Bilden ligger i företagets databas och följer med fullständig export/import och säkerhetskopior. Vanlig artikeluppdatering och artikelimport utan bildfält bevarar bilden.
+- Bilddata hämtas separat från listorna, med företags- och versionskontroll. Bildbyte ändrar inte lagerantal, finansiella dokument eller bokslutsfingeravtryck.
+- Svenska, engelska och stor text stöds. Se docs/ARTIKELBILDER.md.
 
-Prisavdrag utan fysisk retur ska inte ändra lager. Inga automatiska kreditfakturor, återbetalningar, nya reservationer, externa webbshopsändringar eller kostnadsbokföring skapas. Skadat gods/karantän och leverantörsreturer ingår inte i detta steg. Se docs/KUNDRETURER.md.
-
-Databasschema 10 är oförändrat. Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple. Denna version innebär ingen bekräftad lösning på Chromes nedladdningsvarning.
+Databasschema 10 är oförändrat. Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.

@@ -467,3 +467,7 @@ Sammanhängande kontroll av inköp, leveranser, krediter, betalningar, bokförin
 ### Kundreturer i 0.35.0
 
 Under Fakturering → Kundorder kan mottagna lagerförda varor registreras mot ursprunglig leverans. Returantal kontrolleras, lagret uppdateras atomiskt och datum, orsak och ansvarig bevaras. Befintlig kredit kan kopplas utan dubbel lagerändring; felregistrering rättas med motsatt rörelse. [Arbetsflöde och gränser](docs/KUNDRETURER.md).
+
+### Artikelbilder i 0.36.0
+
+Varje artikel kan ha en valfri bild. Välj eller byt bild i artikelprofilen och spara. Miniatyrer visas i artikelregistret och lagret; klick öppnar större visning. JPEG/PNG/WebP förminskas automatiskt och följer med företagets säkerhetskopior. [Användning och gränser](docs/ARTIKELBILDER.md).
