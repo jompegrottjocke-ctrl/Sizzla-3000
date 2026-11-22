@@ -27,14 +27,16 @@ test('whole business cycle reconciles receipts, returns, credits, settlements, V
   await run('purchases/orders/issue',{id:po.id,revision:1,reviewed:true});
   for(const quantity of ['4','6']){const o=await latest('purchases','orders',po.id);await run('purchases/receipts',{id:o.id,revision:o.revision,date:'2026-11-02',reference:'DEMO inleverans '+quantity,lines:[{lineId:o.lines[0].id,quantity}]});}
   assert.equal((await item()).quantity,1000);
-  const bill=await run('purchases/invoices',{supplierId:supplier.id,date:'2026-11-02',due:'2026-11-30',invoiceNo:'DEMO-LEV-1',reference:'DEMO leverantörsfaktura',documentTotal:'1250',lines:[line]});
+  const bill=await run('purchases/invoices',{supplierId:supplier.id,date:'2026-11-02',due:'2026-11-30',orderId:po.id,invoiceNo:'DEMO-LEV-1',reference:'DEMO leverantörsfaktura',documentTotal:'1250',lines:[line]});
   const bookBill=async id=>{let b=await latest('purchases','invoices',id);await run('purchases/invoices/approve',{id,revision:b.revision,reviewed:true});b=await latest('purchases','invoices',id);return run('purchases/invoices/post',{id,revision:b.revision,yearId:year.id,date:'2026-11-03',description:'DEMO leverantörsunderlag',liabilityAccount:'2440',vatAccount:'2641',roundingAccount:'3740',reviewed:true});};
   await bookBill(bill.id);
   const supplierCredit=await run('purchases/invoices',{supplierId:supplier.id,type:'credit',originalId:bill.id,date:'2026-11-03',due:'2026-11-30',invoiceNo:'DEMO-LEV-K1',reference:'DEMO leverantörskredit',documentTotal:'250',lines:[{...line,quantity:'2'}]});
   await bookBill(supplierCredit.id);
-  // Credit documents do not represent physical movements. Register actual returns separately.
-  const move=async(kind,quantity,reference,date='2026-11-04')=>{const i=await item();return run('inventory/movements',{articleId:article.id,settingsRevision:i.revision,stockRevision:i.stockRevision,kind,quantity,date,reference,reason:'DEMO fysisk retur enligt separat underlag'});};
-  assert.equal((await item()).quantity,1000);await move('out','2','DEMO-LEV-K1');
+  // Credit does not move goods. Return the physical goods against their receipt.
+  assert.equal((await item()).quantity,1000);
+  const receipt=(await state()).purchases.receipts.find(r=>r.reference==='DEMO inleverans 4'),purchaseOrder=await latest('purchases','orders',po.id);
+  const supplierReturn=await run('purchases/returns/create',{id:receipt.id,revision:receipt.revision,orderRevision:purchaseOrder.revision,date:'2026-11-04',reference:'DEMO leverantörsretur',reason:'DEMO skickat tillbaka två varor',lines:[{lineId:purchaseOrder.lines[0].id,quantity:'2'}],reviewed:true});
+  await run('purchases/returns/link',{id:supplierReturn.id,revision:1,orderRevision:(await latest('purchases','orders',po.id)).revision,creditId:supplierCredit.id,reason:'DEMO kredit för returnerade varor',reviewed:true});
   const payBill=async amount=>{const b=await latest('purchases','invoices',bill.id);return run('purchases/payments',{id:b.id,revision:b.revision,amount,date:'2026-11-05',yearId:year.id,bankAccount:'1930',reference:'DEMO utbetalning '+amount,description:'DEMO leverantörsbetalning',reviewed:true});};
   await payBill('400');await payBill('600');assert.equal((await latest('purchases','invoices',bill.id)).remaining,0);
   const order=await run('trade/orders/save',{customerId:customer.id,date:'2026-11-05',lines:[{...line,quantity:'6',price:'200'}]});

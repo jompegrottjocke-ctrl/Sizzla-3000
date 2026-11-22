@@ -34,7 +34,7 @@ Ordervyn visar KR-nummer, datum, returreferens, rader, ansvarig, orsak, rättels
 
 `trade_return` och tillhörande `trade_event`/nummerserie ligger i befintliga `records`. Returens ursprungsuppgifter skyddas mot ändring/radering med databasregler. Rättelsestatus och aktuell kreditreferens är separata uppdateringar med bevarad händelsehistorik. Lagerrörelser använder `source_kind=trade_return` respektive `trade_return_reverse`. Schema 10 behålls; inga befintliga leveranser, krediter eller manuella lagerposter räknas om retroaktivt. Äldre säkerhetskopior utan returer och utan de två nya returreglerna tillåts och får reglerna vid öppning samt en tom returlista. En kopia med returposter men utan reglerna avvisas. Övrig schemakontroll är oförändrad. Export/import och företagsbyte omfattar returposter och historik.
 
-Första versionen hanterar mottagning tillbaka till befintligt lager. Ingen separat karantän, skadat gods, automatisk lagerkostnadsbokföring, returetikett eller uppdatering av WooCommerce/Shopify ingår. Webbshopsorder kan ha lokala fysiska returer men externa återbetalningar och lagersynk måste hanteras separat. Leverantörsreturer är fortsatt ett separat manuellt arbetsflöde.
+Första versionen hanterar mottagning tillbaka till befintligt lager. Ingen separat karantän, skadat gods, automatisk lagerkostnadsbokföring, returetikett eller uppdatering av WooCommerce/Shopify ingår. Webbshopsorder kan ha lokala fysiska returer men externa återbetalningar och lagersynk måste hanteras separat. Leverantörsreturer hanteras sedan 0.37.0 via det separata [leverantörsreturflödet](LEVERANTORSRETURER.md).
 
 ## Verifiering
 

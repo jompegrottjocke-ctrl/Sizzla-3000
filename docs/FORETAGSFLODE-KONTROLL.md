@@ -70,3 +70,7 @@ Nästa rekommenderade produktförbättring är ett granskat returflöde som knyt
 ## Uppdatering 2026-11-16, 0.35.0
 
 Företagsflödestestet registrerar nu kundreturen via `trade/returns/create` och kopplar den utfärdade krediten via `trade/returns/link`. Kundens fysiska retur kräver alltså ingen fristående manuell lagerinleverans. Förväntade slutsaldon är oförändrade. Leverantörsretur och lagervärdering är fortfarande manuella. Det tidigare rekommenderade kundreturflödet finns nu beskrivet i [Kundreturer](KUNDRETURER.md); nästa motsvarande produktsteg är leverantörsreturer. De äldre testantalen ovan avser kontrollen den 15 november.
+
+## Uppdatering 2026-11-22, 0.37.0
+
+Leverantörens fysiska retur registreras nu via `purchases/returns/create` mot den första inleveransen och kopplas till den bokförda leverantörskrediten via `purchases/returns/link`. Originalfakturan har uttrycklig inköpsorderkoppling. Det fristående manuella lageruttaget för leverantörsreturen har ersatts. Förväntade slutsaldon är fortfarande 3 artiklar, noll kund-/leverantörsreskontra, bankförändring +250 kr, momsskillnad 50 kr och resultat 500 kr efter manuell lagervärdering. Dessa kontroller och fullständig återställning är godkända. Se [Leverantörsreturer](LEVERANTORSRETURER.md).

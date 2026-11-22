@@ -1,3 +1,4 @@
+const {initSupplierReturns}=require('./supplier-returns.cjs');
 const {randomUUID}=require('node:crypto');
 const {ValidationError,text,decimal}=require('./domain.cjs');
 class PurchaseError extends Error {constructor(code,status=409){super(code);this.status=status;}}
@@ -86,16 +87,18 @@ function initPurchases(db,accounting,inventory={}){
     db.prepare('UPDATE purchase_invoices SET revision=revision+1 WHERE id=?').run(p.invoiceId);
     event('payment',p.id,'reversed',{reversal:reversal.id,reason});
   }
+  const supplierReturns=initSupplierReturns(db,accounting,inventory,{orders,receipts,invoices,invoiceSource,fail:(code,status=409)=>{throw new PurchaseError(code,status);}});
   return {beforeReverse,afterReverse,
     state(){
       const all=invoices(),cash=payments(),rs=receipts();const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Stockholm'});
-      return {suppliers:suppliers(),orders:orders().map(o=>{const counts=received(o,rs),total=o.lines.reduce((s,l)=>s+l.quantity,0),done=Object.values(counts).reduce((s,n)=>s+n,0);return {...o,received:counts,deliveryStatus:o.status==='issued'?(done===total?'received':done?'partial':'issued'):o.status};}),receipts:rs,invoices:all.map(i=>{const r=remaining(i,all,cash),v=invoiceSource(i.id);return {...i,...r,settlement:r.remaining===0?'settled':r.paid+r.credited>0?'partial':'unpaid',overdue:i.status==='approved'&&r.remaining>0&&i.due<today,voucherId:v?.id||null,voucherNumber:v?.number||null,liabilityAccount:v?.liabilityAccount||null};}),payments:cash.map(p=>({...p,voucherId:paymentSource(p.id)?.id||null})),events:db.prepare('SELECT id,at,entity,entity_id AS entityId,action FROM purchase_events ORDER BY id DESC').all()};
+      return {...supplierReturns.state(),suppliers:suppliers(),orders:orders().map(o=>{const counts=received(o,rs),total=o.lines.reduce((s,l)=>s+l.quantity,0),done=Object.values(counts).reduce((s,n)=>s+n,0);return {...o,received:counts,deliveryStatus:o.status==='issued'?(done===total?'received':done?'partial':'issued'):o.status};}),receipts:rs,invoices:all.map(i=>{const r=remaining(i,all,cash),v=invoiceSource(i.id);return {...i,...r,settlement:r.remaining===0?'settled':r.paid+r.credited>0?'partial':'unpaid',overdue:i.status==='approved'&&r.remaining>0&&i.due<today,voucherId:v?.id||null,voucherNumber:v?.number||null,liabilityAccount:v?.liabilityAccount||null};}),payments:cash.map(p=>({...p,voucherId:paymentSource(p.id)?.id||null})),events:db.prepare('SELECT id,at,entity,entity_id AS entityId,action FROM purchase_events ORDER BY id DESC').all()};
     },
     handle(route,body,company){
       db.exec('BEGIN IMMEDIATE');
       try{
         let result=null;
-        if(route==='/api/purchases/suppliers'){
+        if(route.startsWith('/api/purchases/returns/')){result=supplierReturns.handle(route.slice('/api/purchases/returns/'.length),body,company);
+        }else if(route==='/api/purchases/suppliers'){
           const old=body.id?current(suppliers(),body):null,data={};
           for(const key of ['name','org','email','phone','address','postal','city','contact','bankgiro','plusgiro','notes'])data[key]=text(body[key]??'',key,key==='name',key==='notes'?2000:200);
           if(data.org&&!/^\d{6}-?\d{4}$/.test(data.org))invalid('purchaseOrg');
@@ -127,7 +130,7 @@ function initPurchases(db,accounting,inventory={}){
           if(!lines.length)invalid('purchaseReceipt');
           const id=randomUUID(),data={date,reference:text(body.reference,'purchaseReference'),lines};db.prepare('INSERT INTO purchase_receipts VALUES(?,?,1,1,?,NULL)').run(id,o.id,JSON.stringify(data));db.prepare('UPDATE purchase_orders SET revision=revision+1 WHERE id=?').run(o.id);inventory.receive?.(o,{id,...data});event('receipt',id,'created',data);result={id};
         }else if(route==='/api/purchases/receipts/reverse'){
-          const r=current(receipts(),body);if(!r.active)throw new PurchaseError('purchaseLocked');const reason=text(body.reason,'purchaseReason');inventory.reverseReceipt?.(r,reason);db.prepare('UPDATE purchase_receipts SET active=0,revision=revision+1,reason=? WHERE id=?').run(reason,r.id);db.prepare('UPDATE purchase_orders SET revision=revision+1 WHERE id=?').run(r.orderId);event('receipt',r.id,'reversed',{reason});result={id:r.id};
+          const r=current(receipts(),body);if(!r.active)throw new PurchaseError('purchaseLocked');if(supplierReturns.activeForReceipt(r.id))throw new PurchaseError('supplierReturnFirst');const reason=text(body.reason,'purchaseReason');inventory.reverseReceipt?.(r,reason);db.prepare('UPDATE purchase_receipts SET active=0,revision=revision+1,reason=? WHERE id=?').run(reason,r.id);db.prepare('UPDATE purchase_orders SET revision=revision+1 WHERE id=?').run(r.orderId);event('receipt',r.id,'reversed',{reason});result={id:r.id};
         }else if(route==='/api/purchases/invoices'){
           if(body.currency&&body.currency!=='SEK')invalid('purchaseCurrency');
           const old=body.id?current(invoices(),body):null;if(old&&old.status!=='draft')throw new PurchaseError('purchaseLocked');

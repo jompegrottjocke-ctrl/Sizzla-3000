@@ -18,6 +18,8 @@ function validate(file,source){let check;try{check=new DatabaseSync(file,{readOn
 // their complete absence when the backup contains no return records.
 const returnGuards=['trade_return_preserved','trade_return_locked'];
 if(!actual.some(row=>returnGuards.includes(row.name))&&!check.prepare("SELECT id FROM records WHERE kind='trade_return' LIMIT 1").get())expected=expected.filter(row=>!returnGuards.includes(row.name));
+const supplierReturnGuards=['supplier_return_preserved','supplier_return_locked'];
+if(!actual.some(row=>supplierReturnGuards.includes(row.name))&&!check.prepare("SELECT id FROM records WHERE kind='purchase_return' LIMIT 1").get())expected=expected.filter(row=>!supplierReturnGuards.includes(row.name));
 if(JSON.stringify(expected)!==JSON.stringify(actual))throw Error();
 for(const {name} of check.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all()){
  const columns=check.prepare(`PRAGMA table_info("${name}")`).all();

@@ -471,3 +471,7 @@ Under Fakturering → Kundorder kan mottagna lagerförda varor registreras mot u
 ### Artikelbilder i 0.36.0
 
 Varje artikel kan ha en valfri bild. Välj eller byt bild i artikelprofilen och spara. Miniatyrer visas i artikelregistret och lagret; klick öppnar större visning. JPEG/PNG/WebP förminskas automatiskt och följer med företagets säkerhetskopior. [Användning och gränser](docs/ARTIKELBILDER.md).
+
+### Leverantörsreturer i 0.37.0
+
+Inköp → Inköpsorder → Öppna har nu leverantörsretur kopplad till ursprunglig inleverans. Antal och tillgängligt lager kontrolleras, LR-post och lagerrörelse sparas tillsammans och bokförd leverantörskredit kan kopplas med antalsskydd. Rättelse bevarar original och historik. [Arbetsflöde och gränser](docs/LEVERANTORSRETURER.md).

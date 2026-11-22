@@ -1,6 +1,6 @@
 # Sizzla 3000 – systemöversikt och kvarstående krav
 
-Version 0.36.0, databasschema 10. Uppdaterad 2026-11-18.
+Version 0.37.0, databasschema 10. Uppdaterad 2026-11-22.
 
 Detta är en teknisk grund för systemdokumentation, inte en försäkran om fullständig efterlevnad. Företaget behöver komplettera den med sin kontoplan, ansvarsfördelning, underlagsförvaring, andra system och rutiner. Fullständigt stöd för skarp bokföring är ännu inte färdigt.
 
@@ -317,3 +317,5 @@ I 0.34.2 fångas öppna register-/fakturautkasts fält före språk- eller temab
 Kundreturer i 0.35.0 lagras som `trade_return` i records, med separat KR-serie och händelsehistorik. Ursprunglig leverans och order revideras atomiskt med returens lagerrörelser. Returens ursprungsuppgifter och radering skyddas av triggers; rättelser och kreditreferenser bevaras som händelser. Returer ändrar inte orderns levererade/fakturerade antal eller finansiella dokument. Se [Kundreturer](docs/KUNDRETURER.md).
 
 Valfria artikelbilder i 0.36.0 lagras separat som `records.article_photo`, med bildversion för konfliktkontroll. Listorna bär enbart metadata och hämtar JPEG-bilden separat med kontroll av databassession och version. Fullständig säkerhetskopiering omfattar bilden; artikelimport utan bildfält bevarar den. Artikelbildposter undantas från bokslutets källfingeravtryck eftersom de inte utgör affärsunderlag. Inga nya tabeller eller ändringar av schema 10 krävs. Se [Artikelbilder](docs/ARTIKELBILDER.md).
+
+Leverantörsreturer i 0.37.0 lagras som `purchase_return` med separat LR-räknare och `purchase_return_event` i records. Retur och lagerrörelser sparas atomiskt med reviderad inleverans/order. Databasregler skyddar original och radering. Kreditreferenser är spårbara länkar, inte nya finansiella transaktioner. Regler för kredit- och originalfakturans artikelantal hindrar återanvändning mellan flera returer/krediter. Inköpsfakturornas befintliga artikelkoppling bevaras nu vid sparande i gränssnittet. Schema 10 behålls, med begränsat kompatibilitetsundantag för äldre kopior som saknar både de nya reglerna och returposter. Se [Leverantörsreturer](docs/LEVERANTORSRETURER.md).

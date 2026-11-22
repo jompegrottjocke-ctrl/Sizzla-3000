@@ -1,10 +1,12 @@
-Sizzla 3000 0.36.0 – valfria artikelbilder.
+Sizzla 3000 0.37.0 – leverantörsreturer mot inleverans.
 
-- Välj, byt eller ta bort bild i artikelprofilen. Ändringen sparas med Spara och kan avbrytas.
-- Miniatyr i Artiklar & tjänster och Lager, med klick för större visning.
-- JPEG, PNG eller WebP upp till 10 MB förminskas automatiskt till högst 384 × 384 och sparas som JPEG, högst 150 KiB. Originalfilen sparas inte.
-- Bilden ligger i företagets databas och följer med fullständig export/import och säkerhetskopior. Vanlig artikeluppdatering och artikelimport utan bildfält bevarar bilden.
-- Bilddata hämtas separat från listorna, med företags- och versionskontroll. Bildbyte ändrar inte lagerantal, finansiella dokument eller bokslutsfingeravtryck.
-- Svenska, engelska och stor text stöds. Se docs/ARTIKELBILDER.md.
+- Inköp → Inköpsorder → Öppna: registrera faktiskt tillbakaskickade lagerförda varor mot ursprunglig inleverans.
+- Returantal, dubbletter, revisioner, tillgängligt lager, reservationer och inventeringsgränser kontrolleras. LR-post, lager och nummerserie sparas atomiskt.
+- Koppla bokförd leverantörskredit från samma inköpsorder och leverantör. Artikelantal på kredit och originalfaktura kan inte återanvändas över flera kopplingar.
+- Felregistrering rättas med motsatt lagerrörelse och bevarat original. Ordervyn, inköpshistoriken och lagerhistoriken visar samband och ansvarig.
+- Artikelkoppling på orderfaktura och leverantörskredit bevaras vid sparande i gränssnittet.
+- Svenska, engelska och stor text stöds. Säkerhetskopiering och företagsbyte omfattar returposter och historik.
+
+Fysisk retur och kredit är separata händelser. Retur/kreditkoppling skapar ingen kredit, betalning eller verifikation och ändrar inte ursprungligt mottaget antal. Lagervärdering och verkliga bankhändelser behöver hanteras separat. Se docs/LEVERANTORSRETURER.md.
 
 Databasschema 10 är oförändrat. Windows 11 x64 och macOS 15+ (Apple Silicon/Intel). Förhandsversion med osignerade installationsfiler; Mac-appen är inte notarierad hos Apple.

@@ -149,6 +149,7 @@ function openEditor(kind,id) {
  editor={kind,record};renderEditor();
 }
 function captureEditor() {
+ if(editor?.kind==='supplierReturn')return captureSupplierReturn();
  if(editor?.kind==='wooOrders')return captureWooOrders();
  if(editor?.kind==='woo')return captureWoo();
  if(editor?.kind==='recurring')return captureRecurring();
@@ -167,6 +168,7 @@ function captureEditor() {
  editor.record={...editor.record,...data};
 }
 function renderEditor() {
+ if(editor.kind==='supplierReturn')return renderSupplierReturnEditor();
  if(editor.kind==='wooOrders')return renderWooOrders();
  if(editor.kind==='woo')return renderWoo();
  if(editor.kind==='recurring')return renderRecurringEditor();
